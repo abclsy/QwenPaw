@@ -1,4 +1,4 @@
-import { Layout, Space, Spin, Tooltip } from "antd";
+import { Layout, Space, Spin } from "antd";
 import LanguageSwitcher from "../components/LanguageSwitcher/index";
 import ThemeToggleButton from "../components/ThemeToggleButton";
 import { useTranslation } from "react-i18next";
@@ -6,15 +6,11 @@ import { Button, Modal } from "@agentscope-ai/design";
 import styles from "./index.module.less";
 import api from "../api";
 import {
-  GITHUB_URL,
-  getDocsUrl,
-  getFaqUrl,
   getReleaseNotesUrl,
-  PYPI_URL,
-  ONE_HOUR_MS,
-  // UPDATE_MD,
-  isStableVersion,
-  compareVersions,
+  // PYPI_URL,
+  // ONE_HOUR_MS,
+  // isStableVersion,
+  // compareVersions,
 } from "./constants";
 // import { useTheme } from "../contexts/ThemeContext";
 import { useState, useEffect } from "react";
@@ -53,7 +49,7 @@ export default function Header() {
   const { t, i18n } = useTranslation();
   // const { isDark } = useTheme();
   const [version, setVersion] = useState<string>("");
-  const [latestVersion, setLatestVersion] = useState<string>("");
+  const [latestVersion] = useState<string>("");
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [updateMarkdown] = useState<string>("");
 
@@ -64,49 +60,35 @@ export default function Header() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    fetch(PYPI_URL)
-      .then((res) => res.json())
-      .then((data) => {
-        const releases = data?.releases ?? {};
-
-        const versionsWithTime = Object.entries(releases)
-          .filter(([v]) => isStableVersion(v))
-          .map(([v, files]) => {
-            const fileList = files as Array<{ upload_time_iso_8601?: string }>;
-            const latestUpload = fileList
-              .map((f) => f.upload_time_iso_8601)
-              .filter(Boolean)
-              .sort()
-              .pop();
-            return { version: v, uploadTime: latestUpload || "" };
-          });
-
-        versionsWithTime.sort((a, b) => {
-          const timeDiff =
-            new Date(b.uploadTime).getTime() - new Date(a.uploadTime).getTime();
-          return timeDiff !== 0
-            ? timeDiff
-            : compareVersions(b.version, a.version);
-        });
-
-        const versions = versionsWithTime.map((v) => v.version);
-        const latest = versions[0] ?? data?.info?.version ?? "";
-
-        const releaseTime = versionsWithTime.find((v) => v.version === latest)
-          ?.uploadTime;
-        const isOldEnough =
-          !!releaseTime &&
-          new Date(releaseTime) <= new Date(Date.now() - ONE_HOUR_MS);
-
-        if (isOldEnough) {
-          setLatestVersion(latest);
-        } else {
-          setLatestVersion("");
-        }
-      })
-      .catch(() => {});
-  }, []);
+  // ── disabled version check for enterprise ──────────────────────────
+  // useEffect(() => {
+  //   fetch(PYPI_URL)
+  //     .then((res) => res.json())
+  //     .then((data) => {
+  //       const releases = data?.releases ?? {};
+  //       const versionsWithTime = Object.entries(releases)
+  //         .filter(([v]) => isStableVersion(v))
+  //         .map(([v, files]) => {
+  //           const fileList = files as Array<{ upload_time_iso_8601?: string }>;
+  //           const latestUpload = fileList
+  //             .map((f) => f.upload_time_iso_8601)
+  //             .filter(Boolean)
+  //             .sort()
+  //             .pop();
+  //           return { version: v, uploadTime: latestUpload || "" };
+  //         });
+  //       versionsWithTime.sort((a, b) => {
+  //         const timeDiff = new Date(b.uploadTime).getTime() - new Date(a.uploadTime).getTime();
+  //         return timeDiff !== 0 ? timeDiff : compareVersions(b.version, a.version);
+  //       });
+  //       const versions = versionsWithTime.map((v) => v.version);
+  //       const latest = versions[0] ?? data?.info?.version ?? "";
+  //       const releaseTime = versionsWithTime.find((v) => v.version === latest)?.uploadTime;
+  //       const isOldEnough = !!releaseTime && new Date(releaseTime) <= new Date(Date.now() - ONE_HOUR_MS);
+  //       if (isOldEnough) { setLatestVersion(latest); } else { setLatestVersion(""); }
+  //     })
+  //     .catch(() => {});
+  // }, []);
 
   // const hasUpdate =
   //   !!version && !!latestVersion && compareVersions(latestVersion, version) > 0;
@@ -154,7 +136,8 @@ export default function Header() {
       <AntHeader className={styles.header}>
         <div className={styles.logoWrapper}>
           <img
-            src={ "/rightLogo.png" }
+            src="/rightLogo.png"
+            alt="CrecPaw"
             className={styles.logoImg}
           />
           {/* {version && (
@@ -177,36 +160,6 @@ export default function Header() {
           )} */}
         </div>
         <Space size="middle">
-          <Tooltip title={t("header.changelog")}>
-            <Button
-              type="text"
-              onClick={() => handleNavClick(getReleaseNotesUrl(i18n.language))}
-            >
-              {t("header.changelog")}
-            </Button>
-          </Tooltip>
-          <Tooltip title={t("header.docs")}>
-            <Button
-              type="text"
-              onClick={() => handleNavClick(getDocsUrl(i18n.language))}
-            >
-              {t("header.docs")}
-            </Button>
-          </Tooltip>
-          <Tooltip title={t("header.faq")}>
-            <Button
-              type="text"
-              onClick={() => handleNavClick(getFaqUrl(i18n.language))}
-            >
-              {t("header.faq")}
-            </Button>
-          </Tooltip>
-          <Tooltip title={t("header.github")}>
-            <Button type="text" onClick={() => handleNavClick(GITHUB_URL)}>
-              {t("header.github")}
-            </Button>
-          </Tooltip>
-          <div className={styles.headerDivider} />
           <LanguageSwitcher />
           <ThemeToggleButton />
         </Space>

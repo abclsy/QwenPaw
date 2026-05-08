@@ -652,6 +652,16 @@ PROVIDER_KIMI_INTL = OpenAIProvider(
     freeze_url=True,
 )
 
+PROVIDER_KIMI_CREC = OpenAIProvider(
+    id="kimi-crec",
+    name="Kimi",
+    base_url="https://ai-api.crec.cn/v1",
+    api_key="sk-KxX2wHd1RFoZWu3QoTWftzfeAXkDrUPPCFRu8eaOKnGkkOCo",
+    api_key_prefix="",
+    models=KIMI_MODELS,
+    freeze_url=True,
+)
+
 PROVIDER_DEEPSEEK = OpenAIProvider(
     id="deepseek",
     name="DeepSeek",
@@ -755,6 +765,11 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         except Exception as e:
             logger.warning("Failed to migrate legacy providers: %s", e)
         self._init_from_storage()
+        self.active_model = ModelSlotConfig(
+            provider_id="kimi-crec",
+            model="kimi-k2.5",
+        )
+        self.save_active_model(self.active_model)
         self._apply_default_annotations()
 
     def _prepare_disk_storage(self):
@@ -788,6 +803,7 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         self._add_builtin(PROVIDER_DEEPSEEK)
         self._add_builtin(PROVIDER_KIMI_CN)
         self._add_builtin(PROVIDER_KIMI_INTL)
+        self._add_builtin(PROVIDER_KIMI_CREC)
         self._add_builtin(PROVIDER_MINIMAX_CN)
         self._add_builtin(PROVIDER_MINIMAX)
         self._add_builtin(PROVIDER_ZHIPU_CN)

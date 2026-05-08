@@ -6,6 +6,7 @@ import {
   Input,
   Form,
   Tooltip,
+  Select,
   type MenuProps,
 } from "antd";
 import { useState, useEffect } from "react";
@@ -350,74 +351,35 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
     },
   ];
 
-  // ── Menu items — global settings ──────────────────────────────────────
-
-  const settingsMenuItems: MenuProps["items"] = [
-    {
-      key: "settings-group",
-      label: collapsed ? null : t("nav.settings"),
-      children: [
-        {
-          key: "agents",
-          label: collapsed ? null : t("nav.agents"),
-          icon: <SparkAgentLine size={16} />,
-        },
-        {
-          key: "models",
-          label: collapsed ? null : t("nav.models"),
-          icon: <SparkModePlazaLine size={16} />,
-        },
-        {
-          key: "skill-pool",
-          label: collapsed ? null : t("nav.skillPool", "Skill Pool"),
-          icon: <SparkOtherLine size={16} />,
-        },
-        {
-          key: "environments",
-          label: collapsed ? null : t("nav.environments"),
-          icon: <SparkInternetLine size={16} />,
-        },
-        {
-          key: "security",
-          label: collapsed ? null : t("nav.security"),
-          icon: <SparkBrowseLine size={16} />,
-        },
-        {
-          key: "token-usage",
-          label: collapsed ? null : t("nav.tokenUsage"),
-          icon: <SparkDataLine size={16} />,
-        },
-        {
-          key: "backups",
-          label: collapsed ? null : t("nav.backups"),
-          icon: <SparkSaveLine size={16} />,
-        },
-        {
-          key: "voice-transcription",
-          label: collapsed ? null : t("nav.voiceTranscription"),
-          icon: <SparkMicLine size={16} />,
-        },
-        {
-          key: "debug",
-          label: collapsed ? null : t("nav.debug", "Debug"),
-          icon: <SparkDebugLine size={16} />,
-        },
-      ],
-    },
+  // ── Settings nav list for dropdown (used in non-collapsed mode) ───────
+  const settingsNavList = [
+    { key: "agents", label: t("nav.agents") },
+    { key: "models", label: t("nav.models") },
+    { key: "skill-pool", label: t("nav.skillPool", "Skill Pool") },
+    { key: "environments", label: t("nav.environments") },
+    { key: "security", label: t("nav.security") },
+    { key: "token-usage", label: t("nav.tokenUsage") },
+    { key: "backups", label: t("nav.backups") },
+    { key: "voice-transcription", label: t("nav.voiceTranscription") },
+    { key: "debug", label: t("nav.debug", "Debug") },
   ];
 
-  // Append plugin menu items as a group (only when there are plugins)
-  if (pluginRoutes.length > 0) {
-    settingsMenuItems.push({
-      key: "plugins-group",
-      label: collapsed ? null : t("nav.plugins"),
-      children: pluginRoutes.map((route) => ({
-        key: route.path.replace(/^\//, ""),
-        label: collapsed ? null : route.label,
-        icon: <span style={{ fontSize: 16 }}>{route.icon}</span>,
-      })),
-    } as any);
-  }
+  const settingOptions = [
+    ...settingsNavList.map((item) => ({
+      value: item.key,
+      label: item.label,
+    })),
+    ...pluginRoutes.map((route) => ({
+      value: route.path.replace(/^\//, ""),
+      label: route.label,
+    })),
+  ];
+
+  const isSettingsKey = (key: string) =>
+    settingsNavList.some((item) => item.key === key) ||
+    pluginRoutes.some(
+      (route) => route.path.replace(/^\//, "") === key,
+    );
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -476,21 +438,20 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
           </div>
 
           {/* Global settings section */}
-          <Menu
-            mode="inline"
-            selectedKeys={[selectedKey]}
-            openKeys={[
-              ...DEFAULT_OPEN_KEYS,
-              ...(pluginRoutes.length > 0 ? ["plugins-group"] : []),
-            ]}
-            onClick={({ key }) => {
-              const path = KEY_TO_PATH[String(key)] ?? `/${String(key)}`;
-              navigate(path);
-            }}
-            items={settingsMenuItems}
-            theme={isDark ? "dark" : "light"}
-            className={styles.sideMenu}
-          />
+          <div className={styles.settingsSection}>
+            <div className={styles.settingsLabel}>{t("nav.settings")}</div>
+            <Select
+              value={isSettingsKey(selectedKey) ? selectedKey : undefined}
+              placeholder={t("nav.settings")}
+              options={settingOptions}
+              onChange={(value) => {
+                const path =
+                  KEY_TO_PATH[String(value)] ?? `/${String(value)}`;
+                if (path) navigate(path);
+              }}
+              className={styles.settingsSelect}
+            />
+          </div>
         </>
       )}
 

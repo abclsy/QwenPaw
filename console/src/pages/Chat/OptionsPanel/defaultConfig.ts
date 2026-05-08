@@ -2,12 +2,12 @@ import type { TFunction } from "i18next";
 
 const defaultConfig = {
   theme: {
-    colorPrimary: "#FF7F16",
+    colorPrimary: "#1961AC",
     darkMode: false,
     prefix: "qwenpaw",
     leftHeader: {
       logo: "",
-      title: "Work with QwenPaw",
+      title: "Work with CrecPaw",
     },
   },
   sender: {
