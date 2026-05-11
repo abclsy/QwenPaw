@@ -1,9 +1,22 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
 from PyInstaller.utils.hooks import collect_all
+
+# Project root (where this .spec file lives)
+repo_root = os.path.dirname(os.path.abspath(__spec__))
 
 datas = []
 binaries = []
-hiddenimports = ['qwenpaw.cli.main', 'chromadb.telemetry.product.posthog', 'chromadb.api.rust', 'chromadb.api.rust_client', 'chromadb.api.segment', 'chromadb.api.segment_client']
+hiddenimports = [
+    'qwenpaw.cli.main',
+    'chromadb.telemetry.product.posthog',
+    'chromadb.api.rust',
+    'chromadb.api.rust_client',
+    'chromadb.api.segment',
+    'chromadb.api.segment_client',
+]
+
+# Collect Python packages
 tmp_ret = collect_all('qwenpaw')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('chromadb')
@@ -17,10 +30,17 @@ datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('fastapi')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
+# Explicitly include console frontend assets (editable install may miss these)
+console_src = os.path.join(repo_root, 'src', 'qwenpaw', 'console')
+if os.path.isdir(console_src):
+    datas.append((console_src, 'qwenpaw/console'))
 
 a = Analysis(
     ['app.py'],
-    pathex=['/Users/liusiyuan/Documents/workSpaceNew/QwenPaw/venv/lib/python3.13/site-packages'],
+    pathex=[
+        repo_root,
+        os.path.join(repo_root, 'src'),
+    ],
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,

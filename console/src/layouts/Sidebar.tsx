@@ -2,9 +2,6 @@ import {
   Layout,
   Menu,
   Button,
-  Modal,
-  Input,
-  Form,
   Tooltip,
   Select,
   type MenuProps,
@@ -33,9 +30,6 @@ import {
   SparkMicLine,
   SparkAgentLine,
   SparkExitFullscreenLine,
-  SparkSearchUserLine,
-  SparkMenuExpandLine,
-  SparkMenuFoldLine,
   SparkOtherLine,
   SparkBarChartLine,
   SparkDebugLine,
@@ -63,14 +57,11 @@ interface SidebarProps {
 export default function Sidebar({ selectedKey }: SidebarProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { message } = useAppMessage();
+  const { message: _msg } = useAppMessage();
   const { isDark } = useTheme();
   const { pluginRoutes } = usePlugins();
   const [authEnabled, setAuthEnabled] = useState(false);
-  const [accountModalOpen, setAccountModalOpen] = useState(false);
-  const [accountLoading, setAccountLoading] = useState(false);
-  const [accountForm] = Form.useForm();
-  const [collapsed, setCollapsed] = useState(false);
+  const collapsed = false;
 
   // ── Effects ──────────────────────────────────────────────────────────────
 
@@ -82,59 +73,6 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
   }, []);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
-
-  const handleUpdateProfile = async (values: {
-    currentPassword: string;
-    newUsername?: string;
-    newPassword?: string;
-  }) => {
-    const trimmedUsername = values.newUsername?.trim() || undefined;
-    const trimmedPassword = values.newPassword?.trim() || undefined;
-
-    if (values.newPassword && !trimmedPassword) {
-      message.error(t("account.passwordEmpty"));
-      return;
-    }
-
-    if (values.newUsername && !trimmedUsername) {
-      message.error(t("account.usernameEmpty"));
-      return;
-    }
-
-    if (!trimmedUsername && !trimmedPassword) {
-      message.warning(t("account.nothingToUpdate"));
-      return;
-    }
-
-    setAccountLoading(true);
-    try {
-      await authApi.updateProfile(
-        values.currentPassword,
-        trimmedUsername,
-        trimmedPassword,
-      );
-      message.success(t("account.updateSuccess"));
-      setAccountModalOpen(false);
-      accountForm.resetFields();
-      clearAuthToken();
-      window.location.href = "/login";
-    } catch (err: unknown) {
-      const raw = err instanceof Error ? err.message : "";
-      let msg = t("account.updateFailed");
-      if (raw.includes("password is incorrect")) {
-        msg = t("account.wrongPassword");
-      } else if (raw.includes("Nothing to update")) {
-        msg = t("account.nothingToUpdate");
-      } else if (raw.includes("cannot be empty")) {
-        msg = t("account.nothingToUpdate");
-      } else if (raw) {
-        msg = raw;
-      }
-      message.error(msg);
-    } finally {
-      setAccountLoading(false);
-    }
-  };
 
   // ── Collapsed nav items (all leaf pages) ──────────────────────────────
 
@@ -274,7 +212,7 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
     })),
   ];
 
-  // ── Menu items — agent-scoped (Chat + Control + Workspace) ──────────────
+  // ── Menu items — Chat only (Control & Workspace moved to dropdowns) ────
 
   const agentMenuItems: MenuProps["items"] = [
     {
@@ -282,74 +220,42 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
       label: collapsed ? null : t("nav.chat"),
       icon: <SparkChatTabFill size={16} />,
     },
-    {
-      key: "control-group",
-      label: collapsed ? null : t("nav.control"),
-      children: [
-        {
-          key: "channels",
-          label: collapsed ? null : t("nav.channels"),
-          icon: <SparkWifiLine size={16} />,
-        },
-        {
-          key: "sessions",
-          label: collapsed ? null : t("nav.sessions"),
-          icon: <SparkUserGroupLine size={16} />,
-        },
-        {
-          key: "cron-jobs",
-          label: collapsed ? null : t("nav.cronJobs"),
-          icon: <SparkDateLine size={16} />,
-        },
-        {
-          key: "heartbeat",
-          label: collapsed ? null : t("nav.heartbeat"),
-          icon: <SparkVoiceChat01Line size={16} />,
-        },
-      ],
-    },
-    {
-      key: "agent-group",
-      label: collapsed ? null : t("nav.agent"),
-      children: [
-        {
-          key: "workspace",
-          label: collapsed ? null : t("nav.workspace"),
-          icon: <SparkLocalFileLine size={16} />,
-        },
-        {
-          key: "skills",
-          label: collapsed ? null : t("nav.skills"),
-          icon: <SparkMagicWandLine size={16} />,
-        },
-        {
-          key: "tools",
-          label: collapsed ? null : t("nav.tools"),
-          icon: <SparkToolLine size={16} />,
-        },
-        {
-          key: "mcp",
-          label: collapsed ? null : t("nav.mcp"),
-          icon: <SparkMcpMcpLine size={16} />,
-        },
-        {
-          key: "acp",
-          label: collapsed ? null : t("nav.acp"),
-          icon: <SparkScanLine size={16} />,
-        },
-        {
-          key: "agent-config",
-          label: collapsed ? null : t("nav.agentConfig"),
-          icon: <SparkModifyLine size={16} />,
-        },
-        {
-          key: "agent-stats",
-          label: collapsed ? null : t("nav.agentStats"),
-          icon: <SparkBarChartLine size={16} />,
-        },
-      ],
-    },
   ];
+
+  // ── Control nav list for dropdown ──────────────────────────────────────
+  const controlNavList = [
+    { key: "channels", label: t("nav.channels") },
+    { key: "sessions", label: t("nav.sessions") },
+    { key: "cron-jobs", label: t("nav.cronJobs") },
+    { key: "heartbeat", label: t("nav.heartbeat") },
+  ];
+
+  const controlOptions = controlNavList.map((item) => ({
+    value: item.key,
+    label: item.label,
+  }));
+
+  const isControlKey = (key: string) =>
+    controlNavList.some((item) => item.key === key);
+
+  // ── Workspace nav list for dropdown ────────────────────────────────────
+  const workspaceNavList = [
+    { key: "workspace", label: t("nav.workspace") },
+    { key: "skills", label: t("nav.skills") },
+    { key: "tools", label: t("nav.tools") },
+    { key: "mcp", label: t("nav.mcp") },
+    { key: "acp", label: t("nav.acp") },
+    { key: "agent-config", label: t("nav.agentConfig") },
+    { key: "agent-stats", label: t("nav.agentStats") },
+  ];
+
+  const workspaceOptions = workspaceNavList.map((item) => ({
+    value: item.key,
+    label: item.label,
+  }));
+
+  const isWorkspaceKey = (key: string) =>
+    workspaceNavList.some((item) => item.key === key);
 
   // ── Settings nav list for dropdown (used in non-collapsed mode) ───────
   const settingsNavList = [
@@ -390,8 +296,9 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
         collapsed ? ` ${styles.siderCollapsed}` : ""
       }${isDark ? ` ${styles.siderDark}` : ""}`}
     >
-      {collapsed ? (
-        <nav className={styles.collapsedNav}>
+      <div className={styles.siderScrollContent}>
+        {collapsed ? (
+          <nav className={styles.collapsedNav}>
           {collapsedNavItems.map((item) => {
             const isActive = selectedKey === item.key;
             return (
@@ -418,7 +325,7 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
         </nav>
       ) : (
         <>
-          {/* Agent-scoped section: selector + Chat + Control + Workspace */}
+          {/* Agent-scoped section: selector + Chat */}
           <div className={styles.agentScopedSection}>
             <div className={styles.agentSelectorContainer}>
               <AgentSelector collapsed={collapsed} />
@@ -432,8 +339,40 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
                 if (path) navigate(path);
               }}
               items={agentMenuItems}
-              theme={isDark ? "dark" : "light"}
+              theme="dark"
               className={styles.sideMenu}
+            />
+          </div>
+
+          {/* Control dropdown section */}
+          <div className={styles.settingsSection}>
+            <div className={styles.settingsLabel}>{t("nav.control")}</div>
+            <Select
+              value={isControlKey(selectedKey) ? selectedKey : undefined}
+              placeholder={t("nav.control")}
+              options={controlOptions}
+              onChange={(value) => {
+                const path =
+                  KEY_TO_PATH[String(value)] ?? `/${String(value)}`;
+                if (path) navigate(path);
+              }}
+              className={styles.settingsSelect}
+            />
+          </div>
+
+          {/* Workspace dropdown section */}
+          <div className={styles.settingsSection}>
+            <div className={styles.settingsLabel}>{t("nav.agent")}</div>
+            <Select
+              value={isWorkspaceKey(selectedKey) ? selectedKey : undefined}
+              placeholder={t("nav.agent")}
+              options={workspaceOptions}
+              onChange={(value) => {
+                const path =
+                  KEY_TO_PATH[String(value)] ?? `/${String(value)}`;
+                if (path) navigate(path);
+              }}
+              className={styles.settingsSelect}
             />
           </div>
 
@@ -453,24 +392,12 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
             />
           </div>
         </>
-      )}
+        )}
+      </div>
 
-      {authEnabled && !collapsed && (
-        <div className={styles.authActions}>
-          <Button
-            type="text"
-            icon={<SparkSearchUserLine size={16} />}
-            onClick={() => {
-              accountForm.resetFields();
-              setAccountModalOpen(true);
-            }}
-            block
-            className={`${styles.authBtn} ${
-              collapsed ? styles.authBtnCollapsed : ""
-            }`}
-          >
-            {!collapsed && t("account.title")}
-          </Button>
+      {/* Footer — pinned at bottom */}
+      <div className={styles.siderFooter}>
+        {authEnabled && (
           <Button
             type="text"
             icon={<SparkExitFullscreenLine size={16} />}
@@ -485,88 +412,9 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
           >
             {!collapsed && t("login.logout")}
           </Button>
-        </div>
-      )}
-
-      <div className={styles.collapseToggleContainer}>
-        <Button
-          type="text"
-          icon={
-            collapsed ? (
-              <SparkMenuExpandLine size={20} />
-            ) : (
-              <SparkMenuFoldLine size={20} />
-            )
-          }
-          onClick={() => setCollapsed(!collapsed)}
-          className={styles.collapseToggle}
-        />
+        )}
       </div>
 
-      <Modal
-        open={accountModalOpen}
-        onCancel={() => setAccountModalOpen(false)}
-        title={t("account.title")}
-        footer={null}
-        destroyOnHidden
-        centered
-      >
-        <Form
-          form={accountForm}
-          layout="vertical"
-          onFinish={handleUpdateProfile}
-        >
-          <Form.Item
-            name="currentPassword"
-            label={t("account.currentPassword")}
-            rules={[
-              { required: true, message: t("account.currentPasswordRequired") },
-            ]}
-          >
-            <Input.Password />
-          </Form.Item>
-          <Form.Item name="newUsername" label={t("account.newUsername")}>
-            <Input placeholder={t("account.newUsernamePlaceholder")} />
-          </Form.Item>
-          <Form.Item name="newPassword" label={t("account.newPassword")}>
-            <Input.Password placeholder={t("account.newPasswordPlaceholder")} />
-          </Form.Item>
-          <Form.Item
-            name="confirmPassword"
-            label={t("account.confirmPassword")}
-            dependencies={["newPassword"]}
-            rules={[
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value && !getFieldValue("newPassword")) {
-                    return Promise.resolve();
-                  }
-                  if (value === getFieldValue("newPassword")) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(
-                    new Error(t("account.passwordMismatch")),
-                  );
-                },
-              }),
-            ]}
-          >
-            <Input.Password
-              placeholder={t("account.confirmPasswordPlaceholder")}
-            />
-          </Form.Item>
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              loading={accountLoading}
-              block
-            >
-              {t("account.save")}
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
     </Sider>
   );
 }

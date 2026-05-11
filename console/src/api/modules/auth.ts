@@ -9,6 +9,7 @@ export interface LoginResponse {
 export interface AuthStatusResponse {
   enabled: boolean;
   has_users: boolean;
+  oauth_enabled: boolean;
 }
 
 export const authApi = {
@@ -44,6 +45,22 @@ export const authApi = {
   getStatus: async (): Promise<AuthStatusResponse> => {
     const res = await fetch(getApiUrl("/auth/status"));
     if (!res.ok) throw new Error("Failed to check auth status");
+    return res.json();
+  },
+
+  oauthLogin: async (
+    code: string,
+    redirectUri: string,
+  ): Promise<LoginResponse> => {
+    const res = await fetch(getApiUrl("/auth/oauth/login"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code, redirect_uri: redirectUri }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "OAuth login failed");
+    }
     return res.json();
   },
 

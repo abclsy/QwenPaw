@@ -14,7 +14,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #f9f8f4;
+  background: #1961AC;
 }
 
 .headerTitle {
@@ -26,14 +26,30 @@
   white-space: nowrap;
 }
 
+.headerLink {
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.headerLinks {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 .sider {
   background: #f9f8f4 !important;
-  overflow: auto;
+  overflow: hidden;
   height: calc(100vh - 64px);
   padding: 0 16px;
-  display: flex;
-  flex-direction: column;
+  position: relative;
 
   // Hide scrollbar in browser
   &::-webkit-scrollbar {
@@ -55,6 +71,22 @@
   /* Firefox */
   -ms-overflow-style: none;
   /* IE and Edge */
+
+  .siderScrollContent {
+    // push footer to bottom via flex + leave room for absolute footer
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    min-height: 0;
+    padding-bottom: 110px;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
 
   // Agent-scoped section: selector + Chat + Control + Workspace
   .agentScopedSection {
@@ -203,6 +235,12 @@
     }
   }
 
+  // Spacer pushing bottom buttons down
+  .bottomSpacer {
+    flex: 1;
+    min-height: 0;
+  }
+
   // Settings section (dropdown)
   .settingsSection {
     padding: 8px 12px;
@@ -326,47 +364,46 @@
   border-top: 1px solid #f0f0f0;
 }
 
-.authBtn {
+/* Sider Footer — pinned at bottom, holds logout + collapse */
+.siderFooter {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: flex-start;
-  color: rgba(0, 0, 0, 0.65);
+  flex-direction: column;
 
-  &:hover {
-    color: rgba(0, 0, 0, 0.88) !important;
-    background: rgba(0, 0, 0, 0.04) !important;
-  }
-}
-
-.authBtnCollapsed {
-  justify-content: center;
-}
-
-.authBtn + .authBtn {
-  margin-top: 4px;
-}
-
-/* Collapse Toggle Button */
-.collapseToggleContainer {
-  flex-shrink: 0;
-  z-index: 10;
-  width: calc(100% + 32px);
-  margin: 0 -16px;
+  border-top: 1px solid #f0f0f0;
   padding: 8px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
+  gap: 4px;
 
-.collapseToggle {
-  color: rgba(0, 0, 0, 0.45);
-  border-radius: 8px;
-  transition: all 0.2s;
+  .authBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-start;
+    color: rgba(0, 0, 0, 0.65);
 
-  &:hover {
-    background: rgba(0, 0, 0, 0.06) !important;
-    color: #1961AC !important;
+    &:hover {
+      color: rgba(0, 0, 0, 0.88) !important;
+      background: rgba(0, 0, 0, 0.04) !important;
+    }
+  }
+
+  .authBtnCollapsed {
+    justify-content: center;
+  }
+
+  .collapseToggle {
+    color: rgba(0, 0, 0, 0.45);
+    border-radius: 8px;
+    transition: all 0.2s;
+    margin-left: auto;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.06) !important;
+      color: #1961AC !important;
+    }
   }
 }
 
@@ -614,25 +651,25 @@
     color: #1961AC;
   }
 
-  .authActions {
+  .siderFooter {
     border-top-color: rgba(255, 255, 255, 0.08);
-  }
 
-  .authBtn {
-    color: rgba(255, 255, 255, 0.75);
+    .authBtn {
+      color: rgba(255, 255, 255, 0.75);
 
-    &:hover {
-      color: rgba(255, 255, 255, 0.9) !important;
-      background: rgba(255, 255, 255, 0.06) !important;
+      &:hover {
+        color: rgba(255, 255, 255, 0.9) !important;
+        background: rgba(255, 255, 255, 0.06) !important;
+      }
     }
-  }
 
-  .collapseToggle {
-    color: rgba(255, 255, 255, 0.45);
+    .collapseToggle {
+      color: rgba(255, 255, 255, 0.45);
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #1961AC;
+      &:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #1961AC;
+      }
     }
   }
 
