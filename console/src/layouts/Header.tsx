@@ -1,17 +1,24 @@
 import { Layout } from "antd";
 import styles from "./index.module.less";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../contexts/ThemeContext";
 
 const { Header: AntHeader } = Layout;
 
 export default function Header() {
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
+
+  const logoSrc =
+    resolvedTheme === "light" ? "/rightLogo-light.png" : "/rightLogo.png";
 
   return (
-    <AntHeader className={styles.header}>
+    <AntHeader
+      className={`${styles.header} ${resolvedTheme === "light" ? styles.headerLight : ""}`}
+    >
       <div className={styles.logoWrapper}>
         <img
-          src="/rightLogo.png"
+          src={logoSrc}
           alt="CrecPaw"
           className={styles.logoImg}
           style={{ cursor: "pointer" }}

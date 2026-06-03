@@ -4,6 +4,7 @@ import {
   Button,
   Tooltip,
   Select,
+  Segmented,
   type MenuProps,
 } from "antd";
 import { useState, useEffect } from "react";
@@ -40,6 +41,7 @@ import { authApi } from "../api/modules/auth";
 import { usePlugins } from "../plugins/PluginContext";
 import styles from "./index.module.less";
 import { useTheme } from "../contexts/ThemeContext";
+import type { ThemeMode } from "../contexts/ThemeContext";
 import { KEY_TO_PATH, DEFAULT_OPEN_KEYS } from "./constants";
 
 // ── Layout ────────────────────────────────────────────────────────────────
@@ -58,7 +60,7 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { message: _msg } = useAppMessage();
-  const { isDark } = useTheme();
+  const { isDark, themeMode, setThemeMode } = useTheme();
   const { pluginRoutes } = usePlugins();
   const [authEnabled, setAuthEnabled] = useState(false);
   const collapsed = false;
@@ -339,7 +341,7 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
                 if (path) navigate(path);
               }}
               items={agentMenuItems}
-              theme="dark"
+              theme={isDark ? "dark" : "light"}
               className={styles.sideMenu}
             />
           </div>
@@ -389,6 +391,21 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
                 if (path) navigate(path);
               }}
               className={styles.settingsSelect}
+            />
+          </div>
+
+          {/* Theme appearance section */}
+          <div className={styles.settingsSection}>
+            <div className={styles.settingsLabel}>{t("nav.appearance")}</div>
+            <Segmented<ThemeMode>
+              value={themeMode}
+              options={[
+                { value: "dark", label: t("theme.dark") },
+                { value: "light", label: t("theme.light") },
+                { value: "system", label: t("theme.system") },
+              ]}
+              onChange={(val) => setThemeMode(val as ThemeMode)}
+              block
             />
           </div>
         </>

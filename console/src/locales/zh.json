@@ -63,7 +63,8 @@
     "voiceTranscription": "语音转写",
     "debug": "调试",
     "plugins": "插件",
-    "backups": "备份"
+    "backups": "备份",
+    "appearance": "外观"
   },
   "debug": {
     "title": "调试",
@@ -1387,10 +1388,11 @@
     "statusIdle": "空闲",
     "statusInProgress": "进行中",
     "disclaimer": "懂你心意，伴你同行",
-    "greeting": "你好，我今天能帮你做什么？",
-    "description": "我是一个智能助手，可以帮助你解答问题。",
-    "prompt1": "让我们开启一段新的旅程吧！",
-    "prompt2": "能告诉我你有哪些技能吗？",
+    "greeting": "你好，我是 CrecPaw 🐾",
+    "description": "你的智能工作助手，帮你写代码、处理文档、分析数据、管理任务。试试告诉我你需要什么吧！",
+    "prompt1": "你能帮我做什么？介绍一下你的功能",
+    "prompt2": "帮我创建一个项目任务清单模板",
+    "prompt3": "今天有哪些重要事项需要关注？",
     "inputPlaceholder": "\"↑↓\" 浏览消息 · \"/\" 快捷指令（审批时 \"/approve\" 或 \"/deny\"）",
     "commands": {
       "clear": {

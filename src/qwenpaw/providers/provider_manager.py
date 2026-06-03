@@ -767,7 +767,7 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         self._init_from_storage()
         self.active_model = ModelSlotConfig(
             provider_id="kimi-crec",
-            model="kimi-k2.5",
+            model="kimi",
         )
         self.save_active_model(self.active_model)
         self._apply_default_annotations()

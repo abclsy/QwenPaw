@@ -63,7 +63,8 @@
     "voiceTranscription": "Voice Transcription",
     "debug": "Debug",
     "plugins": "Plugins",
-    "backups": "Backups"
+    "backups": "Backups",
+    "appearance": "Appearance"
   },
   "debug": {
     "title": "Debug",

@@ -2,7 +2,6 @@
 import os
 from PyInstaller.utils.hooks import collect_all
 
-# Project root (where this .spec file lives)
 repo_root = SPECPATH
 
 datas = []
@@ -16,7 +15,6 @@ hiddenimports = [
     'chromadb.api.segment_client',
 ]
 
-# Collect Python packages
 tmp_ret = collect_all('qwenpaw')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('chromadb')
@@ -30,13 +28,12 @@ datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('fastapi')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
-# Explicitly include console frontend assets (editable install may miss these)
 console_src = os.path.join(repo_root, 'src', 'qwenpaw', 'console')
 if os.path.isdir(console_src):
     datas.append((console_src, 'qwenpaw/console'))
 
 a = Analysis(
-    ['app.py'],
+    ['crec_desktop.py'],
     pathex=[
         repo_root,
         os.path.join(repo_root, 'src'),
@@ -63,7 +60,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
@@ -78,4 +75,18 @@ coll = COLLECT(
     upx=True,
     upx_exclude=[],
     name='CrecPaw',
+)
+
+app = BUNDLE(
+    coll,
+    name='CrecPaw.app',
+    icon=os.path.join(repo_root, 'CrecPaw.icns'),
+    bundle_identifier='com.crec.crecpaw',
+    info_plist={
+        'NSHighResolutionCapable': True,
+        'LSMinimumSystemVersion': '12.0',
+        'CFBundleName': 'CrecPaw',
+        'CFBundleDisplayName': 'CrecPaw',
+        'CFBundleShortVersionString': '1.0',
+    },
 )

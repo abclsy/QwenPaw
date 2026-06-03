@@ -13,6 +13,19 @@ const CREC_OAUTH_CLIENT_ID = "tyyfjsgk";
 const CREC_OAUTH_AUTHORIZE_URL =
   "https://tyrz.crec.cn/idp/oauth2/authorize";
 
+function generateOAuthState(): string {
+  const state = Math.random().toString(36).substring(2, 15) +
+    Date.now().toString(36);
+  sessionStorage.setItem("crec_oauth_state", state);
+  return state;
+}
+
+function verifyOAuthState(urlState: string): boolean {
+  const saved = sessionStorage.getItem("crec_oauth_state");
+  sessionStorage.removeItem("crec_oauth_state");
+  return saved !== null && saved === urlState;
+}
+
 function getOAuthRedirectUri(): string {
   // 去掉当前 URL 中的 code / state 等 OAuth 回调参数
   const url = new URL(window.location.href);
@@ -34,15 +47,8 @@ export default function LoginPage() {
   const [showLocalLogin, setShowLocalLogin] = useState(false);
   const { message } = useAppMessage();
 
-  // ── OAuth 回调处理：进入页面时若 URL 中有 code，自动登录 ──
+  // ── 检查认证状态 ──
   useEffect(() => {
-    const code = searchParams.get("code");
-    if (code) {
-      setOauthLoading(true);
-      handleOAuthLogin(code);
-      return;
-    }
-
     authApi
       .getStatus()
       .then((res) => {
@@ -58,7 +64,28 @@ export default function LoginPage() {
       })
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigate, searchParams]);
+  }, []);
+
+  // ── OAuth 回调处理：URL 中有 code 时自动登录 ──
+  useEffect(() => {
+    const code = searchParams.get("code");
+    const state = searchParams.get("state");
+
+    if (!code) return;
+
+    if (!state || !verifyOAuthState(state)) {
+      message.error("OAuth state 验证失败，请重新登录");
+      setOauthLoading(false);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("code");
+      url.searchParams.delete("state");
+      window.history.replaceState({}, "", url.toString());
+      return;
+    }
+    setOauthLoading(true);
+    handleOAuthLogin(code);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const handleOAuthLogin = useCallback(async (code: string) => {
     try {
@@ -122,13 +149,17 @@ export default function LoginPage() {
     }
   };
 
-  // ── 跳转到中铁统一认证 ──
+  // ── 跳转 OAuth（加时间戳破缓存）──
   const handleCrecOAuth = () => {
     const redirect = getOAuthRedirectUri();
+    const state = generateOAuthState();
     const authUrl =
       `${CREC_OAUTH_AUTHORIZE_URL}?client_id=${CREC_OAUTH_CLIENT_ID}` +
       `&redirect_uri=${encodeURIComponent(redirect)}` +
-      `&response_type=code`;
+      `&response_type=code` +
+      `&state=${encodeURIComponent(state)}` +
+      `&_t=${Date.now()}`; // 破 WKWebView 缓存死锁
+
     window.location.href = authUrl;
   };
 
@@ -207,6 +238,7 @@ export default function LoginPage() {
 
         {/* ── 中铁统一认证登录按钮 ── */}
         {oauthEnabled && (
+          <>
           <Button
             type="primary"
             block
@@ -223,6 +255,17 @@ export default function LoginPage() {
           >
             {t("login.crecOAuth") || "中铁统一认证登录"}
           </Button>
+          <p
+            style={{
+              textAlign: "center",
+              color: "#999",
+              fontSize: 12,
+              margin: "8px 0 0 0",
+            }}
+          >
+            提示：跳转后如未显示二维码，请点击页面下方「扫码」按钮
+          </p>
+          </>
         )}
 
         {/* ── 本地登录表单（OAuth 模式下默认折叠）── */}
