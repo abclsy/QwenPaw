@@ -69,67 +69,6 @@ class OAuthLoginRequest(BaseModel):
     expires_in: int | None = None
 
 
-class OAuthPasswordLoginRequest(BaseModel):
-    username: str
-    password: str
-
-
-@router.post("/oauth/password-login")
-async def oauth_password_login(req: OAuthPasswordLoginRequest):
-    """OAuth2 密码模式直连认证 — 绕过扫码页面。
-
-    直接 POST /idp/oauth2/getToken 使用 grant_type=password，
-    如果 tyrz.crec.cn 支持此模式则直接返回 token，否则返回原始错误。
-    """
-    if not _OAUTH_CLIENT_ID:
-        raise HTTPException(
-            status_code=503,
-            detail="OAuth2 client_id is not configured",
-        )
-    if not _OAUTH_CLIENT_SECRET:
-        raise HTTPException(
-            status_code=503,
-            detail="OAuth2 client_secret is not configured",
-        )
-
-    token_payload = {
-        "grant_type": "password",
-        "username": req.username,
-        "password": req.password,
-        "client_id": _OAUTH_CLIENT_ID,
-        "client_secret": _OAUTH_CLIENT_SECRET,
-    }
-
-    async with httpx.AsyncClient(verify=False, timeout=30) as client:
-        try:
-            resp = await client.post(_OAUTH_TOKEN_URL, data=token_payload)
-            raw_text = resp.text
-            status = resp.status_code
-            try:
-                token_data = resp.json()
-            except Exception:
-                token_data = None
-        except httpx.HTTPError as exc:
-            raise HTTPException(
-                status_code=502,
-                detail=f"Password grant request failed: {exc!s}",
-            )
-
-    if status != 200 or not token_data:
-        return {
-            "supported": False,
-            "status": status,
-            "response": raw_text[:500],
-        }
-
-    return {
-        "supported": True,
-        "access_token": token_data.get("access_token"),
-        "uid": token_data.get("uid"),
-        "expires_in": token_data.get("expires_in"),
-        "_raw": token_data,  # 调试用：查看 tyrz 实际返回的字段
-    }
-
 
 @router.post("/login")
 async def login(req: LoginRequest):
@@ -279,6 +218,7 @@ async def oauth_login(req: OAuthLoginRequest):
         )
 
     token = create_token(str(username), req.expires_in)
+
     return LoginResponse(token=token, username=str(username))
 
 

@@ -18,15 +18,15 @@ from ..schema import FileBlock
 from .file_io import _resolve_file_path
 
 
-def _path_to_file_url(path: str) -> str:
-    """Convert a local file path to a proper file:// URL (RFC 8089).
+def _path_to_api_url(path: str) -> str:
+    """Convert a local file path to a relative API preview URL.
 
-    On Windows, converts:
-      C:\\path\\file.txt      →  file:///C:/path/file.txt
-      \\\\server\\share\\f.txt  →  file://server/share/f.txt
+    Works cross-platform: returns an API endpoint URL that the browser
+    can fetch to preview/download the file.
 
-    Non-ASCII characters and ``%`` are percent-encoded so the URL is
-    always valid ASCII and round-trips correctly through url2pathname.
+    Examples:
+        /Users/xxx/output/doc.html  →  /api/files/preview/Users/xxx/output/doc.html
+        C:\\temp\\file.pdf           →  /api/files/preview/C:/temp/file.pdf
     """
     # Normalize to absolute path
     abs_path = os.path.abspath(path)
@@ -35,20 +35,10 @@ def _path_to_file_url(path: str) -> str:
     if os.name == "nt":
         abs_path = abs_path.replace("\\", "/")
 
-    # Percent-encode non-ASCII and special characters.
-    # ``%`` must NOT be in *safe* — otherwise a literal ``%25`` in a
-    # filename would survive un-encoded and be mis-decoded later.
-    encoded_path = quote(abs_path, safe="/:@")
+    # Percent-encode non-ASCII and special characters except common safe chars.
+    encoded = quote(abs_path, safe="/:@")
 
-    # RFC 8089: file:///  (authority is empty → three slashes)
-    if os.name == "nt":
-        # UNC path: //server/share/… → file://server/share/…
-        if encoded_path.startswith("//"):
-            return f"file:{encoded_path}"
-        # Local drive: C:/… → file:///C:/…
-        return f"file:///{encoded_path}"
-    # POSIX: abs_path already starts with "/" → file:///…
-    return f"file://{encoded_path}"
+    return f"/api/files/preview/{encoded}"
 
 
 def _auto_as_type(mt: str) -> str:
@@ -111,8 +101,10 @@ async def send_file_to_user(
     as_type = _auto_as_type(mime_type)
 
     try:
-        # Use local file URL instead of base64
-        file_url = _path_to_file_url(file_path)
+        # Use API-relative URL so the browser/WKWebView can render HTML inline
+        # via the /api/files/preview/ endpoint.  Non-HTML files will trigger
+        # a download through the same endpoint (Content-Disposition: attachment).
+        file_url = _path_to_api_url(file_path)
         source = {"type": "url", "url": file_url}
 
         if as_type == "image":
@@ -137,12 +129,37 @@ async def send_file_to_user(
                 ],
             )
 
+        basename = os.path.basename(file_path)
+        is_html = basename.lower().endswith((".html", ".htm"))
+
+        if is_html:
+            return ToolResponse(
+                content=[
+                    TextBlock(
+                        type="text",
+                        text=(
+                            f"✅ HTML 文件已生成：**{basename}**\n"
+                            f"预览链接：{file_url}"
+                        ),
+                    ),
+                    FileBlock(
+                        type="file",
+                        source=source,
+                        filename=basename,
+                    ),
+                    TextBlock(
+                        type="text",
+                        text="> 预览后点击页面顶部的「← 返回」回到对话",
+                    ),
+                ],
+            )
+
         return ToolResponse(
             content=[
                 FileBlock(
                     type="file",
                     source=source,
-                    filename=os.path.basename(file_path),
+                    filename=basename,
                 ),
                 TextBlock(type="text", text="File sent successfully."),
             ],

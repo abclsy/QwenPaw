@@ -27,7 +27,6 @@ function verifyOAuthState(urlState: string): boolean {
 }
 
 function getOAuthRedirectUri(): string {
-  // 去掉当前 URL 中的 code / state 等 OAuth 回调参数
   const url = new URL(window.location.href);
   url.searchParams.delete("code");
   url.searchParams.delete("state");
@@ -47,24 +46,47 @@ export default function LoginPage() {
   const [showLocalLogin, setShowLocalLogin] = useState(false);
   const { message } = useAppMessage();
 
-  // ── 检查认证状态 ──
+  // ── 启动时先检查已有 token 是否有效（免重复登录）──
   useEffect(() => {
-    authApi
-      .getStatus()
-      .then((res) => {
-        if (!res.enabled && !res.oauth_enabled) {
-          navigate("/chat", { replace: true });
-          return;
-        }
-        setHasUsers(res.has_users);
-        setOauthEnabled(res.oauth_enabled);
-        if (!res.has_users && !res.oauth_enabled) {
-          setIsRegister(true);
-        }
-      })
-      .catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const storedToken = localStorage.getItem("qwenpaw_auth_token");
+    if (storedToken) {
+      // 已有本地 token，验证是否仍有效
+      authApi
+        .verifyToken(storedToken)
+        .then((valid) => {
+          if (valid) {
+            // token 有效，直接进入聊天页
+            navigate("/chat", { replace: true });
+            return;
+          }
+          // token 过期，清除并显示登录页
+          localStorage.removeItem("qwenpaw_auth_token");
+          checkAuthStatus();
+        })
+        .catch(() => {
+          checkAuthStatus();
+        });
+    } else {
+      checkAuthStatus();
+    }
+
+    function checkAuthStatus() {
+      authApi
+        .getStatus()
+        .then((res) => {
+          if (!res.enabled && !res.oauth_enabled) {
+            navigate("/chat", { replace: true });
+            return;
+          }
+          setHasUsers(res.has_users);
+          setOauthEnabled(res.oauth_enabled);
+          if (!res.has_users && !res.oauth_enabled) {
+            setIsRegister(true);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [navigate]);
 
   // ── OAuth 回调处理：URL 中有 code 时自动登录 ──
   useEffect(() => {
@@ -84,7 +106,6 @@ export default function LoginPage() {
     }
     setOauthLoading(true);
     handleOAuthLogin(code);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const handleOAuthLogin = useCallback(async (code: string) => {
@@ -94,7 +115,6 @@ export default function LoginPage() {
       if (res.token) {
         setAuthToken(res.token);
         message.success(t("login.success"));
-        // 清理 URL 中的 code
         const url = new URL(window.location.href);
         url.searchParams.delete("code");
         url.searchParams.delete("state");
@@ -103,9 +123,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       message.error(
-        err instanceof Error
-          ? err.message
-          : t("login.failed"),
+        err instanceof Error ? err.message : t("login.failed"),
       );
     } finally {
       setOauthLoading(false);
@@ -149,7 +167,7 @@ export default function LoginPage() {
     }
   };
 
-  // ── 跳转 OAuth（加时间戳破缓存）──
+  // ── 中铁统一认证登录 ──
   const handleCrecOAuth = () => {
     const redirect = getOAuthRedirectUri();
     const state = generateOAuthState();
@@ -157,9 +175,7 @@ export default function LoginPage() {
       `${CREC_OAUTH_AUTHORIZE_URL}?client_id=${CREC_OAUTH_CLIENT_ID}` +
       `&redirect_uri=${encodeURIComponent(redirect)}` +
       `&response_type=code` +
-      `&state=${encodeURIComponent(state)}` +
-      `&_t=${Date.now()}`; // 破 WKWebView 缓存死锁
-
+      `&state=${encodeURIComponent(state)}`;
     window.location.href = authUrl;
   };
 
@@ -239,32 +255,36 @@ export default function LoginPage() {
         {/* ── 中铁统一认证登录按钮 ── */}
         {oauthEnabled && (
           <>
-          <Button
-            type="primary"
-            block
-            size="large"
-            onClick={handleCrecOAuth}
-            style={{
-              height: 44,
-              borderRadius: 8,
-              fontWeight: 500,
-              background: "#1961AC",
-              borderColor: "#1961AC",
-              marginBottom: showLocalLogin ? 24 : 0,
-            }}
-          >
-            {t("login.crecOAuth") || "中铁统一认证登录"}
-          </Button>
-          <p
-            style={{
-              textAlign: "center",
-              color: "#999",
-              fontSize: 12,
-              margin: "8px 0 0 0",
-            }}
-          >
-            提示：跳转后如未显示二维码，请点击页面下方「扫码」按钮
-          </p>
+            <Button
+              type="primary"
+              block
+              size="large"
+              onClick={handleCrecOAuth}
+              style={{
+                height: 44,
+                borderRadius: 8,
+                fontWeight: 500,
+                background: "#1961AC",
+                borderColor: "#1961AC",
+                marginBottom: showLocalLogin ? 24 : 0,
+              }}
+            >
+              {t("login.crecOAuth") || "中铁统一认证登录"}
+            </Button>
+
+            {/* 登录说明 */}
+            <p
+              style={{
+                textAlign: "center",
+                fontSize: 12,
+                color: isDark ? "rgba(255,255,255,0.35)" : "#aaa",
+                marginTop: 10,
+                marginBottom: 0,
+                lineHeight: 1.6,
+              }}
+            >
+              点击上方按钮，系统将跳转至中铁统一认证页面完成登录
+            </p>
           </>
         )}
 

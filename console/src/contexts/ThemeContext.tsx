@@ -20,9 +20,9 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  themeMode: "dark",
-  resolvedTheme: "dark",
-  isDark: true,
+  themeMode: "light",
+  resolvedTheme: "light",
+  isDark: false,
   setThemeMode: () => {},
 });
 
@@ -48,7 +48,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         return stored;
       }
     }
-    return "dark";
+    return "light";
   });
 
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() =>

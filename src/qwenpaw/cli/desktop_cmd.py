@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import logging
 import os
+import signal
 import socket
 import subprocess
 import sys
@@ -32,6 +33,9 @@ class WebViewAPI:
     def __init__(self):
         pass
 
+    # ------------------------------------------------------------------
+    # Desktop shortcut helper (called once from main at startup)
+    # ------------------------------------------------------------------
     def open_external_link(self, url: str) -> None:
         """Open URL in system's default browser."""
         if not url.startswith(("http://", "https://")):
@@ -90,12 +94,143 @@ class WebViewAPI:
 
 
 
-def _find_free_port(host: str = "127.0.0.1") -> int:
-    """Bind to port 0 and return the OS-assigned free port."""
+def _create_desktop_shortcut_once() -> None:
+    """Create a macOS alias on the Desktop the very first time CrecPaw runs.
+
+    Uses AppleScript (osascript) to create a real macOS Finder alias
+    (not a plain symlink) so the icon and app association are preserved.
+    A stamp file ``~/.crecpaw_desktop_shortcut_created`` prevents re-running.
+    """
+    if sys.platform != "darwin":
+        return  # only macOS for now
+
+    stamp = os.path.expanduser("~/.crecpaw_desktop_shortcut_created")
+    if os.path.exists(stamp):
+        return  # already done
+
+    # Locate the running .app bundle
+    # When frozen by PyInstaller the executable is inside Contents/MacOS/.
+    app_path: str | None = None
+    exe = sys.executable  # e.g. .../CrecPaw.app/Contents/MacOS/CrecPaw
+    # Walk up until we find the .app bundle
+    candidate = exe
+    for _ in range(6):
+        candidate = os.path.dirname(candidate)
+        if candidate.endswith(".app"):
+            app_path = candidate
+            break
+
+    if not app_path or not os.path.isdir(app_path):
+        logger.debug("_create_desktop_shortcut_once: .app bundle not found, skipping")
+        return
+
+    desktop = os.path.expanduser("~/Desktop")
+    if not os.path.isdir(desktop):
+        logger.debug("_create_desktop_shortcut_once: Desktop not found, skipping")
+        return
+
+    app_name = os.path.basename(app_path)  # e.g. "CrecPaw.app"
+    alias_name = app_name  # alias has same name on Desktop
+    alias_path = os.path.join(desktop, alias_name)
+
+    if os.path.exists(alias_path):
+        # Already present (maybe placed manually) — write stamp and return
+        try:
+            open(stamp, "w").close()
+        except OSError:
+            pass
+        return
+
+    # Use AppleScript to create a proper Finder alias
+    script = f'''
+tell application "Finder"
+    set theApp to POSIX file "{app_path}" as alias
+    set theDesktop to POSIX file "{desktop}" as alias
+    make new alias file at theDesktop to theApp
+end tell
+'''
+    try:
+        result = subprocess.run(
+            ["osascript", "-e", script],
+            capture_output=True, text=True, timeout=10,
+        )
+        if result.returncode == 0:
+            logger.info("Desktop shortcut created: %s", alias_path)
+            open(stamp, "w").close()
+        else:
+            logger.warning(
+                "Failed to create desktop shortcut: %s", result.stderr.strip()
+            )
+    except Exception as exc:
+        logger.warning("_create_desktop_shortcut_once error: %s", exc)
+
+
+# ── 固定端口：保证 localStorage origin 在应用重启后不变 ──
+# 若环境变量 CRECPAW_DESKTOP_PORT 设置了则优先使用，否则用默认固定端口
+
+
+def _kill_port_owner(port: int) -> bool:
+    """Kill any process listening on *port* via lsof (macOS/Linux).
+
+    Returns ``True`` if at least one process was terminated.
+    """
+    try:
+        result = subprocess.run(
+            ["lsof", "-ti", f":{port}"],
+            capture_output=True, text=True, timeout=5,
+        )
+        pids = [p.strip() for p in result.stdout.strip().split("\n") if p.strip()]
+        if not pids:
+            return False
+        for pid in pids:
+            try:
+                os.kill(int(pid), signal.SIGTERM)
+                logger.info(
+                    "Killed stale process %s on port %d", pid, port,
+                )
+            except Exception:
+                pass
+        return True
+    except Exception:
+        return False
+
+
+def _get_desktop_port(host: str = "127.0.0.1") -> int:
+    """Return the desktop port, preferring CRECPAW_DESKTOP_PORT env var."""
+    env_port = os.environ.get("CRECPAW_DESKTOP_PORT", "").strip()
+    if env_port:
+        try:
+            return int(env_port)
+        except ValueError:
+            logger.warning(
+                "Invalid CRECPAW_DESKTOP_PORT=%s, using default", env_port,
+            )
+
+    # Default fixed port — same port every launch = same origin = localStorage persists
+    default_port = 58665
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.bind((host, 0))
-        sock.listen(1)
-        return sock.getsockname()[1]
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            sock.bind((host, default_port))
+            return default_port
+        except OSError:
+            # Port is occupied — try to kill the stale process and retry
+            logger.warning(
+                "Default port %d is busy, attempting to free it...",
+                default_port,
+            )
+            _kill_port_owner(default_port)
+            time.sleep(1)
+            try:
+                sock.bind((host, default_port))
+                return default_port
+            except OSError:
+                logger.warning(
+                    "Port %d still busy after cleanup, using OS-assigned port",
+                    default_port,
+                )
+                sock.bind((host, 0))
+                return sock.getsockname()[1]
 
 
 def _wait_for_http(host: str, port: int, timeout_sec: float = 300.0) -> bool:
@@ -164,7 +299,10 @@ def desktop_cmd(
     # Setup logger for desktop command (separate from backend subprocess)
     setup_logger(log_level)
 
-    port = _find_free_port(host)
+    # ── 首次运行：在桌面创建快捷方式 ──
+    _create_desktop_shortcut_once()
+
+    port = _get_desktop_port(host)
     url = f"http://{host}:{port}"
     click.echo(f"Starting CrecPaw app on {url} (port {port})")
     logger.info("Server subprocess starting...")
@@ -234,6 +372,7 @@ def desktop_cmd(
                     height=800,
                     text_select=True,
                     js_api=api,
+                    maximized=True,
                 )
 
                 logger.info(
@@ -245,6 +384,9 @@ def desktop_cmd(
                 )
                 webview.start(
                     private_mode=False,
+                    storage_path=os.path.expanduser(
+                        "~/.crecpaw_webview_data",
+                    ),
                 )  # blocks until user closes the window
                 logger.info("webview.start() returned (window closed).")
             else:

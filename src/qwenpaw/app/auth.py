@@ -41,8 +41,8 @@ logger = logging.getLogger(__name__)
 
 AUTH_FILE = SECRET_DIR / "auth.json"
 
-# Token validity: 7 days (default)
-TOKEN_EXPIRY_SECONDS = 7 * 24 * 3600
+# Token validity: 120 hours (5 days) — per CREC requirement
+TOKEN_EXPIRY_SECONDS = 120 * 3600
 
 # Maximum token validity: 100 years (for "permanent" tokens)
 TOKEN_EXPIRY_MAX = 100 * 365 * 24 * 3600
@@ -52,8 +52,8 @@ _PUBLIC_PATHS: frozenset[str] = frozenset(
     {
         "/api/auth/login",
         "/api/auth/oauth/login",
-        "/api/auth/oauth/password-login",
         "/api/auth/status",
+        "/api/auth/verify",
         "/api/auth/register",
         "/api/version",
         "/api/settings/language",
@@ -67,6 +67,7 @@ _PUBLIC_PREFIXES: tuple[str, ...] = (
     "/logo.png",
     "/qwenpaw-symbol.svg",
     "/api/plugins/",  # plugin JS bundles served to unauthenticated login page
+    "/api/files/preview/",  # HTML preview via webview navigation
 )
 
 
