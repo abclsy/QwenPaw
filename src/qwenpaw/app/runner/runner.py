@@ -318,11 +318,21 @@ class AgentRunner(Runner):
             set_current_session_id,
             set_current_root_session_id,
         )
+        from ...config.context import set_current_user_output_dir
 
         set_current_agent_id(self.agent_id)
 
         # Set session_id in context for token usage tracking
         set_current_session_id(session_id)
+
+        # Set user-selected output directory from request channel_meta
+        channel_meta = getattr(request, "channel_meta", None) or {}
+        user_output_dir_str = channel_meta.get("user_output_dir", "")
+        if user_output_dir_str:
+            from pathlib import Path
+            set_current_user_output_dir(Path(user_output_dir_str))
+        else:
+            set_current_user_output_dir(None)
 
         agent = None
         chat = None
@@ -347,15 +357,21 @@ class AgentRunner(Runner):
                 ),
             )
 
+            # Determine the working directory shown to the agent:
+            # use user-selected output dir if set, else agent workspace dir
+            from ...config.context import get_current_user_output_dir
+            _user_out = get_current_user_output_dir()
+            effective_working_dir = (
+                str(_user_out) if _user_out
+                else (str(self.workspace_dir) if self.workspace_dir
+                      else str(WORKING_DIR))
+            )
+
             env_context = build_env_context(
                 session_id=session_id,
                 user_id=user_id,
                 channel=channel,
-                working_dir=(
-                    str(self.workspace_dir)
-                    if self.workspace_dir
-                    else str(WORKING_DIR)
-                ),
+                working_dir=effective_working_dir,
             )
 
             # Get MCP clients from manager (hot-reloadable)

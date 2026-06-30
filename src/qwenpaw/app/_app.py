@@ -590,10 +590,13 @@ _CONSOLE_INDEX = (
 logger.info(f"STATIC_DIR: {_CONSOLE_STATIC_DIR}")
 
 
+_NO_CACHE_HEADERS = {"Cache-Control": "no-cache, no-store, must-revalidate"}
+
+
 @app.get("/")
 def read_root():
     if _CONSOLE_INDEX and _CONSOLE_INDEX.exists():
-        return FileResponse(_CONSOLE_INDEX)
+        return FileResponse(_CONSOLE_INDEX, headers=_NO_CACHE_HEADERS)
     return {
         "message": (
             f"{PROJECT_NAME} web console is not available. "
@@ -650,9 +653,11 @@ register_custom_channel_routes(app)
 if os.path.isdir(_CONSOLE_STATIC_DIR):
     _console_path = Path(_CONSOLE_STATIC_DIR)
 
+    _NO_CACHE_HEADERS = {"Cache-Control": "no-cache, no-store, must-revalidate"}
+
     def _serve_console_index():
         if _CONSOLE_INDEX and _CONSOLE_INDEX.exists():
-            return FileResponse(_CONSOLE_INDEX)
+            return FileResponse(_CONSOLE_INDEX, headers=_NO_CACHE_HEADERS)
 
         raise HTTPException(status_code=404, detail="Not Found")
 
@@ -690,6 +695,8 @@ if os.path.isdir(_CONSOLE_STATIC_DIR):
             if not Path(full_path).is_absolute():
                 static_file = _console_path / full_path
                 if static_file.is_file():
-                    return FileResponse(static_file)
+                    return FileResponse(
+                        static_file, headers=_NO_CACHE_HEADERS,
+                    )
 
         return _serve_console_index()

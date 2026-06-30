@@ -1,6 +1,6 @@
 import { getApiToken } from "./config";
 
-/** Authorization + X-Agent-Id for API requests. Caller sets Content-Type when needed. */
+/** Authorization + X-Agent-Id + X-Workspace-Dir for API requests. Caller sets Content-Type when needed. */
 export function buildAuthHeaders(): Record<string, string> {
   const headers: Record<string, string> = {};
   const token = getApiToken();
@@ -21,6 +21,19 @@ export function buildAuthHeaders(): Record<string, string> {
     }
   } catch (error) {
     console.warn("Failed to get selected agent from storage:", error);
+  }
+  // Pass user-selected workspace directory to backend
+  try {
+    const wsStorage = localStorage.getItem("qwenpaw-workspace-dir");
+    if (wsStorage) {
+      const parsed = JSON.parse(wsStorage);
+      const dir = parsed?.state?.workspaceDir;
+      if (dir) {
+        headers["X-Workspace-Dir"] = dir;
+      }
+    }
+  } catch (error) {
+    console.warn("Failed to get workspace dir from storage:", error);
   }
   return headers;
 }

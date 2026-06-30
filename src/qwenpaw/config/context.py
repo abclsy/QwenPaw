@@ -33,6 +33,33 @@ def set_current_workspace_dir(workspace_dir: Path | None) -> None:
     current_workspace_dir.set(workspace_dir)
 
 
+# Context variable to store the user-selected output directory.
+# When set, file tools (write_file, send_file_to_user, etc.) resolve
+# relative paths from this directory instead of the agent workspace dir.
+current_user_output_dir: ContextVar[Path | None] = ContextVar(
+    "current_user_output_dir",
+    default=None,
+)
+
+
+def get_current_user_output_dir() -> Path | None:
+    """Get the user-selected output directory from context.
+
+    Returns:
+        Path to the user-selected output directory, or None if not set.
+    """
+    return current_user_output_dir.get()
+
+
+def set_current_user_output_dir(output_dir: Path | None) -> None:
+    """Set the user-selected output directory in context.
+
+    Args:
+        output_dir: Path to the user-selected output directory.
+    """
+    current_user_output_dir.set(output_dir)
+
+
 # Context variable to store the recent_max_bytes limit
 current_recent_max_bytes: ContextVar[int | None] = ContextVar(
     "current_recent_max_bytes",

@@ -62,12 +62,28 @@ class WebViewAPI:
         import shutil
         import urllib.request
 
+        # If the URL is relative (e.g. "/api/workspace/files/raw/xxx"),
+        # prepend the local server origin so urllib can fetch it.
         if not url.startswith(("http://", "https://")):
-            return False
+            if url.startswith("/"):
+                # Use localhost with the same port the webview is serving from
+                # We can get this from the current webview window's URL
+                try:
+                    current_url = webview.windows[0].get_current_url()
+                    if current_url:
+                        from urllib.parse import urlparse
+                        parsed = urlparse(current_url)
+                        url = f"{parsed.scheme}://{parsed.netloc}{url}"
+                except Exception:
+                    logger.error("save_file: cannot resolve relative URL %s", url)
+                    return False
+            else:
+                logger.error("save_file: invalid URL %s", url)
+                return False
+
+        logger.info("save_file: url=%s, filename=%s", url, filename)
 
         # Sanitize filename: remove characters illegal on Windows
-        # (< > : " / \ | ? *) and trim leading/trailing whitespace/dots.
-        # Colons are common in backup names like "Backup 2026-04-22 17:36".
         safe_name = re.sub(r'[<>:"/\\|?*]', "_", filename).strip(" .")
 
         try:
@@ -77,20 +93,76 @@ class WebViewAPI:
                 save_filename=safe_name,
             )
             if not result:
+                logger.info("save_file: user cancelled save dialog")
                 return False  # user cancelled
 
             dest_path = result if isinstance(result, str) else result[0]
+            logger.info("save_file: saving to %s", dest_path)
 
             # Download from the local backend and write to chosen path
-            with urllib.request.urlopen(url) as response:
+            # Auth is handled by the frontend passing the token in the URL
+            # or by the auth middleware skipping certain paths
+            req = urllib.request.Request(url)
+            with urllib.request.urlopen(req) as response:
                 with open(dest_path, "wb") as f:
                     shutil.copyfileobj(response, f)
 
+            logger.info("save_file: success")
             return True
         except Exception:
             logger.exception("save_file failed")
             return False
 
+
+    def reveal_file(self, file_path: str) -> bool:
+        """在系统文件管理器中选中并显示指定文件（跨平台）。
+
+        Args:
+            file_path: 要在文件管理器中选中的文件绝对路径。
+
+        Returns:
+            True 成功打开, False 文件不存在或平台不支持。
+        """
+        if not os.path.isfile(file_path):
+            logger.warning("reveal_file: file not found – %s", file_path)
+            return False
+        try:
+            if sys.platform == "darwin":
+                # macOS Finder 选中文件
+                subprocess.run(["open", "-R", file_path], check=False, timeout=5)
+            elif sys.platform == "win32":
+                # Windows 资源管理器选中
+                subprocess.run(
+                    ["explorer", "/select,", file_path], check=False, timeout=5,
+                )
+            else:
+                # Linux 打开所在目录
+                subprocess.run(
+                    ["xdg-open", os.path.dirname(file_path)],
+                    check=False, timeout=5,
+                )
+            return True
+        except Exception:
+            logger.exception("reveal_file failed for %s", file_path)
+            return False
+
+    def select_folder(self) -> str:
+        """Show a native folder selection dialog and return the chosen path.
+
+        Returns:
+            The selected folder path as a string, or empty string if
+            the user cancelled or an error occurred.
+        """
+        try:
+            result = webview.windows[0].create_file_dialog(
+                webview.FOLDER_DIALOG,
+            )
+            if not result:
+                return ""
+            return result if isinstance(result, str) else result[0]
+        except Exception:
+            logger.exception("select_folder failed")
+            return ""
 
 
 
@@ -247,6 +319,47 @@ def _wait_for_http(host: str, port: int, timeout_sec: float = 300.0) -> bool:
     return False
 
 
+def _clear_webview_cache() -> None:
+    """Clear WKWebView/WebView2 HTTP cache before opening window.
+
+    IMPORTANT: We must NOT delete ``~/.crecpaw_webview_data`` wholesale
+    because it also stores localStorage (including the auth token
+    ``qwenpaw_auth_token``).  Deleting it forces the user to re-login
+    on every app launch.
+
+    Instead, we only clear the HTTP cache subdirectories, preserving
+    localStorage, sessionStorage, cookies, and IndexedDB.
+    """
+    import shutil as _shutil
+
+    # macOS: only clear HTTP cache, NOT the full WebsiteData store
+    if sys.platform == "darwin":
+        # WKWebView stores HTTP cache in Cache.db inside this directory.
+        # We only remove the Caches subdirectory, preserving localStorage.
+        for cache_subdir in (
+            "Caches/com.crec.crecpaw",
+        ):
+            p = os.path.expanduser(f"~/Library/{cache_subdir}")
+            if os.path.isdir(p):
+                try:
+                    _shutil.rmtree(p)
+                    logger.info("Cleared HTTP cache: %s", p)
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("Failed to clear %s: %s", p, exc)
+
+    # Windows: WebView2 - only clear the cache, not the full user data
+    if sys.platform == "win32":
+        cache_dir = os.path.expanduser(
+            "~/AppData/Local/com.crec.crecpaw/EBWebView/Default/Cache",
+        )
+        if os.path.isdir(cache_dir):
+            try:
+                _shutil.rmtree(cache_dir)
+                logger.info("Cleared WebView2 cache: %s", cache_dir)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("Failed to clear %s: %s", cache_dir, exc)
+
+
 def _stream_reader(in_stream, out_stream) -> None:
     """Read from in_stream line by line and write to out_stream.
 
@@ -364,6 +477,10 @@ def desktop_cmd(
             logger.info("Waiting for HTTP ready...")
             if _wait_for_http(host, port):
                 logger.info("HTTP ready, creating webview window...")
+
+                # Clear stale WebView cache to ensure frontend updates are loaded
+                _clear_webview_cache()
+
                 api = WebViewAPI()
                 window = webview.create_window(
                     "CrecPaw Desktop",

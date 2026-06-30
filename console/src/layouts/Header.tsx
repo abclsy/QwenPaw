@@ -27,6 +27,14 @@ export default function Header() {
       </div>
       <div className={styles.headerLinks}>
         <a
+          href="https://ecloud.crec.cn/chatAi/crecpawWebsite/docs.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.headerLink}
+        >
+          操作文档
+        </a>
+        <a
           href="https://developers.crec.cn/"
           target="_blank"
           rel="noopener noreferrer"

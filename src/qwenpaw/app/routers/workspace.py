@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import APIRouter, Body, HTTPException, UploadFile, File, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 from pydantic import BaseModel, Field
 
 from ..utils import schedule_agent_reload
@@ -96,18 +96,47 @@ def _zip_directory(root: Path) -> io.BytesIO:
 async def list_working_files(
     request: Request,
 ) -> list[MdFileInfo]:
-    """List working directory markdown files."""
+    """List working directory files.
+
+    If X-Workspace-Dir header is present, list files from that directory
+    instead of the agent's default workspace_dir.  This lets the user
+    choose a custom output directory and see generated files in the
+    workspace files panel.
+    """
     try:
         workspace = await get_agent_for_request(request)
-        workspace_manager = AgentMdManager(
-            str(workspace.workspace_dir),
-            agent_id=workspace.agent_id,
-        )
-        files = [
-            MdFileInfo.model_validate(file)
-            for file in workspace_manager.list_working_mds()
-        ]
-        return files
+
+        # Check for user-selected output directory from X-Workspace-Dir header
+        user_dir = request.headers.get("X-Workspace-Dir")
+        if user_dir:
+            from pathlib import Path as _Path
+            list_dir = _Path(user_dir)
+        else:
+            list_dir = workspace.workspace_dir
+
+        # List ALL files in the directory (not just .md), sorted by mtime desc
+        all_files = []
+        if list_dir.is_dir():
+            for f in list_dir.iterdir():
+                if f.is_file() and not f.name.startswith("."):
+                    stat = f.stat()
+                    all_files.append(
+                        MdFileInfo(
+                            filename=f.name,
+                            path=str(f),
+                            size=stat.st_size,
+                            created_time=datetime.fromtimestamp(
+                                stat.st_ctime,
+                                timezone.utc,
+                            ).isoformat(),
+                            modified_time=datetime.fromtimestamp(
+                                stat.st_mtime,
+                                timezone.utc,
+                            ).isoformat(),
+                        )
+                    )
+        all_files.sort(key=lambda x: x.modified_time, reverse=True)
+        return all_files
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
@@ -122,8 +151,25 @@ async def read_working_file(
     md_name: str,
     request: Request,
 ) -> MdFileContent:
-    """Read a working directory markdown file."""
+    """Read a working directory markdown file.
+
+    If X-Workspace-Dir header is present, read from that directory
+    instead of the agent's default workspace_dir.  This supports
+    previewing/downloading user-generated files from a custom output
+    directory.
+    """
     try:
+        user_dir = request.headers.get("X-Workspace-Dir")
+        if user_dir:
+            # Read directly from user-selected directory (any file type)
+            file_path = Path(user_dir) / md_name
+            if not file_path.is_file():
+                raise FileNotFoundError(
+                    f"Working file not found: {md_name}",
+                )
+            content = file_path.read_text(encoding="utf-8")
+            return MdFileContent(content=content)
+
         workspace = await get_agent_for_request(request)
         workspace_manager = AgentMdManager(
             str(workspace.workspace_dir),
@@ -133,6 +179,51 @@ async def read_working_file(
         return MdFileContent(content=content)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@router.get(
+    "/files/raw/{filename}",
+    summary="Download or preview a workspace file",
+    description="Serve a raw file from the workspace directory for "
+    "preview or download.  Uses X-Workspace-Dir header or "
+    "workspace_dir query param if present.",
+)
+async def serve_workspace_file(
+    filename: str,
+    request: Request,
+):
+    """Serve a raw file from the workspace or user-selected directory.
+
+    This endpoint supports both preview (inline) and download.
+    It reads from X-Workspace-Dir header or workspace_dir query param,
+    otherwise falls back to the agent's workspace_dir.
+    """
+    try:
+        # Check header first, then query param (for pywebview save_file)
+        user_dir = request.headers.get("X-Workspace-Dir")
+        if not user_dir:
+            user_dir = request.query_params.get("workspace_dir")
+        if user_dir:
+            file_path = Path(user_dir) / filename
+        else:
+            workspace = await get_agent_for_request(request)
+            file_path = Path(workspace.workspace_dir) / filename
+
+        if not file_path.is_file():
+            raise HTTPException(
+                status_code=404,
+                detail=f"File not found: {filename}",
+            )
+
+        return FileResponse(
+            str(file_path),
+            filename=filename,
+            headers={"Cache-Control": "no-cache"},
+        )
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 

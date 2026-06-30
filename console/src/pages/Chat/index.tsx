@@ -8,6 +8,7 @@ import { Button, Modal, Result, Tooltip } from "antd";
 import { useAppMessage } from "../../hooks/useAppMessage";
 import { ExclamationCircleOutlined, SettingOutlined } from "@ant-design/icons";
 import { SparkCopyLine, SparkAttachmentLine } from "@agentscope-ai/icons";
+import { usePlugins } from "../../plugins/PluginContext";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import sessionApi from "./sessionApi";
@@ -30,6 +31,8 @@ import { ApprovalCard } from "../../components/ApprovalCard/ApprovalCard";
 import { commandsApi } from "../../api/modules/commands";
 import { useApprovalContext } from "../../contexts/ApprovalContext";
 import { planApi } from "../../api/modules/plan";
+import WorkspaceSelector from "../../components/WorkspaceSelector";
+import SendFileToUserRenderer from "../../components/SendFileToUserRenderer";
 
 interface ApprovalMessageData {
   requestId: string;
@@ -491,6 +494,7 @@ export default function ChatPage() {
   }, [location.pathname]);
   const [showModelPrompt, setShowModelPrompt] = useState(false);
   const { selectedAgent } = useAgentStore();
+  const { toolRenderConfig } = usePlugins();
   const [refreshKey, setRefreshKey] = useState(0);
   const runtimeLoadingBridgeRef = useRef<RuntimeLoadingBridgeApi | null>(null);
   const { message } = useAppMessage();
@@ -1020,6 +1024,7 @@ export default function ChatPage() {
       sender: {
         ...(i18nConfig as any)?.sender,
         beforeSubmit: handleBeforeSubmit,
+        beforeUI: <WorkspaceSelector />,
         allowSpeech: true,
         attachments: {
           trigger: function (props: any) {
@@ -1109,6 +1114,10 @@ export default function ChatPage() {
           });
         },
       },
+      customToolRenderConfig: {
+        ...toolRenderConfig,
+        send_file_to_user: SendFileToUserRenderer,
+      },
       actions: {
         list: [
           {
@@ -1132,6 +1141,7 @@ export default function ChatPage() {
     t,
     isDark,
     multimodalCaps,
+    toolRenderConfig,
     scheduleHistoryClear,
     planEnabled,
   ]);
