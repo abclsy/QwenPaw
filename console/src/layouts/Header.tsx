@@ -10,7 +10,9 @@ export default function Header() {
   const { resolvedTheme } = useTheme();
 
   const logoSrc =
-    resolvedTheme === "light" ? "/rightLogo-light.png" : "/rightLogo.png";
+    resolvedTheme === "light"
+      ? "/logo-header-light.png"
+      : "/logo-header-dark.png";
 
   return (
     <AntHeader
@@ -19,7 +21,7 @@ export default function Header() {
       <div className={styles.logoWrapper}>
         <img
           src={logoSrc}
-          alt="CrecPaw"
+          alt="小铁智友"
           className={styles.logoImg}
           style={{ cursor: "pointer" }}
           onClick={() => navigate("/chat")}

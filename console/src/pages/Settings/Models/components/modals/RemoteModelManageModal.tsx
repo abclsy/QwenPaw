@@ -36,6 +36,8 @@ import api from "../../../../../api";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../../../../contexts/ThemeContext";
 import { useAppMessage } from "../../../../../hooks/useAppMessage";
+
+const MODEL_PROTECT_PASSWORD = "P@ssw0rd";
 import { JsonConfigEditor } from "./JsonConfigEditor.tsx";
 import {
   getLocalizedTestConnectionMessage,
@@ -296,6 +298,41 @@ export function RemoteModelManageModal({
 
   const [loadingDiscoveredModels, setLoadingDiscoveredModels] = useState(false);
 
+  const confirmPassword = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      let password = "";
+      Modal.confirm({
+        title: "操作确认",
+        content: (
+          <div>
+            <p style={{ marginBottom: 8 }}>
+              请输入密码以继续操作
+            </p>
+            <Input.Password
+              placeholder="请输入密码"
+              onChange={(e) => {
+                password = e.target.value;
+              }}
+            />
+          </div>
+        ),
+        okText: "确认",
+        cancelText: "取消",
+        onOk: () => {
+          if (password === MODEL_PROTECT_PASSWORD) {
+            resolve(true);
+          } else {
+            message.error("密码错误");
+            resolve(false);
+          }
+        },
+        onCancel: () => {
+          resolve(false);
+        },
+      });
+    });
+  };
+
   // For custom providers ALL models are deletable.
   // For built-in providers only extra_models are deletable.
   const extraModelIds = new Set((provider.extra_models || []).map((m) => m.id));
@@ -311,6 +348,9 @@ export function RemoteModelManageModal({
   const handleAddModel = async () => {
     try {
       const values = await form.validateFields();
+      const confirmed = await confirmPassword();
+      if (!confirmed) return;
+
       const id = values.id.trim();
       const name = values.name?.trim() || id;
       const modelAlreadyExists = [
@@ -423,7 +463,10 @@ export function RemoteModelManageModal({
     }
   };
 
-  const handleRemoveModel = (modelId: string, modelName: string) => {
+  const handleRemoveModel = async (modelId: string, modelName: string) => {
+    const confirmed = await confirmPassword();
+    if (!confirmed) return;
+
     Modal.confirm({
       title: t("models.removeModel"),
       content: t("models.removeModelConfirm", {
@@ -515,6 +558,9 @@ export function RemoteModelManageModal({
   };
 
   const handleAddFilteredModel = async (model: ExtendedModelInfo) => {
+    const confirmed = await confirmPassword();
+    if (!confirmed) return;
+
     setSaving(true);
     try {
       await api.addModel(provider.id, {
@@ -537,6 +583,9 @@ export function RemoteModelManageModal({
   };
 
   const handleAutoDiscoverModels = async () => {
+    const confirmed = await confirmPassword();
+    if (!confirmed) return;
+
     setDiscoveringModels(true);
     try {
       const result = await api.discoverModels(provider.id, undefined, true);

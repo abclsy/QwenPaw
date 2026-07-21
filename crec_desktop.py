@@ -1,4 +1,4 @@
-# crec_desktop.py - CrecPaw 桌面版入口（PyInstaller 专用）
+# crec_desktop.py - 小铁智友 桌面版入口（PyInstaller 专用）
 # 双重模式：
 #   1. 无参数 / desktop → 启动 qwenpaw desktop
 #   2. 含 app → 子进程模式，启动 qwenpaw app（供 desktop 内部用）

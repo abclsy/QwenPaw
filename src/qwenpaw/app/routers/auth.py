@@ -140,7 +140,7 @@ async def auth_status():
 
 @router.post("/oauth/login")
 async def oauth_login(req: OAuthLoginRequest):
-    """OAuth2 统一认证登录 — 中铁 CrecPaw.
+    """OAuth2 统一认证登录 — 中铁 小铁智友.
 
     对接中铁一体化工作平台统一身份认证标准：
     1. POST /idp/oauth2/getToken 换取 access_token

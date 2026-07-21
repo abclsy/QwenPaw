@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""CLI command: run CrecPaw app on a free port in a native webview window."""
+"""CLI command: run 小铁智友 app on a free port in a native webview window."""
 # pylint:disable=too-many-branches,too-many-statements,consider-using-with
 from __future__ import annotations
 
@@ -167,7 +167,7 @@ class WebViewAPI:
 
 
 def _create_desktop_shortcut_once() -> None:
-    """Create a macOS alias on the Desktop the very first time CrecPaw runs.
+    """Create a macOS alias on the Desktop the very first time 小铁智友 runs.
 
     Uses AppleScript (osascript) to create a real macOS Finder alias
     (not a plain symlink) so the icon and app association are preserved.
@@ -183,7 +183,7 @@ def _create_desktop_shortcut_once() -> None:
     # Locate the running .app bundle
     # When frozen by PyInstaller the executable is inside Contents/MacOS/.
     app_path: str | None = None
-    exe = sys.executable  # e.g. .../CrecPaw.app/Contents/MacOS/CrecPaw
+    exe = sys.executable  # e.g. .../小铁智友.app/Contents/MacOS/小铁智友
     # Walk up until we find the .app bundle
     candidate = exe
     for _ in range(6):
@@ -201,7 +201,7 @@ def _create_desktop_shortcut_once() -> None:
         logger.debug("_create_desktop_shortcut_once: Desktop not found, skipping")
         return
 
-    app_name = os.path.basename(app_path)  # e.g. "CrecPaw.app"
+    app_name = os.path.basename(app_path)  # e.g. "小铁智友.app"
     alias_name = app_name  # alias has same name on Desktop
     alias_path = os.path.join(desktop, alias_name)
 
@@ -403,11 +403,11 @@ def desktop_cmd(
     host: str,
     log_level: str,
 ) -> None:
-    """Run CrecPaw app on an auto-selected free port in a webview window.
+    """Run 小铁智友 app on an auto-selected free port in a webview window.
 
     Starts the FastAPI app in a subprocess on a free port, then opens a
     native webview window loading that URL. Use for a dedicated desktop
-    window without conflicting with an existing CrecPaw app instance.
+    window without conflicting with an existing 小铁智友 app instance.
     """
     # Setup logger for desktop command (separate from backend subprocess)
     setup_logger(log_level)
@@ -417,7 +417,7 @@ def desktop_cmd(
 
     port = _get_desktop_port(host)
     url = f"http://{host}:{port}"
-    click.echo(f"Starting CrecPaw app on {url} (port {port})")
+    click.echo(f"Starting 小铁智友 app on {url} (port {port})")
     logger.info("Server subprocess starting...")
 
     env = os.environ.copy()
@@ -483,7 +483,7 @@ def desktop_cmd(
 
                 api = WebViewAPI()
                 window = webview.create_window(
-                    "CrecPaw Desktop",
+                    "小铁智友 Desktop",
                     url,
                     width=1280,
                     height=800,

@@ -1,5 +1,5 @@
 #!/bin/bash
-# CrecPaw 桌面部署脚本
+# 小铁智友 桌面部署脚本
 # 用法: bash deploy_to_desktop.sh
 
 set -e
@@ -7,7 +7,7 @@ set -e
 NEW_APP="/Users/liusiyuan/Documents/workSpaceNew/QwenPaw/dist/CrecPaw_final4.app"
 DESKTOP_APP="$HOME/Desktop/CrecPaw.app"
 
-echo "=== CrecPaw 桌面部署 ==="
+echo "=== 小铁智友 桌面部署 ==="
 echo ""
 
 # 检查新 app 是否存在
@@ -32,7 +32,7 @@ rm -rf ~/Library/Caches/com.crec.crecpaw 2>/dev/null || true
 
 echo ""
 echo "=== 部署完成 ==="
-echo "桌面 CrecPaw.app 已更新，双击即可运行"
+echo "桌面 小铁智友.app 已更新，双击即可运行"
 echo ""
 echo "如果系统提示无法打开，请在终端执行:"
 echo "  xattr -cr ~/Desktop/CrecPaw.app"

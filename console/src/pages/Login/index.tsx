@@ -196,7 +196,7 @@ export default function LoginPage() {
         <div style={{ textAlign: "center" }}>
           <img
             src="/logo.svg"
-            alt="CrecPaw"
+            alt="小铁智友"
             style={{ height: 48, marginBottom: 16 }}
           />
           <p style={{ color: isDark ? "rgba(255,255,255,0.65)" : "#333" }}>
@@ -233,7 +233,7 @@ export default function LoginPage() {
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <img
             src="/logo.svg"
-            alt="CrecPaw"
+            alt="小铁智友"
             style={{ height: 48, marginBottom: 12 }}
           />
           <h2 style={{ margin: 0, fontWeight: 600, fontSize: 20 }}>

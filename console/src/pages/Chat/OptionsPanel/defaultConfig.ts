@@ -7,7 +7,7 @@ const defaultConfig = {
     prefix: "qwenpaw",
     leftHeader: {
       logo: "",
-      title: "Work with CrecPaw",
+      title: "Work with 小铁智友",
     },
   },
   sender: {
@@ -16,7 +16,7 @@ const defaultConfig = {
     disclaimer: "Works for you, grows with you",
   },
   welcome: {
-    greeting: "Hello, I'm CrecPaw 🐾",
+    greeting: "Hello, I'm 小铁智友 🐾",
     description:
       "Your smart work assistant — I can help with coding, documents, data analysis, and task management. Just tell me what you need!",
     avatar: "/online.svg",

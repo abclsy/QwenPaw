@@ -1,5 +1,5 @@
 ﻿# ============================================================================
-# CrecPaw Windows Build Guide (PowerShell)
+# 小铁智友 Windows Build Guide (PowerShell)
 # ============================================================================
 # 把下面命令逐行复制到 Windows PowerShell 里执行
 # 不要直接双击任何 bat 文件！
@@ -30,5 +30,5 @@ venv\Scripts\pip install --no-input pyinstaller
 # 第 7 步：打包
 venv\Scripts\pyinstaller QwenPaw.spec --clean
 
-# 打包完成后的产物在 dist\CrecPaw\ 文件夹里
-# 可以直接复制整个 dist\CrecPaw\ 文件夹发给其他同事用
+# 打包完成后的产物在 dist\小铁智友\ 文件夹里
+# 可以直接复制整个 dist\小铁智友\ 文件夹发给其他同事用

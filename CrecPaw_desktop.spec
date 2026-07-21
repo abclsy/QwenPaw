@@ -44,7 +44,20 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=[
+        # torch / transformers / onnxruntime 被 chromadb 间接拉入，但源码不直接使用
+        # chromadb 会 fallback 到 local backend，功能不受影响
+        'torch', 'torchvision', 'torchaudio',
+        'transformers', 'tokenizers', 'safetensors',
+        'onnxruntime',
+        'tensorflow', 'tensorboard', 'keras',
+        'numba', 'llvmlite',
+        'matplotlib', 'matplotlib.pyplot',
+        'PyQt5', 'PyQt6', 'PySide2', 'PySide6',
+        'IPython', 'notebook', 'jupyter',
+        'pytest', '_pytest',
+        'win32com', 'win32api', 'win32clipboard',
+    ],
     noarchive=False,
     optimize=0,
 )
@@ -55,7 +68,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='CrecPaw',
+    name='Xiaotiezhiyou',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -74,19 +87,19 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='CrecPaw',
+    name='Xiaotiezhiyou',
 )
 
 app = BUNDLE(
     coll,
-    name='CrecPaw.app',
+    name='小铁智友.app',
     icon=os.path.join(repo_root, 'CrecPaw.icns'),
     bundle_identifier='com.crec.crecpaw',
     info_plist={
         'NSHighResolutionCapable': True,
         'LSMinimumSystemVersion': '12.0',
-        'CFBundleName': 'CrecPaw',
-        'CFBundleDisplayName': 'CrecPaw',
+        'CFBundleName': '小铁智友',
+        'CFBundleDisplayName': '小铁智友',
         'CFBundleShortVersionString': '1.0',
     },
 )

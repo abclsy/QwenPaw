@@ -126,9 +126,9 @@ export const compareVersions = (a: string, b: string): number => {
 // ── Update markdown ───────────────────────────────────────────────────────
 // TODO
 export const UPDATE_MD: Record<string, string> = {
-  zh: `### CrecPaw如何更新
+  zh: `### 小铁智友如何更新
 
-要更新 CrecPaw 到最新版本，可根据你的安装方式选择对应方法：
+要更新 小铁智友 到最新版本，可根据你的安装方式选择对应方法：
 
 1. 如果你使用的是一键安装脚本，直接重新运行安装命令即可自动升级。
 
@@ -141,7 +141,7 @@ qwenpaw update
 3. 如果你是从源码安装，进入项目目录并拉取最新代码后重新安装：
 
 \`\`\`
-cd CrecPaw
+cd 小铁智友
 git pull origin main
 cd console && npm ci && npm run build
 cd .. && mkdir -p src/qwenpaw/console
@@ -158,9 +158,9 @@ docker run -p 127.0.0.1:8088:8088 -v qwenpaw-data:/app/working agentscope/qwenpa
 
 升级后重启服务 qwenpaw app。`,
 
-  ru: `### Как обновить CrecPaw
+  ru: `### Как обновить 小铁智友
 
-Чтобы обновить CrecPaw, выберите способ в зависимости от типа установки:
+Чтобы обновить 小铁智友, выберите способ в зависимости от типа установки:
 
 1. Если вы устанавливали через однострочный скрипт, повторно запустите установщик для обновления.
 
@@ -173,7 +173,7 @@ qwenpaw update
 3. Если устанавливали из исходников, получите последние изменения и переустановите:
 
 \`\`\`
-cd CrecPaw
+cd 小铁智友
 git pull origin main
 cd console && npm ci && npm run build
 cd .. && mkdir -p src/qwenpaw/console
@@ -190,9 +190,9 @@ docker run -p 127.0.0.1:8088:8088 -v qwenpaw-data:/app/working agentscope/qwenpa
 
 After upgrading, restart the service with \`qwenpaw app\`.`,
 
-  en: `### How to update CrecPaw
+  en: `### How to update 小铁智友
 
-To update CrecPaw, use the method matching your installation type:
+To update 小铁智友, use the method matching your installation type:
 
 1. If installed via one-line script, re-run the installer to upgrade.
 
@@ -205,7 +205,7 @@ qwenpaw update
 3. If installed from source, pull the latest code and reinstall:
 
 \`\`\`
-cd CrecPaw
+cd 小铁智友
 git pull origin main
 cd console && npm ci && npm run build
 cd .. && mkdir -p src/qwenpaw/console

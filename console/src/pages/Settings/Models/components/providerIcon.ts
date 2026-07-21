@@ -13,6 +13,7 @@ export const providerIcon = (provider: string) => {
       return "https://gw.alicdn.com/imgextra/i2/O1CN01R42n1y1hQAjCEiVlB_!!6000000004271-2-tps-400-400.png";
     case "kimi-cn":
     case "kimi-intl":
+    case "kimi-crec":
       return "https://gw.alicdn.com/imgextra/i1/O1CN01xCKAr81Yz8Q9pXh1u_!!6000000003129-2-tps-400-400.png";
     case "anthropic":
       return "https://gw.alicdn.com/imgextra/i2/O1CN014LwvBJ1tNDYvc3FfA_!!6000000005889-2-tps-400-400.png";
@@ -36,11 +37,13 @@ export const providerIcon = (provider: string) => {
     case "zhipu-intl":
     case "zhipu-cn-codingplan":
     case "zhipu-intl-codingplan":
+    case "glm-crec":
       return "https://img.alicdn.com/imgextra/i2/O1CN01TFZcQz23xX7qacIEv_!!6000000007322-2-tps-640-640.png";
+    case "dashscope":
+    case "qwen-crec":
+      return "https://gw.alicdn.com/imgextra/i4/O1CN01aDHDeq1mgj7gbRkhi_!!6000000004984-2-tps-400-400.png";
     case "openrouter":
       return "https://gw.alicdn.com/imgextra/i4/O1CN01oX74jS1ciQR9xBtZ2_!!6000000003634-2-tps-252-252.png";
-    case "opencode":
-      return "https://gw.alicdn.com/imgextra/i1/O1CN01d3RfoB28G5dbN4i97_!!6000000007904-2-tps-30-30.png";
     default:
       return "https://gw.alicdn.com/imgextra/i4/O1CN01IWnlOw1lebfpiFrIL_!!6000000004844-0-tps-100-100.jpg";
   }

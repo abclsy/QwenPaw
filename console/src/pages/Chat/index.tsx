@@ -2,6 +2,8 @@ import {
   AgentScopeRuntimeWebUI,
   IAgentScopeRuntimeWebUIOptions,
   type IAgentScopeRuntimeWebUIRef,
+  WelcomePrompts,
+  type IWelcomePromptsProps,
 } from "@agentscope-ai/chat";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Button, Modal, Result, Tooltip } from "antd";
@@ -1018,8 +1020,32 @@ export default function ChatPage() {
       },
       welcome: {
         ...i18nConfig.welcome,
-        nick: "CrecPaw",
-        avatar: "/szr.png",
+        nick: "小铁智友",
+        avatar: "/crecpaw01.png",
+        render: (
+          props: IWelcomePromptsProps & {
+            onSubmit: (data: { query: string; fileList?: any[] }) => void;
+          },
+        ) => (
+          <WelcomePrompts
+            greeting={props.greeting}
+            description={props.description}
+            avatar={
+              <img
+                src="/小铁智友.gif"
+                alt="小铁智友"
+                style={{
+                  width: 120,
+                  height: 120,
+                  objectFit: "cover",
+                  borderRadius: "16px",
+                }}
+              />
+            }
+            prompts={props.prompts}
+            onClick={(query) => props.onSubmit({ query })}
+          />
+        ),
       },
       sender: {
         ...(i18nConfig as any)?.sender,

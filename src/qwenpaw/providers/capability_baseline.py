@@ -432,68 +432,39 @@ class ExpectedCapabilityRegistry:
             )
 
         # ---------------------------------------------------------------
-        # 6. Kimi (China)
-        #    https://platform.moonshot.cn/docs/intro
+        # 6. CREC internal model aliases (Kimi / GLM / Qwen)
+        #    All models route through the same CREC AI gateway.
         # ---------------------------------------------------------------
-        _kimi_doc = "https://platform.moonshot.cn/docs/intro"
-        self._register(
-            ExpectedCapability(
-                provider_id="kimi-cn",
-                model_id="kimi-k2.5",
-                expected_image=True,
-                expected_video=True,
-                doc_url=_kimi_doc,
-                note="Kimi K2.5 supports image and video input",
-            ),
-        )
-        for mid in (
-            "kimi-k2-0905-preview",
-            "kimi-k2-0711-preview",
-            "kimi-k2-turbo-preview",
-            "kimi-k2-thinking",
-            "kimi-k2-thinking-turbo",
-        ):
+        _crec_doc = "https://ai-api.crec.cn/docs"
+        for provider_id in ("kimi-crec", "glm-crec", "qwen-crec"):
             self._register(
                 ExpectedCapability(
-                    provider_id="kimi-cn",
-                    model_id=mid,
-                    expected_image=False,
-                    expected_video=False,
-                    doc_url=_kimi_doc,
-                    note="K2 series (non-K2.5) is text-only",
+                    provider_id=provider_id,
+                    model_id="kimi",
+                    expected_image=True,
+                    expected_video=True,
+                    doc_url=_crec_doc,
+                    note="CREC gateway proxy model",
                 ),
             )
-
-        # ---------------------------------------------------------------
-        # 7. Kimi (International)
-        #    https://platform.moonshot.ai/docs/intro
-        # ---------------------------------------------------------------
-        _kimi_intl_doc = "https://platform.moonshot.ai/docs/intro"
-        self._register(
-            ExpectedCapability(
-                provider_id="kimi-intl",
-                model_id="kimi-k2.5",
-                expected_image=True,
-                expected_video=True,
-                doc_url=_kimi_intl_doc,
-                note="Kimi K2.5 supports image and video input",
-            ),
-        )
-        for mid in (
-            "kimi-k2-0905-preview",
-            "kimi-k2-0711-preview",
-            "kimi-k2-turbo-preview",
-            "kimi-k2-thinking",
-            "kimi-k2-thinking-turbo",
-        ):
             self._register(
                 ExpectedCapability(
-                    provider_id="kimi-intl",
-                    model_id=mid,
-                    expected_image=False,
-                    expected_video=False,
-                    doc_url=_kimi_intl_doc,
-                    note="K2 series (non-K2.5) is text-only",
+                    provider_id=provider_id,
+                    model_id="glm",
+                    expected_image=True,
+                    expected_video=True,
+                    doc_url=_crec_doc,
+                    note="CREC gateway proxy model",
+                ),
+            )
+            self._register(
+                ExpectedCapability(
+                    provider_id=provider_id,
+                    model_id="qwen3.6",
+                    expected_image=True,
+                    expected_video=True,
+                    doc_url=_crec_doc,
+                    note="CREC gateway proxy model",
                 ),
             )
 
@@ -614,29 +585,7 @@ class ExpectedCapabilityRegistry:
                 ),
             )
         # ---------------------------------------------------------------
-        # 13. OpenCode (OpenCode Zen)
-        #     https://opencode.ai/docs/zen
-        # ---------------------------------------------------------------
-        _oc_doc = "https://opencode.ai/docs/zen"
-        for mid in (
-            "big-pickle",
-            "nemotron-3-super-free",
-        ):
-            self._register(
-                ExpectedCapability(
-                    provider_id="opencode",
-                    model_id=mid,
-                    expected_image=False,
-                    expected_video=False,
-                    doc_url=_oc_doc,
-                    note=(
-                        "OpenCode Zen aggregates heterogeneous providers; "
-                        "capability varies by model, probe to determine."
-                    ),
-                ),
-            )
-        # ---------------------------------------------------------------
-        # 14. Ollama — no predefined models (dynamic discovery)
+        # 13. Ollama — no predefined models (dynamic discovery)
         # ---------------------------------------------------------------
 
         # ---------------------------------------------------------------

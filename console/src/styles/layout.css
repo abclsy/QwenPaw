@@ -821,16 +821,29 @@ html.dark-mode [class*="chat-anywhere"] [class*="message"] a {
   background: #f9f8f4;
 }
 
+/* Chat message list and input containers: inherit page background for a single tone */
 .qwenpaw-bubble-list-wrapper {
-  background: #fff !important;
+  background: transparent !important;
 }
 
 .qwenpaw-chat-anywhere-input {
-  background: #fff !important;
+  background: transparent !important;
+}
+
+/* Sender input box: remove floating shadow, use a clean border instead of two-tone shadow */
+.qwenpaw-sender {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.qwenpaw-sender:focus-within {
+  box-shadow: none !important;
+  border-color: rgba(25, 97, 172, 0.3) !important;
 }
 
 .qwenpaw-chat-anywhere-message-list-welcome {
-  background: #fff !important;
+  background: transparent !important;
 }
 
 /* Chat bubble list max-width override */
@@ -855,6 +868,12 @@ html.dark-mode .qwenpaw-sender,
 html.dark-mode .qwenpaw-sender-content {
   background: #2a2a2a !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
+  box-shadow: none !important;
+}
+
+html.dark-mode .qwenpaw-sender:focus-within {
+  box-shadow: none !important;
+  border-color: rgba(74, 159, 216, 0.5) !important;
 }
 
 /* Menu background in light mode */
@@ -1090,4 +1109,27 @@ html.dark-mode .debug-log-path strong {
 [class*="tool-call-block-content"] {
   max-height: 250px !important;
   overflow-y: auto !important;
+}
+
+/* ─── Custom avatars for 小铁智友 ───────────────────────────────────────── */
+
+/* AI 回复消息头像：圆角方形 */
+.qwenpaw-chat-anywhere-message-list .ant-avatar,
+.qwenpaw-chat-anywhere-message-list .ant-avatar img {
+  border-radius: 12px !important;
+}
+
+html.dark-mode .qwenpaw-chat-anywhere-message-list .ant-avatar,
+html.dark-mode .qwenpaw-chat-anywhere-message-list .ant-avatar img {
+  border-radius: 12px !important;
+}
+
+/* 欢迎页 GIF 头像：圆角，无阴影、无背景框 */
+.qwenpaw-welcome-prompts img[alt="小铁智友"] {
+  border-radius: 16px;
+  background: transparent;
+}
+
+html.dark-mode .qwenpaw-welcome-prompts img[alt="小铁智友"] {
+  background: transparent;
 }

@@ -2,7 +2,7 @@
 chcp 65001 >nul
 setlocal
 
-echo === CrecPaw Windows Build ===
+echo === 小铁智友 Windows Build ===
 echo.
 
 :: Step 1: Check Python
@@ -44,5 +44,5 @@ if errorlevel 1 (
 echo [6/6] Building executable (this takes ~10 minutes)...
 venv\Scripts\pyinstaller QwenPaw.spec --clean 2>&1
 echo.
-echo Build complete. Check dist\CrecPaw\
+echo Build complete. Check dist\小铁智友\
 pause
