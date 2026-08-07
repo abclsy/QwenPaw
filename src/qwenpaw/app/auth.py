@@ -68,6 +68,7 @@ _PUBLIC_PREFIXES: tuple[str, ...] = (
     "/qwenpaw-symbol.svg",
     "/api/plugins/",  # plugin JS bundles served to unauthenticated login page
     "/api/files/preview/",  # HTML preview via webview navigation
+    "/api/update/",  # update check/status should work without auth
 )
 
 

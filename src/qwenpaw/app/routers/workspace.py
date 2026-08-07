@@ -13,6 +13,7 @@ import shutil
 import tempfile
 import zipfile
 from datetime import datetime, timezone
+from urllib.parse import unquote
 from pathlib import Path
 
 from fastapi import APIRouter, Body, HTTPException, UploadFile, File, Request
@@ -107,7 +108,8 @@ async def list_working_files(
         workspace = await get_agent_for_request(request)
 
         # Check for user-selected output directory from X-Workspace-Dir header
-        user_dir = request.headers.get("X-Workspace-Dir")
+        raw_dir = request.headers.get("X-Workspace-Dir")
+        user_dir = unquote(raw_dir) if raw_dir else None
         if user_dir:
             from pathlib import Path as _Path
             list_dir = _Path(user_dir)
@@ -159,13 +161,36 @@ async def read_working_file(
     directory.
     """
     try:
-        user_dir = request.headers.get("X-Workspace-Dir")
+        raw_dir = request.headers.get("X-Workspace-Dir")
+        user_dir = unquote(raw_dir) if raw_dir else None
         if user_dir:
             # Read directly from user-selected directory (any file type)
             file_path = Path(user_dir) / md_name
             if not file_path.is_file():
                 raise FileNotFoundError(
                     f"Working file not found: {md_name}",
+                )
+            # Only allow text files to be read as content; binary files
+            # (images, pptx, xlsx, pdf, etc.) should be accessed via the
+            # raw download endpoint, not the text reader.
+            binary_extensions = {
+                ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico",
+                ".svg", ".webp", ".tiff",
+                ".pdf", ".doc", ".docx", ".xls", ".xlsx",
+                ".ppt", ".pptx",
+                ".zip", ".rar", ".7z", ".tar", ".gz",
+                ".exe", ".dll", ".so", ".dylib",
+                ".mp3", ".mp4", ".avi", ".mov", ".wav", ".flac",
+                ".bin", ".dat",
+            }
+            if file_path.suffix.lower() in binary_extensions:
+                raise HTTPException(
+                    status_code=415,
+                    detail=(
+                        f"File type '{file_path.suffix}' is not supported "
+                        f"for inline preview. Please use the download "
+                        f"button to save the file instead."
+                    ),
                 )
             content = file_path.read_text(encoding="utf-8")
             return MdFileContent(content=content)
@@ -202,7 +227,8 @@ async def serve_workspace_file(
     """
     try:
         # Check header first, then query param (for pywebview save_file)
-        user_dir = request.headers.get("X-Workspace-Dir")
+        raw_dir = request.headers.get("X-Workspace-Dir")
+        user_dir = unquote(raw_dir) if raw_dir else None
         if not user_dir:
             user_dir = request.query_params.get("workspace_dir")
         if user_dir:
@@ -728,7 +754,16 @@ async def download_workspace(request: Request):
     """Stream agent workspace as a zip file."""
 
     agent = await get_agent_for_request(request)
-    workspace_dir = agent.workspace_dir
+
+    # Check for user-selected output directory from X-Workspace-Dir header,
+    # same as list/upload endpoints — download should package the same
+    # directory the user sees in the file list.
+    raw_dir = request.headers.get("X-Workspace-Dir")
+    user_dir = unquote(raw_dir) if raw_dir else None
+    if user_dir:
+        workspace_dir = Path(user_dir)
+    else:
+        workspace_dir = agent.workspace_dir
 
     if not workspace_dir.is_dir():
         raise HTTPException(
@@ -786,7 +821,17 @@ async def upload_workspace(
         )
 
     agent = await get_agent_for_request(request)
-    workspace_dir = agent.workspace_dir
+
+    # Check for user-selected output directory from X-Workspace-Dir header,
+    # same as list/read endpoints — uploads should go to the same directory
+    # the user sees in the file list.
+    raw_dir = request.headers.get("X-Workspace-Dir")
+    user_dir = unquote(raw_dir) if raw_dir else None
+    if user_dir:
+        workspace_dir = Path(user_dir)
+    else:
+        workspace_dir = agent.workspace_dir
+
     data = await file.read()
 
     try:

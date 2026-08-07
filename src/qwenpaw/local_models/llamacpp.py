@@ -549,77 +549,103 @@ class LlamaCppBackend:
 
     @staticmethod
     def _download_worker(payload: dict[str, Any], queue: Any) -> None:
-        ensure_standard_streams()
-        url = payload["url"]
-        staging_dir = Path(payload["staging_dir"]).expanduser().resolve()
-        file_name = payload["file_name"]
-        chunk_size = int(payload["chunk_size"])
-        timeout = int(payload["timeout"])
-        headers = dict(payload["headers"])
-
-        staging_dir.mkdir(parents=True, exist_ok=True)
-        temp_path = staging_dir / file_name
-
+        # Wrap the entire worker in a top-level try/except so that if
+        # anything crashes before we enter the main try block (e.g.
+        # import errors in spawn mode, ensure_standard_streams failure),
+        # we still send a FAILED message to the queue instead of dying
+        # silently — which would trigger the generic
+        # "Download process exited unexpectedly" error.
         try:
-            with httpx.Client(
-                follow_redirects=True,
-                timeout=timeout,
-            ) as client:
-                with client.stream(
-                    "GET",
-                    url,
-                    headers=headers,
-                ) as response:
-                    response.raise_for_status()
-                    total_bytes = response.headers.get("Content-Length")
-                    total_bytes_int = (
-                        int(total_bytes)
-                        if total_bytes and total_bytes.isdigit()
-                        else None
-                    )
-                    downloaded = 0
-
-                    with open(temp_path, "wb") as file_obj:
-                        for chunk in response.iter_bytes(
-                            chunk_size=chunk_size,
-                        ):
-                            if not chunk:
-                                continue
-                            file_obj.write(chunk)
-                            downloaded += len(chunk)
-                            queue.put(
-                                DownloadProgressUpdate(
-                                    downloaded_bytes=downloaded,
-                                    total_bytes=total_bytes_int,
-                                    source=url,
-                                ).to_message(),
-                            )
-
-            LlamaCppBackend._extract_archive(
-                temp_path,
-                staging_dir,
-            )
-            temp_path.unlink(missing_ok=True)
-            queue.put(
-                DownloadTaskResult(
-                    status=DownloadTaskStatus.COMPLETED,
-                    local_path=str(staging_dir),
-                ).to_message(),
-            )
+            ensure_standard_streams()
         except Exception as exc:
-            LlamaCppBackend._cleanup_download_files(temp_path)
-            error_message = LlamaCppBackend._format_download_error(exc, url)
             queue.put(
                 DownloadTaskResult(
                     status=DownloadTaskStatus.FAILED,
-                    error=error_message,
+                    error=f"Failed to initialize download worker: {exc}",
                 ).to_message(),
             )
-            logger.warning(
-                "llama.cpp download failed for %s: %s",
-                url,
-                error_message,
+            return
+
+        try:
+            url = payload["url"]
+            staging_dir = Path(payload["staging_dir"]).expanduser().resolve()
+            file_name = payload["file_name"]
+            chunk_size = int(payload["chunk_size"])
+            timeout = int(payload["timeout"])
+            headers = dict(payload["headers"])
+
+            staging_dir.mkdir(parents=True, exist_ok=True)
+            temp_path = staging_dir / file_name
+
+            try:
+                with httpx.Client(
+                    follow_redirects=True,
+                    timeout=timeout,
+                ) as client:
+                    with client.stream(
+                        "GET",
+                        url,
+                        headers=headers,
+                    ) as response:
+                        response.raise_for_status()
+                        total_bytes = response.headers.get("Content-Length")
+                        total_bytes_int = (
+                            int(total_bytes)
+                            if total_bytes and total_bytes.isdigit()
+                            else None
+                        )
+                        downloaded = 0
+
+                        with open(temp_path, "wb") as file_obj:
+                            for chunk in response.iter_bytes(
+                                chunk_size=chunk_size,
+                            ):
+                                if not chunk:
+                                    continue
+                                file_obj.write(chunk)
+                                downloaded += len(chunk)
+                                queue.put(
+                                    DownloadProgressUpdate(
+                                        downloaded_bytes=downloaded,
+                                        total_bytes=total_bytes_int,
+                                        source=url,
+                                    ).to_message(),
+                                )
+
+                LlamaCppBackend._extract_archive(
+                    temp_path,
+                    staging_dir,
+                )
+                temp_path.unlink(missing_ok=True)
+                queue.put(
+                    DownloadTaskResult(
+                        status=DownloadTaskStatus.COMPLETED,
+                        local_path=str(staging_dir),
+                    ).to_message(),
+                )
+            except Exception as exc:
+                LlamaCppBackend._cleanup_download_files(temp_path)
+                error_message = LlamaCppBackend._format_download_error(exc, url)
+                queue.put(
+                    DownloadTaskResult(
+                        status=DownloadTaskStatus.FAILED,
+                        error=error_message,
+                    ).to_message(),
+                )
+                logger.warning(
+                    "llama.cpp download failed for %s: %s",
+                    url,
+                    error_message,
+                )
+                return
+        except Exception as exc:
+            queue.put(
+                DownloadTaskResult(
+                    status=DownloadTaskStatus.FAILED,
+                    error=f"Download worker initialization failed: {exc}",
+                ).to_message(),
             )
+            logger.warning("llama.cpp download worker init error: %s", exc)
             return
 
     @staticmethod

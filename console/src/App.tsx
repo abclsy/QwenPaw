@@ -30,7 +30,7 @@ import { lazyImportWithRetry } from "./utils/lazyWithRetry";
 const LoginPage = lazyImportWithRetry("./pages/Login/index");
 import { authApi } from "./api/modules/auth";
 import { languageApi } from "./api/modules/language";
-import { getApiUrl, getApiToken, clearAuthToken } from "./api/config";
+import { getApiUrl, getApiToken, clearAuthToken, setAuthUsername } from "./api/config";
 import "./styles/layout.css";
 import "./styles/form-override.css";
 
@@ -81,6 +81,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
           });
           if (cancelled) return;
           if (r.ok) {
+            const data = await r.json().catch(() => ({}));
+            if (data.username) {
+              setAuthUsername(data.username);
+            }
             setStatus("ok");
           } else {
             clearAuthToken();

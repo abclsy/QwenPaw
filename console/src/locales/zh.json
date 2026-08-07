@@ -31,6 +31,22 @@
     "yes": "是",
     "no": "否"
   },
+  "update": {
+    "title": "检查更新",
+    "checkUpdate": "检查更新",
+    "checkNow": "检查更新",
+    "downloadNow": "下载更新",
+    "restartToUpdate": "重启更新",
+    "currentVersion": "当前版本",
+    "latestVersion": "最新版本",
+    "upToDate": "已是最新版本",
+    "updateAvailable": "发现新版本",
+    "downloading": "正在下载更新...",
+    "downloadComplete": "下载完成",
+    "clickToRestart": "点击「重启更新」按钮，应用将自动重启并完成更新",
+    "applying": "正在应用更新，应用即将重启...",
+    "error": "更新失败"
+  },
   "chunkError": {
     "title": "页面加载失败",
     "subTitle": "可能由网络问题或应用更新导致，请稍后重试。",
@@ -40,6 +56,7 @@
   },
   "nav": {
     "chat": "聊天",
+    "guest": "用户",
     "control": "控制",
     "channels": "频道",
     "sessions": "会话",
@@ -110,7 +127,8 @@
     "configUpdateFailed": "更新系统提示词配置失败",
     "attribution": "工作区设计部分灵感源自 OpenClaw 项目，在此表示感谢 🐾",
     "saveSuccess": "保存成功",
-    "saveFailed": "保存失败"
+    "saveFailed": "保存失败",
+    "binaryFileNotSupported": "此文件类型不支持在线预览，请使用下载按钮获取文件"
   },
   "agent": {
     "parent": "设置",
@@ -462,7 +480,8 @@
     "noTools": "该 MCP 服务器暂无可用工具",
     "toolsLoadError": "获取 MCP 服务器工具列表失败",
     "toolsConnecting": "MCP 服务器正在连接中，请稍后重试",
-    "toolSchema": "输入参数"
+    "toolSchema": "输入参数",
+    "invalidJsonFormat": "JSON格式无效"
   },
   "heartbeat": {
     "title": "心跳",
@@ -619,6 +638,7 @@
     "groupPolicyTooltip": "控制谁可以在群聊中与机器人交互。开放：所有人；白名单：仅限授权用户",
     "requireMention": "需要 @提及",
     "requireMentionTooltip": "开启后，群聊中仅在被 @提及 时才会回复",
+    "dingtalkMentionRequired": "钉钉平台限制：群聊中必须 @机器人 才能触发回复，此行为为平台默认规则，无法关闭",
     "policyOpen": "开放",
     "policyAllowlist": "白名单",
     "allowFrom": "白名单用户",

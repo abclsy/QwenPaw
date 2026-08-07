@@ -29,7 +29,9 @@ export function buildAuthHeaders(): Record<string, string> {
       const parsed = JSON.parse(wsStorage);
       const dir = parsed?.state?.workspaceDir;
       if (dir) {
-        headers["X-Workspace-Dir"] = dir;
+        // Encode the path to handle non-ASCII characters (e.g. Chinese paths)
+        // HTTP headers only support ASCII; encodeURIComponent ensures safe transport
+        headers["X-Workspace-Dir"] = encodeURIComponent(dir);
       }
     }
   } catch (error) {

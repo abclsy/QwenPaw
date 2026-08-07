@@ -3,8 +3,15 @@
 #   1. 无参数 / desktop → 启动 qwenpaw desktop
 #   2. 含 app → 子进程模式，启动 qwenpaw app（供 desktop 内部用）
 import patch_fastmcp  # 必须在最开头
+import multiprocessing
 import os
 import sys
+
+# PyInstaller frozen apps using multiprocessing.spawn MUST call
+# freeze_support() before anything else runs. Without it, child
+# processes crash silently on re-import, which is the root cause of
+# "Download process exited unexpectedly" errors for llama.cpp downloads.
+multiprocessing.freeze_support()
 
 
 def main():

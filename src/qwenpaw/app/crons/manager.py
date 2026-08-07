@@ -340,6 +340,7 @@ class CronManager:
             id=spec.id,
             args=[spec.id],
             misfire_grace_time=spec.runtime.misfire_grace_seconds,
+            max_instances=spec.runtime.max_concurrency,
             replace_existing=True,
         )
 
@@ -399,7 +400,14 @@ class CronManager:
         if not job:
             return
 
-        await self._execute_once(job)
+        # Use create_task (fire-and-forget) so the callback returns
+        # immediately, allowing APScheduler to trigger again while
+        # the previous execution is still running. The Semaphore
+        # inside _execute_once controls actual concurrency.
+        asyncio.create_task(
+            self._execute_once(job),
+            name=f"cron-scheduled-{job_id}",
+        )
 
         # refresh next_run
         aps_job = self._scheduler.get_job(job_id)

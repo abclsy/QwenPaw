@@ -63,6 +63,7 @@ function MCPPage() {
     updateClient,
   } = useMCP();
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [jsonError, setJsonError] = useState("");
   const [newClientJson, setNewClientJson] = useState(`{
   "mcpServers": {
     "example-client": {
@@ -89,6 +90,7 @@ function MCPPage() {
   };
 
   const handleCreateClient = async () => {
+    setJsonError("");
     try {
       const parsed = JSON.parse(newClientJson);
 
@@ -156,7 +158,11 @@ function MCPPage() {
 }`);
       }
     } catch (error) {
-      alert("Invalid JSON format");
+      setJsonError(
+        error instanceof Error
+          ? `${t("mcp.invalidJsonFormat")}: ${error.message}`
+          : t("mcp.invalidJsonFormat"),
+      );
     }
   };
 
@@ -234,10 +240,24 @@ function MCPPage() {
         </div>
         <Input.TextArea
           value={newClientJson}
-          onChange={(e) => setNewClientJson(e.target.value)}
+          onChange={(e) => {
+            setNewClientJson(e.target.value);
+            setJsonError("");
+          }}
           autoSize={{ minRows: 15, maxRows: 25 }}
           className={styles.jsonTextArea}
         />
+        {jsonError && (
+          <div
+            style={{
+              color: "#ff4d4f",
+              fontSize: 13,
+              marginTop: 8,
+            }}
+          >
+            {jsonError}
+          </div>
+        )}
       </Modal>
     </div>
   );

@@ -66,13 +66,21 @@ export function MarkdownCopy({
     setEditContent(content);
   }, [content]);
 
+  // Initialize localShowMarkdown based on editable state and showMarkdown prop.
+  // Only re-sync when editable/disabled changes — NOT when showMarkdown changes,
+  // because the user's manual toggle should take priority once they interact.
+  const editableKey = `${editable}-${textareaProps.disabled ?? false}`;
+  const [lastEditableKey, setLastEditableKey] = useState(editableKey);
   useEffect(() => {
-    if (editable && !textareaProps.disabled) {
-      setLocalShowMarkdown(false);
-    } else {
-      setLocalShowMarkdown(showMarkdown);
+    if (editableKey !== lastEditableKey) {
+      setLastEditableKey(editableKey);
+      if (editable && !textareaProps.disabled) {
+        setLocalShowMarkdown(false);
+      } else {
+        setLocalShowMarkdown(showMarkdown);
+      }
     }
-  }, [editable, textareaProps.disabled, showMarkdown]);
+  }, [editableKey, lastEditableKey, editable, textareaProps.disabled, showMarkdown]);
 
   const copyToClipboard = async () => {
     const contentToCopy =

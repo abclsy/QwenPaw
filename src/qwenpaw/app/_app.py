@@ -559,6 +559,10 @@ def _resolve_console_static_dir() -> str:
         return static_dir
     # Shipped dist lives in the package as static data
     pkg_dir = Path(__file__).resolve().parent.parent
+    # Prefer console/dist (built frontend) over console (may contain stale assets)
+    candidate = pkg_dir / "console" / "dist"
+    if candidate.is_dir() and (candidate / "index.html").exists():
+        return str(candidate)
     candidate = pkg_dir / "console"
     if candidate.is_dir() and (candidate / "index.html").exists():
         return str(candidate)

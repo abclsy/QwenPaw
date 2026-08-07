@@ -1,0 +1,21 @@
+{
+  "version": "1.1.6",
+  "date": "2026-08-05T07:15:00Z",
+  "releaseNotes": {
+    "zh": "1. 新增自动更新功能\n2. 修复工作区文件上传问题\n3. 修复钉钉文件发送\n4. 修复二进制文件预览报错\n5. 重构 UI 布局，取消 header，左下角用户菜单\n6. 修复对话中文件下载和文件夹显示按钮\n7. 修复定时任务并发执行问题",
+    "en": "1. Added auto-update feature\n2. Fixed workspace file upload\n3. Fixed DingTalk file sending\n4. Fixed binary file preview error\n5. Redesigned UI layout, removed header, user menu in sidebar\n6. Fixed file download and reveal-in-folder buttons\n7. Fixed cron job concurrency issue"
+  },
+  "minAppVersion": "1.0.0",
+  "platforms": {
+    "darwin": {
+      "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=CrecPaw-1.1.6-mac.zip",
+      "sha256": "fc7dd04a7e81f00e17338b27920305fe74b76c8016b571425f160c1ee1d40759",
+      "size": 197331616
+    },
+    "win32": {
+      "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=CrecPaw-1.1.6-win.zip",
+      "sha256": "",
+      "size": 0
+    }
+  }
+}

@@ -167,6 +167,24 @@ export const useAgentsData = () => {
     }
 
     setSelectedFile(file);
+
+    // Binary file types that cannot be previewed as text
+    const binaryExtensions = [
+      ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".svg", ".webp", ".tiff",
+      ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+      ".zip", ".rar", ".7z", ".tar", ".gz",
+      ".exe", ".dll", ".so", ".dylib",
+      ".mp3", ".mp4", ".avi", ".mov", ".wav", ".flac",
+      ".bin", ".dat",
+    ];
+    const ext = file.filename.toLowerCase().match(/\.[^.]+$/)?.[0] || "";
+    if (binaryExtensions.includes(ext)) {
+      setFileContent("");
+      setOriginalContent("");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const data = await workspaceApi.loadFile(file.filename);
@@ -174,7 +192,13 @@ export const useAgentsData = () => {
       setOriginalContent(data.content);
     } catch (error) {
       console.error("Failed to load file", error);
-      message.error("Failed to load file");
+      // Check if it's a 415 (unsupported media type) for binary files
+      if (error instanceof Error && error.message.includes("415")) {
+        setFileContent("");
+        setOriginalContent("");
+      } else {
+        message.error("Failed to load file");
+      }
     } finally {
       setLoading(false);
     }

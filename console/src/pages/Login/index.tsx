@@ -5,7 +5,7 @@ import { Button, Form, Input } from "antd";
 import { useAppMessage } from "../../hooks/useAppMessage";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { authApi } from "../../api/modules/auth";
-import { setAuthToken } from "../../api/config";
+import { setAuthToken, setAuthUsername } from "../../api/config";
 import { useTheme } from "../../contexts/ThemeContext";
 
 // ── 中铁统一认证 OAuth2 配置 ─────────────────────────────────────────
@@ -141,6 +141,7 @@ export default function LoginPage() {
         const res = await authApi.register(values.username, values.password);
         if (res.token) {
           setAuthToken(res.token);
+          setAuthUsername(res.username || values.username);
           message.success(t("login.registerSuccess"));
           navigate(redirect, { replace: true });
         }
@@ -148,6 +149,7 @@ export default function LoginPage() {
         const res = await authApi.login(values.username, values.password);
         if (res.token) {
           setAuthToken(res.token);
+          setAuthUsername(res.username || values.username);
           navigate(redirect, { replace: true });
         } else {
           message.info(t("login.authNotEnabled"));

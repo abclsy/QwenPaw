@@ -117,7 +117,17 @@ function navigateTo(url: string, e: React.MouseEvent) {
 
 // ── 桌面环境检测 ─────────────────────────────────────────────────────
 function isDesktopEnv(): boolean {
-  return typeof window !== "undefined" && !!window.pywebview?.api?.reveal_file;
+  return typeof window !== "undefined" && !!window.pywebview?.api?.save_file;
+}
+
+// ── 浏览器下载回退 ───────────────────────────────────────────────────
+function doBrowserDownload(url: string, filename: string) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 // ── 单个文件卡片 ──────────────────────────────────────────────────────
@@ -149,15 +159,50 @@ function FileCard({
 
   // 在文件夹中显示
   const handleReveal = useCallback(
-    (e: React.MouseEvent) => {
+    async (e: React.MouseEvent) => {
       e.stopPropagation();
       if (!filePath || !window.pywebview?.api?.reveal_file) return;
-      const ok = window.pywebview.api.reveal_file(filePath);
-      if (!ok) {
+      try {
+        const ok = await window.pywebview.api.reveal_file(filePath);
+        if (!ok) {
+          message.error("文件不存在或无法打开");
+        }
+      } catch {
         message.error("文件不存在或无法打开");
       }
     },
     [filePath],
+  );
+
+  // 下载文件
+  const handleDownload = useCallback(
+    async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const pywebview = (window as any).pywebview;
+      if (pywebview?.api?.save_file) {
+        // 桌面端：使用原生保存对话框
+        const fullUrl = apiUrl!.startsWith("http")
+          ? apiUrl!
+          : `${window.location.origin}${apiUrl!}`;
+        try {
+          const saved = await pywebview.api.save_file(fullUrl, name);
+          if (saved === true || saved === "true") {
+            message.success("文件已保存");
+          } else if (saved === false || saved === "false") {
+            // 用户取消，不提示
+          } else {
+            doBrowserDownload(apiUrl!, name);
+          }
+        } catch {
+          doBrowserDownload(apiUrl!, name);
+        }
+      } else {
+        // 浏览器端：直接下载
+        doBrowserDownload(apiUrl!, name);
+      }
+    },
+    [apiUrl, name],
   );
 
   if (!apiUrl) return null;
@@ -294,9 +339,8 @@ function FileCard({
           </a>
         ) : (
           /* 非 HTML：下载按钮 */
-          <a
-            href={apiUrl}
-            download={name}
+          <button
+            onClick={handleDownload}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -304,15 +348,15 @@ function FileCard({
               padding: "7px 18px",
               background: "#1961AC",
               color: "#fff",
+              border: "none",
               borderRadius: 8,
-              textDecoration: "none",
               fontWeight: 500,
               fontSize: 13,
               cursor: "pointer",
             }}
           >
             <DownloadOutlined /> 下载
-          </a>
+          </button>
         )}
 
         {/* 桌面端：文件夹中显示按钮 */}

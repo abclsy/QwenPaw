@@ -62,7 +62,27 @@ export const workspaceApi = {
 
   // Workspace package download
   downloadWorkspace: async (): Promise<WorkspaceDownloadResult> => {
-    const response = await fetch(getApiUrl("/workspace/download"), {
+    const url = getApiUrl("/workspace/download");
+
+    // In pywebview desktop, <a>.click() downloads are silently ignored.
+    // Use the native save dialog exposed via the pywebview bridge instead.
+    const pywebview = (window as any).pywebview;
+    if (pywebview?.api?.save_file) {
+      const fullUrl = url.startsWith("http")
+        ? url
+        : `${window.location.origin}${url}`;
+      const filename = generateFallbackFilename();
+      const saved = await pywebview.api.save_file(fullUrl, filename);
+      // False means the user cancelled the OS save dialog — not an error.
+      if (!saved) {
+        return { blob: new Blob(), filename: "" };
+      }
+      // Return an empty blob so the caller knows it was handled
+      return { blob: new Blob(), filename };
+    }
+
+    // Fallback for regular browsers: trigger download via fetch + blob
+    const response = await fetch(url, {
       method: "GET",
       headers: buildAuthHeaders(),
     });

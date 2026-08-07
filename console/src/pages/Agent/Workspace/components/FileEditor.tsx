@@ -32,6 +32,19 @@ export const FileEditor: React.FC<FileEditorProps> = ({
   const [showMarkdown, setShowMarkdown] = useState(true);
 
   const isMarkdownFile = selectedFile?.filename.endsWith(".md") || false;
+
+  // Binary file types that cannot be previewed as text
+  const binaryExtensions = [
+    ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".svg", ".webp", ".tiff",
+    ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
+    ".zip", ".rar", ".7z", ".tar", ".gz",
+    ".exe", ".dll", ".so", ".dylib",
+    ".mp3", ".mp4", ".avi", ".mov", ".wav", ".flac",
+    ".bin", ".dat",
+  ];
+  const fileExt = selectedFile?.filename.toLowerCase().match(/\.[^.]+$/)?.[0] || "";
+  const isBinaryFile = binaryExtensions.includes(fileExt);
+
   const markdownContent = useMemo(
     () => stripFrontmatter(fileContent || ""),
     [fileContent],
@@ -72,31 +85,35 @@ export const FileEditor: React.FC<FileEditorProps> = ({
                 <div className={styles.filePath}>{selectedFile.path}</div>
               </div>
               <div className={styles.buttonGroup}>
-                <Button
-                  size="small"
-                  onClick={onReset}
-                  disabled={!hasChanges}
-                  icon={<UndoOutlined />}
-                >
-                  {t("common.reset")}
-                </Button>
-                <Button
-                  type="primary"
-                  size="small"
-                  onClick={onSave}
-                  disabled={!hasChanges}
-                  loading={loading}
-                  icon={<SaveOutlined />}
-                >
-                  {t("common.save")}
-                </Button>
+                {!isBinaryFile && (
+                  <>
+                    <Button
+                      size="small"
+                      onClick={onReset}
+                      disabled={!hasChanges}
+                      icon={<UndoOutlined />}
+                    >
+                      {t("common.reset")}
+                    </Button>
+                    <Button
+                      type="primary"
+                      size="small"
+                      onClick={onSave}
+                      disabled={!hasChanges}
+                      loading={loading}
+                      icon={<SaveOutlined />}
+                    >
+                      {t("common.save")}
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
 
             <div className={styles.editorContent}>
               <div className={styles.contentLabel}>
                 <div>{t("common.content")}</div>
-                {isMarkdownFile && (
+                {isMarkdownFile && !isBinaryFile && (
                   <div className={styles.buttonGroup}>
                     <div className={styles.markdownToggle}>
                       <span className={styles.toggleLabel}>
@@ -117,7 +134,18 @@ export const FileEditor: React.FC<FileEditorProps> = ({
                   </div>
                 )}
               </div>
-              {showMarkdown && isMarkdownFile ? (
+              {isBinaryFile ? (
+                <div
+                  style={{
+                    padding: "40px 20px",
+                    textAlign: "center",
+                    color: "rgba(0, 0, 0, 0.45)",
+                    fontSize: 14,
+                  }}
+                >
+                  {t("workspace.binaryFileNotSupported")}
+                </div>
+              ) : showMarkdown && isMarkdownFile ? (
                 <XMarkdown
                   content={markdownContent}
                   className={styles.markdownViewer}

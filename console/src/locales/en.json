@@ -31,6 +31,22 @@
     "yes": "Yes",
     "no": "No"
   },
+  "update": {
+    "title": "Check for updates",
+    "checkUpdate": "Check for updates",
+    "checkNow": "Check now",
+    "downloadNow": "Download update",
+    "restartToUpdate": "Restart to update",
+    "currentVersion": "Current version",
+    "latestVersion": "Latest version",
+    "upToDate": "Already up to date",
+    "updateAvailable": "New version available",
+    "downloading": "Downloading update...",
+    "downloadComplete": "Download complete",
+    "clickToRestart": "Click \"Restart to update\" — the app will restart and apply the update automatically",
+    "applying": "Applying update, the app will restart shortly...",
+    "error": "Update failed"
+  },
   "chunkError": {
     "title": "Failed to load page",
     "subTitle": "This may be caused by a network issue or an application update.",
@@ -40,6 +56,7 @@
   },
   "nav": {
     "chat": "Chat",
+    "guest": "User",
     "control": "Control",
     "channels": "Channels",
     "sessions": "Sessions",
@@ -292,7 +309,8 @@
     "configUpdateFailed": "Failed to update system prompt configuration",
     "attribution": "Workspace design partly inspired by the OpenClaw project — thank you! 🐾",
     "saveSuccess": "Saved successfully",
-    "saveFailed": "Save failed"
+    "saveFailed": "Save failed",
+    "binaryFileNotSupported": "This file type cannot be previewed inline. Please use the download button to save the file."
   },
   "agent": {
     "parent": "Settings",
@@ -608,7 +626,8 @@
     "noTools": "No tools available from this MCP server",
     "toolsLoadError": "Failed to load tools from MCP server",
     "toolsConnecting": "MCP server is still connecting, please try again in a moment",
-    "toolSchema": "Input Schema"
+    "toolSchema": "Input Schema",
+    "invalidJsonFormat": "Invalid JSON format"
   },
   "heartbeat": {
     "title": "Heartbeat",
@@ -756,6 +775,7 @@
     "groupPolicyTooltip": "Control who can interact with the bot in group chats. Open: everyone; Allowlist: authorized users only",
     "requireMention": "Require @Mention",
     "requireMentionTooltip": "When enabled, bot only responds in group chats when explicitly @mentioned",
+    "dingtalkMentionRequired": "DingTalk platform requires @mentioning the bot in group chats to trigger replies. This is a platform-level rule and cannot be disabled.",
     "policyOpen": "Open",
     "policyAllowlist": "Allowlist",
     "allowFrom": "Allowlist Users",

@@ -2297,10 +2297,27 @@ class DingTalkChannel(BaseChannel):
                     )
                     for part in parts:
                         if getattr(part, "type", None) in _media_types:
-                            await self._send_media_part_via_webhook(
+                            media_ok = await self._send_media_part_via_webhook(
                                 session_webhook,
                                 part,
                             )
+                            if not media_ok:
+                                # Webhook media send failed: fallback to Open API
+                                logger.warning(
+                                    "dingtalk stream: webhook media send "
+                                    "failed, trying Open API fallback",
+                                )
+                                params = await self._resolve_open_api_params_from_handle(
+                                    to_handle,
+                                    reply_meta,
+                                )
+                                if params["conversation_id"]:
+                                    await self._send_media_part_via_open_api(
+                                        part,
+                                        conversation_id=params["conversation_id"],
+                                        conversation_type=params["conversation_type"],
+                                        sender_staff_id=params["sender_staff_id"],
+                                    )
                 else:
                     accumulated_parts.extend(parts)
             elif obj == "response":

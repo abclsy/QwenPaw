@@ -37,6 +37,25 @@
       display: flex;
       align-items: center;
     }
+
+    /* Restore scrollbar that AgentScopeRuntimeWebUI hides by default */
+    .qwenpaw-chat-anywhere-message-list .qwenpaw-bubble-list-scroll::-webkit-scrollbar {
+      display: block !important;
+      width: 8px;
+    }
+
+    .qwenpaw-chat-anywhere-message-list .qwenpaw-bubble-list-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .qwenpaw-chat-anywhere-message-list .qwenpaw-bubble-list-scroll::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.3);
+      }
+    }
   }
 
   /* Custom scrollbar */

@@ -203,6 +203,10 @@ export function ChannelDrawer({
 
   // ── Access control fields (shared across multiple channels) ──────────────
 
+  // Channels where DingTalk-style platform requires @mention by default;
+  // the require_mention toggle is misleading for these channels.
+  const CHANNELS_ALWAYS_REQUIRE_MENTION: ChannelKey[] = ["dingtalk"];
+
   const renderAccessControlFields = () => (
     <>
       <Form.Item
@@ -231,14 +235,28 @@ export function ChannelDrawer({
           ]}
         />
       </Form.Item>
-      <Form.Item
-        name="require_mention"
-        label={t("channels.requireMention")}
-        valuePropName="checked"
-        tooltip={t("channels.requireMentionTooltip")}
-      >
-        <Switch />
-      </Form.Item>
+      {activeKey && CHANNELS_ALWAYS_REQUIRE_MENTION.includes(activeKey) ? (
+        <Form.Item
+          label={t("channels.requireMention")}
+          tooltip={t("channels.requireMentionTooltip")}
+        >
+          <Alert
+            type="info"
+            showIcon
+            message={t("channels.dingtalkMentionRequired")}
+            style={{ marginTop: 0 }}
+          />
+        </Form.Item>
+      ) : (
+        <Form.Item
+          name="require_mention"
+          label={t("channels.requireMention")}
+          valuePropName="checked"
+          tooltip={t("channels.requireMentionTooltip")}
+        >
+          <Switch />
+        </Form.Item>
+      )}
       <Form.Item
         name="allow_from"
         label={t("channels.allowFrom")}

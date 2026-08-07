@@ -1,10 +1,9 @@
 import {
   Layout,
   Menu,
-  Button,
   Tooltip,
   Select,
-  Segmented,
+  Dropdown,
   type MenuProps,
 } from "antd";
 import { useState, useEffect } from "react";
@@ -21,28 +20,35 @@ import {
   SparkMagicWandLine,
   SparkLocalFileLine,
   SparkModePlazaLine,
-  SparkInternetLine,
+  // SparkInternetLine removed — environments module hidden
   SparkModifyLine,
   SparkBrowseLine,
   SparkMcpMcpLine,
-  SparkScanLine,
+  // SparkScanLine removed — ACP module hidden
   SparkToolLine,
   SparkDataLine,
   SparkMicLine,
   SparkAgentLine,
-  SparkExitFullscreenLine,
   SparkOtherLine,
   SparkBarChartLine,
   SparkDebugLine,
-  SparkSaveLine,
+  // SparkSaveLine removed — backups module hidden
 } from "@agentscope-ai/icons";
-import { clearAuthToken } from "../api/config";
+import { clearAuthToken, getAuthUsername, setAuthUsername, getApiUrl } from "../api/config";
 import { authApi } from "../api/modules/auth";
 import { usePlugins } from "../plugins/PluginContext";
 import styles from "./index.module.less";
 import { useTheme } from "../contexts/ThemeContext";
-import type { ThemeMode } from "../contexts/ThemeContext";
 import { KEY_TO_PATH, DEFAULT_OPEN_KEYS } from "./constants";
+import { UpdateModal } from "../components/UpdateModal";
+import { updateApi, type UpdateState } from "../api/modules/update";
+import {
+  LogoutOutlined,
+  SyncOutlined,
+  SkinOutlined,
+  CheckCircleOutlined,
+  LinkOutlined,
+} from "@ant-design/icons";
 
 // ── Layout ────────────────────────────────────────────────────────────────
 
@@ -52,6 +58,17 @@ const { Sider } = Layout;
 
 interface SidebarProps {
   selectedKey: string;
+}
+
+// ── Helper: open external link (pywebview compatible) ─────────────────────
+
+function openExternalLink(url: string): void {
+  const pywebview = (window as any).pywebview;
+  if (pywebview?.api?.open_external_link) {
+    pywebview.api.open_external_link(url);
+  } else {
+    window.open(url, "_blank");
+  }
 }
 
 // ── Sidebar ───────────────────────────────────────────────────────────────
@@ -64,6 +81,11 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
   const { pluginRoutes } = usePlugins();
   const [authEnabled, setAuthEnabled] = useState(false);
   const collapsed = false;
+  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [hasUpdate, setHasUpdate] = useState(false);
+  const [username, setUsername] = useState(
+    getAuthUsername() || t("nav.guest", "用户"),
+  );
 
   // ── Effects ──────────────────────────────────────────────────────────────
 
@@ -72,6 +94,36 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
       .getStatus()
       .then((res) => setAuthEnabled(res.enabled))
       .catch(() => {});
+  }, []);
+
+  // Fetch username from /auth/verify on mount — handles case where
+  // localStorage has token but username hasn't been stored yet
+  useEffect(() => {
+    const token = localStorage.getItem("qwenpaw_auth_token");
+    if (!token) return;
+    fetch(getApiUrl("/auth/verify"), {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.username) {
+          setAuthUsername(data.username);
+          setUsername(data.username);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Check for updates on startup
+  useEffect(() => {
+    updateApi
+      .check()
+      .then((state: UpdateState) => {
+        setHasUpdate(state.has_update === true);
+      })
+      .catch(() => {
+        // Silently fail — update check is best-effort
+      });
   }, []);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -139,12 +191,13 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
       path: "/mcp",
       label: t("nav.mcp"),
     },
-    {
-      key: "acp",
-      icon: <SparkScanLine size={18} />,
-      path: "/acp",
-      label: t("nav.acp"),
-    },
+    // ACP module hidden — not used in current deployment
+    // {
+    //   key: "acp",
+    //   icon: <SparkScanLine size={18} />,
+    //   path: "/acp",
+    //   label: t("nav.acp"),
+    // },
     {
       key: "agent-config",
       icon: <SparkModifyLine size={18} />,
@@ -169,12 +222,13 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
       path: "/models",
       label: t("nav.models"),
     },
-    {
-      key: "environments",
-      icon: <SparkInternetLine size={18} />,
-      path: "/environments",
-      label: t("nav.environments"),
-    },
+    // environments module hidden — not used in current deployment
+    // {
+    //   key: "environments",
+    //   icon: <SparkInternetLine size={18} />,
+    //   path: "/environments",
+    //   label: t("nav.environments"),
+    // },
     {
       key: "security",
       icon: <SparkBrowseLine size={18} />,
@@ -187,12 +241,13 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
       path: "/token-usage",
       label: t("nav.tokenUsage"),
     },
-    {
-      key: "backups",
-      icon: <SparkSaveLine size={18} />,
-      path: "/backups",
-      label: t("nav.backups"),
-    },
+    // backups module hidden — not used in current deployment
+    // {
+    //   key: "backups",
+    //   icon: <SparkSaveLine size={18} />,
+    //   path: "/backups",
+    //   label: t("nav.backups"),
+    // },
     {
       key: "voice-transcription",
       icon: <SparkMicLine size={18} />,
@@ -246,7 +301,8 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
     { key: "skills", label: t("nav.skills") },
     { key: "tools", label: t("nav.tools") },
     { key: "mcp", label: t("nav.mcp") },
-    { key: "acp", label: t("nav.acp") },
+    // ACP module hidden
+    // { key: "acp", label: t("nav.acp") },
     { key: "agent-config", label: t("nav.agentConfig") },
     { key: "agent-stats", label: t("nav.agentStats") },
   ];
@@ -264,10 +320,12 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
     { key: "agents", label: t("nav.agents") },
     { key: "models", label: t("nav.models") },
     { key: "skill-pool", label: t("nav.skillPool", "Skill Pool") },
-    { key: "environments", label: t("nav.environments") },
+    // environments hidden
+    // { key: "environments", label: t("nav.environments") },
     { key: "security", label: t("nav.security") },
     { key: "token-usage", label: t("nav.tokenUsage") },
-    { key: "backups", label: t("nav.backups") },
+    // backups hidden — not used in current deployment
+    // { key: "backups", label: t("nav.backups") },
     { key: "voice-transcription", label: t("nav.voiceTranscription") },
     { key: "debug", label: t("nav.debug", "Debug") },
   ];
@@ -327,6 +385,21 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
         </nav>
       ) : (
         <>
+          {/* Logo at top of sidebar */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "12px 8px 8px",
+            cursor: "pointer",
+          }} onClick={() => navigate("/chat")}>
+            <img
+              src={isDark ? "/logo-header-dark.png" : "/logo-header-light.png"}
+              alt="小铁智友"
+              style={{ height: 28, width: "auto", maxWidth: 180, objectFit: "contain" }}
+            />
+          </div>
+
           {/* Agent-scoped section: selector + Chat */}
           <div className={styles.agentScopedSection}>
             <div className={styles.agentSelectorContainer}>
@@ -393,44 +466,157 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
               className={styles.settingsSelect}
             />
           </div>
-
-          {/* Theme appearance section */}
-          <div className={styles.settingsSection}>
-            <div className={styles.settingsLabel}>{t("nav.appearance")}</div>
-            <Segmented<ThemeMode>
-              value={themeMode}
-              options={[
-                { value: "dark", label: t("theme.dark") },
-                { value: "light", label: t("theme.light") },
-                { value: "system", label: t("theme.system") },
-              ]}
-              onChange={(val) => setThemeMode(val as ThemeMode)}
-              block
-            />
-          </div>
         </>
         )}
       </div>
 
-      {/* Footer — pinned at bottom */}
+      {/* Footer — user menu (VS Code / Cursor style) */}
       <div className={styles.siderFooter}>
-        {authEnabled && (
-          <Button
-            type="text"
-            icon={<SparkExitFullscreenLine size={16} />}
-            onClick={() => {
-              clearAuthToken();
-              window.location.href = "/login";
+        <Dropdown
+          menu={{
+            items: [
+              {
+                key: "appearance",
+                label: t("nav.appearance"),
+                icon: <SkinOutlined />,
+                children: [
+                  {
+                    key: "theme-dark",
+                    label: (
+                      <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        {t("theme.dark")}
+                        {themeMode === "dark" && <CheckCircleOutlined style={{ color: "#52c41a" }} />}
+                      </span>
+                    ),
+                    onClick: () => setThemeMode("dark"),
+                  },
+                  {
+                    key: "theme-light",
+                    label: (
+                      <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        {t("theme.light")}
+                        {themeMode === "light" && <CheckCircleOutlined style={{ color: "#52c41a" }} />}
+                      </span>
+                    ),
+                    onClick: () => setThemeMode("light"),
+                  },
+                  {
+                    key: "theme-system",
+                    label: (
+                      <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        {t("theme.system")}
+                        {themeMode === "system" && <CheckCircleOutlined style={{ color: "#52c41a" }} />}
+                      </span>
+                    ),
+                    onClick: () => setThemeMode("system"),
+                  },
+                ],
+              },
+              {
+                key: "update",
+                label: (
+                  <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    {t("update.checkUpdate", "检查更新")}
+                    {hasUpdate && (
+                      <span style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        background: "#ff4d4f",
+                        marginLeft: 8,
+                      }} />
+                    )}
+                  </span>
+                ),
+                icon: <SyncOutlined />,
+                onClick: () => setUpdateModalOpen(true),
+              },
+              { type: "divider" as const },
+              {
+                key: "docs",
+                label: "操作文档",
+                icon: <LinkOutlined />,
+                onClick: () => openExternalLink("https://ecloud.crec.cn/chatAi/crecpawWebsite/docs.html"),
+              },
+              {
+                key: "community",
+                label: "技术社区",
+                icon: <LinkOutlined />,
+                onClick: () => openExternalLink("https://developers.crec.cn/"),
+              },
+              {
+                key: "tech-news",
+                label: "科技资讯",
+                icon: <LinkOutlined />,
+                onClick: () => openExternalLink("https://ecloud.crec.cn/chatAi/chat/techNewsletter?Aid="),
+              },
+              {
+                key: "contact",
+                label: "联系我们",
+                icon: <LinkOutlined />,
+                onClick: () => openExternalLink("https://awake.crec.cn/apps/desktop/multipleTabs/sapp/app_5k2s88slih/sapp_ncc6v20nlz/form_s3837k5u9h"),
+              },
+              ...(authEnabled ? [
+                { type: "divider" as const },
+                {
+                  key: "logout",
+                  label: t("login.logout"),
+                  icon: <LogoutOutlined />,
+                  onClick: () => {
+                    clearAuthToken();
+                    window.location.href = "/login";
+                  },
+                },
+              ] : []),
+            ] as MenuProps["items"],
+          }}
+          trigger={["click"]}
+          placement="topLeft"
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "8px 12px",
+              cursor: "pointer",
+              borderRadius: 6,
+              transition: "background 0.2s",
             }}
-            block
-            className={`${styles.authBtn} ${
-              collapsed ? styles.authBtnCollapsed : ""
-            }`}
           >
-            {!collapsed && t("login.logout")}
-          </Button>
-        )}
+            <div
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                background: isDark ? "#177ddc" : "#1677ff",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 13,
+                fontWeight: 500,
+                flexShrink: 0,
+              }}
+            >
+              {username.charAt(0).toUpperCase()}
+            </div>
+            <span
+              style={{
+                fontSize: 13,
+                color: isDark ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.65)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {username}
+            </span>
+          </div>
+        </Dropdown>
       </div>
+
+      <UpdateModal open={updateModalOpen} onClose={() => setUpdateModalOpen(false)} />
 
     </Sider>
   );

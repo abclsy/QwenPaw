@@ -16,7 +16,15 @@ hiddenimports = [
 ]
 
 tmp_ret = collect_all('qwenpaw')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+# Filter out console data from the installed package — we use the local
+# src/qwenpaw/console instead (the installed copy may be stale).
+# collect_all returns (datas, binaries, hiddenimports) where datas is a
+# list of (source_path, dest_dir) tuples.
+tmp_datas = [
+    (src, dst) for src, dst in tmp_ret[0]
+    if not dst.replace('\\', '/').startswith('qwenpaw/console')
+]
+datas += tmp_datas; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('chromadb')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('fastmcp')
@@ -28,9 +36,34 @@ datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('fastapi')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
+def _add_dir_recursive(datas_list, src_dir, dst_prefix):
+    """Recursively add all files in src_dir to datas_list."""
+    for root, dirs, files in os.walk(src_dir):
+        # Skip stale 'dist' subdirectory — the built files are at the
+        # top level of console/, not in console/dist/
+        dirs[:] = [d for d in dirs if d != 'dist']
+        rel = os.path.relpath(root, src_dir)
+        if rel == '.':
+            dst_dir = dst_prefix
+        else:
+            dst_dir = os.path.join(dst_prefix, rel).replace('\\', '/')
+        for f in files:
+            datas_list.append((os.path.join(root, f), dst_dir))
+
+
 console_src = os.path.join(repo_root, 'src', 'qwenpaw', 'console')
 if os.path.isdir(console_src):
-    datas.append((console_src, 'qwenpaw/console'))
+    _add_dir_recursive(datas, console_src, 'qwenpaw/console')
+
+# Add local updater module (not in the installed package).
+updater_src = os.path.join(repo_root, 'src', 'qwenpaw', 'updater')
+if os.path.isdir(updater_src):
+    _add_dir_recursive(datas, updater_src, 'qwenpaw/updater')
+    hiddenimports.append('qwenpaw.updater')
+    hiddenimports.append('qwenpaw.updater.api')
+    hiddenimports.append('qwenpaw.updater.checker')
+    hiddenimports.append('qwenpaw.updater.downloader')
+    hiddenimports.append('qwenpaw.updater.applier')
 
 a = Analysis(
     ['crec_desktop.py'],
@@ -100,6 +133,6 @@ app = BUNDLE(
         'LSMinimumSystemVersion': '12.0',
         'CFBundleName': '小铁智友',
         'CFBundleDisplayName': '小铁智友',
-        'CFBundleShortVersionString': '1.0',
+        'CFBundleShortVersionString': '1.1.6',
     },
 )

@@ -152,7 +152,10 @@ async def post_console_chat(
         raise HTTPException(status_code=400, detail=str(e)) from e
 
     # Pass user-selected workspace directory from X-Workspace-Dir header
-    user_output_dir = request.headers.get("X-Workspace-Dir", "").strip()
+    # Front-end sends encodeURIComponent-encoded path; decode it here
+    from urllib.parse import unquote
+
+    user_output_dir = unquote(request.headers.get("X-Workspace-Dir", "")).strip()
     if user_output_dir:
         native_payload["meta"]["user_output_dir"] = user_output_dir
 
