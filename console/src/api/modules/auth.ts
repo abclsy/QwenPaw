@@ -75,6 +75,28 @@ export const authApi = {
     return res.json();
   },
 
+  revokeToken: async (): Promise<void> => {
+    const token = localStorage.getItem("qwenpaw_auth_token") || "";
+    if (!token) return;
+    try {
+      // 3 秒超时，防止后端不响应时阻塞退出流程
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      await fetch(getApiUrl("/auth/revoke-token"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({}),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+    } catch {
+      // 忽略错误，退出登录时即使 revoke 失败也要清除本地 token
+    }
+  },
+
   updateProfile: async (
     currentPassword: string,
     newUsername?: string,

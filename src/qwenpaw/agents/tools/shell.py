@@ -36,6 +36,7 @@ def _kill_process_tree_win32(pid: int) -> None:
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=10,
+            creationflags=0x08000000,  # CREATE_NO_WINDOW
         )
     except Exception:
         pass
@@ -226,7 +227,7 @@ def _execute_subprocess_sync(
             text=False,
             cwd=cwd,
             env=env,
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | 0x08000000,  # CREATE_NO_WINDOW
         )
 
         # Parent copies are no longer needed — the child inherited its own

@@ -50,7 +50,7 @@ from agentscope_runtime.engine.schemas.agent_schemas import (
 )
 
 from ....app.channels.base import BaseChannel
-from ....app.channels.utils import file_url_to_local_path
+from ....app.channels.utils import file_url_to_local_path, resolve_media_url_to_local_path
 from ....constant import WORKING_DIR
 
 logger = logging.getLogger("qwenpaw.channels.matrix")
@@ -1376,8 +1376,8 @@ class MatrixChannel(BaseChannel):
         if not self._client:
             return None
         try:
-            # file_ref may be a file:// URI or a plain path
-            path = Path(file_url_to_local_path(file_ref) or file_ref)
+            # file_ref may be an API preview URL, file:// URI, or plain path
+            path = Path(resolve_media_url_to_local_path(file_ref) or file_ref)
             if not path.exists():
                 logger.warning(
                     "MatrixChannel: upload source not found: %s",
@@ -2128,7 +2128,7 @@ class MatrixChannel(BaseChannel):
 
         # Build and send the Matrix room event
         try:
-            path_str = file_url_to_local_path(file_ref) or file_ref
+            path_str = resolve_media_url_to_local_path(file_ref) or file_ref
             filename = os.path.basename(path_str) or "file"
             mime_type, _ = mimetypes.guess_type(path_str)
             mime_type = mime_type or "application/octet-stream"

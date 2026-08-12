@@ -43,7 +43,6 @@ export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
   const [hasUsers, setHasUsers] = useState(true);
   const [oauthEnabled, setOauthEnabled] = useState(false);
-  const [showLocalLogin, setShowLocalLogin] = useState(false);
   const { message } = useAppMessage();
 
   // ── 启动时先检查已有 token 是否有效（免重复登录）──
@@ -173,10 +172,18 @@ export default function LoginPage() {
   const handleCrecOAuth = () => {
     const redirect = getOAuthRedirectUri();
     const state = generateOAuthState();
+    // 退出登录后 sessionStorage 中会设置 force_reauth 标志
+    // 有此标志时在 OAuth URL 中加 prompt=login，强制服务端重新扫码
+    // 即使 WKWebView 中仍有 SSO session cookie 也不会跳过扫码页
+    const forceReauth = sessionStorage.getItem("force_reauth");
+    if (forceReauth) {
+      sessionStorage.removeItem("force_reauth");
+    }
     const authUrl =
       `${CREC_OAUTH_AUTHORIZE_URL}?client_id=${CREC_OAUTH_CLIENT_ID}` +
       `&redirect_uri=${encodeURIComponent(redirect)}` +
       `&response_type=code` +
+      (forceReauth ? `&prompt=login` : "") +
       `&state=${encodeURIComponent(state)}`;
     window.location.href = authUrl;
   };
@@ -268,7 +275,7 @@ export default function LoginPage() {
                 fontWeight: 500,
                 background: "#1961AC",
                 borderColor: "#1961AC",
-                marginBottom: showLocalLogin ? 24 : 0,
+                marginBottom: 0,
               }}
             >
               {t("login.crecOAuth") || "中铁统一认证登录"}
@@ -290,8 +297,8 @@ export default function LoginPage() {
           </>
         )}
 
-        {/* ── 本地登录表单（OAuth 模式下默认折叠）── */}
-        {(!oauthEnabled || showLocalLogin) && (
+        {/* ── 本地登录表单（仅在 OAuth 未启用时显示）── */}
+        {!oauthEnabled && (
           <Form
             layout="vertical"
             onFinish={onFinish}
@@ -343,22 +350,6 @@ export default function LoginPage() {
               </Button>
             </Form.Item>
           </Form>
-        )}
-
-        {/* 管理员本地入口 —— OAuth 模式下折叠显示 */}
-        {oauthEnabled && !showLocalLogin && (
-          <div style={{ textAlign: "center", marginTop: 16 }}>
-            <a
-              onClick={() => setShowLocalLogin(true)}
-              style={{
-                color: isDark ? "rgba(255,255,255,0.35)" : "#999",
-                fontSize: 13,
-                cursor: "pointer",
-              }}
-            >
-              {t("login.localAdmin") || "管理员本地登录"}
-            </a>
-          </div>
         )}
       </div>
     </div>

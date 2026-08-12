@@ -45,7 +45,7 @@ from ..base import (
     OutgoingContentPart,
     ProcessHandler,
 )
-from ..utils import file_url_to_local_path
+from ..utils import file_url_to_local_path, resolve_media_url_to_local_path
 from .constants import (
     FEISHU_FILE_MAX_BYTES,
     FEISHU_NICKNAME_CACHE_MAX,
@@ -1447,12 +1447,12 @@ class FeishuChannel(BaseChannel):
                     logger.debug("feishu _upload_file: file close failed")
 
     async def _fetch_bytes_from_url(self, url: str) -> Optional[bytes]:
-        """Download binary from URL. Supports http(s):// and file://."""
+        """Download binary from URL. Supports http(s)://, file://, and API preview URLs."""
         if not self._http_client:
             logger.warning("feishu: http client not initialized")
             return None
         try:
-            path = file_url_to_local_path(url)
+            path = resolve_media_url_to_local_path(url)
             if path is not None:
                 return await asyncio.to_thread(Path(path).read_bytes)
             if url.strip().lower().startswith("file:"):
@@ -1681,6 +1681,10 @@ class FeishuChannel(BaseChannel):
             path.write_bytes(data)
             return str(path)
         if url:
+            # Check API preview URL (e.g. /api/files/preview/...)
+            api_path = resolve_media_url_to_local_path(url)
+            if api_path and Path(api_path).exists():
+                return str(api_path)
             if url.startswith("file://"):
                 local_path = file_url_to_local_path(url)
                 if local_path:

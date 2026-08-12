@@ -278,8 +278,16 @@ async def get_llamacpp_download_progress(
 async def cancel_llamacpp_download(
     manager: LocalModelManager = Depends(get_local_model_manager),
 ) -> ActionResponse:
-    """Cancel the current llama.cpp download task."""
-    manager.cancel_llamacpp_download()
+    """Cancel the current llama.cpp download task.
+
+    Starts cancellation in a background thread to avoid blocking.
+    """
+    import threading
+    threading.Thread(
+        target=manager.cancel_llamacpp_download,
+        name="cancel-llamacpp-download",
+        daemon=True,
+    ).start()
     return ActionResponse(
         status="ok",
         message="llama.cpp download cancellation requested",
@@ -411,8 +419,19 @@ async def get_local_model_download_progress(
 async def cancel_local_model_download(
     manager: LocalModelManager = Depends(get_local_model_manager),
 ) -> ActionResponse:
-    """Cancel the current local model download task."""
-    manager.cancel_model_download()
+    """Cancel the current local model download task.
+
+    Starts cancellation in a background thread and returns immediately.
+    The download process shutdown (which can take 10-15s) runs without
+    blocking the API event loop or subsequent requests.
+    The frontend polls /models/download to observe the final status.
+    """
+    import threading
+    threading.Thread(
+        target=manager.cancel_model_download,
+        name="cancel-model-download",
+        daemon=True,
+    ).start()
     return ActionResponse(
         status="ok",
         message="Local model download cancellation requested",

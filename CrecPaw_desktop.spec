@@ -13,6 +13,10 @@ hiddenimports = [
     'chromadb.api.rust_client',
     'chromadb.api.segment',
     'chromadb.api.segment_client',
+    'modelscope',
+    'modelscope.hub',
+    'modelscope.hub.api',
+    'modelscope.hub.snapshot_download',
 ]
 
 tmp_ret = collect_all('qwenpaw')
@@ -35,6 +39,24 @@ tmp_ret = collect_all('uvicorn')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('fastapi')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+# Collect modelscope manually instead of collect_all to avoid importing
+# torch (which causes OOM on 16GB machines). We only need hub submodule.
+from PyInstaller.utils.hooks import collect_submodules as _cs
+_modelscope_hidden = _cs('modelscope.hub') + _cs('modelscope.utils') + _cs('modelscope.metrics')
+hiddenimports += _modelscope_hidden
+
+# Collect modelscope data files (not binaries — those pull in torch)
+import os as _os
+import glob as _glob
+_ms_pkg_dir = _os.path.dirname(__import__('importlib').import_module('modelscope.hub').__file__)
+_ms_root = _os.path.dirname(_ms_pkg_dir)
+for _pattern in ['**/*.py', '**/*.json', '**/*.yaml', '**/*.yml', '**/*.txt', '**/*.md']:
+    for _f in _glob.glob(_os.path.join(_ms_root, _pattern), recursive=True):
+        if 'ops/ailut' in _f or 'torch' in _f:
+            continue
+        _rel = _os.path.relpath(_f, _os.path.dirname(_ms_root))
+        _dst = _rel.replace('\\', '/')
+        datas.append((_f, _os.path.dirname(_dst)))
 
 def _add_dir_recursive(datas_list, src_dir, dst_prefix):
     """Recursively add all files in src_dir to datas_list."""
@@ -130,7 +152,7 @@ app = BUNDLE(
     bundle_identifier='com.crec.crecpaw',
     info_plist={
         'NSHighResolutionCapable': True,
-        'LSMinimumSystemVersion': '12.0',
+        'LSMinimumSystemVersion': '14.0',
         'CFBundleName': '小铁智友',
         'CFBundleDisplayName': '小铁智友',
         'CFBundleShortVersionString': '1.1.6',

@@ -5,11 +5,16 @@ import asyncio
 import os
 import signal
 import subprocess
+import sys
 import time
 from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
+
+
+# Windows: CREATE_NO_WINDOW flag to suppress CMD popup windows
+_WIN_NO_WINDOW = 0x08000000 if sys.platform == "win32" else 0
 
 
 @dataclass(frozen=True)
@@ -223,6 +228,7 @@ def run_command(
             check=False,
             cwd=_coerce_subprocess_path(cwd),
             env=dict(env) if env is not None else None,
+            creationflags=_WIN_NO_WINDOW,
         )
     except FileNotFoundError as exc:
         raise CommandExecutionError(
@@ -359,6 +365,7 @@ def _start_threaded_process(
     try:
         process = subprocess.Popen(  # pylint: disable=consider-using-with
             command,
+            creationflags=_WIN_NO_WINDOW,
             **popen_kwargs,
         )
     except FileNotFoundError as exc:

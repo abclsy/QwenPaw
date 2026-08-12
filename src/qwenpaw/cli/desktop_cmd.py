@@ -13,6 +13,7 @@ import threading
 import time
 import traceback
 import webbrowser
+from typing import Any
 
 import click
 
@@ -41,6 +42,71 @@ class WebViewAPI:
         if not url.startswith(("http://", "https://")):
             return
         webbrowser.open(url)
+
+    def clear_sso_cookies(self) -> bool:
+        """Clear all webview cookies (SSO session) for logout.
+
+        Uses pywebview's native clear_cookies() which properly clears
+        WKWebView's in-memory cookie store on macOS and WebView2's
+        cookie store on Windows. This is the only reliable way to clear
+        cross-origin cookies (e.g. tyrz.crec.cn SSO session) —
+        deleting cookie files on disk does NOT clear in-memory cookies.
+        """
+        try:
+            if webview and webview.windows:
+                # pywebview >= 4 has Window.clear_cookies()
+                win = webview.windows[0]
+                if hasattr(win, "clear_cookies"):
+                    win.clear_cookies()
+                    logger.info("Cleared all webview cookies via clear_cookies()")
+                else:
+                    # Fallback for older pywebview: evaluate JS to clear
+                    # cookies for the current domain
+                    logger.warning(
+                        "clear_cookies not available, using JS fallback",
+                    )
+                    win.evaluate_js(
+                        "document.cookie.split(';').forEach("
+                        "function(c){"
+                        "document.cookie = c.trim().split('=')[0] + "
+                        "'=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';"
+                        "});"
+                    )
+            else:
+                logger.warning("No webview window available to clear cookies")
+
+            # Also delete cookie files on disk as a belt-and-suspenders measure
+            import glob as _glob
+            if sys.platform == "darwin":
+                for pattern in [
+                    "~/Library/HTTPStorages/*crecpaw*.binarycookies",
+                    "~/Library/HTTPStorages/*CrecPaw*.binarycookies",
+                ]:
+                    for f in _glob.glob(os.path.expanduser(pattern)):
+                        try:
+                            os.remove(f)
+                            logger.info("Removed cookie file: %s", f)
+                        except Exception:
+                            pass
+            elif sys.platform == "win32":
+                base = os.path.expanduser(
+                    "~/AppData/Local/com.crec.crecpaw/EBWebView/Default"
+                )
+                for cf in [
+                    os.path.join(base, "Network", "Cookies"),
+                    os.path.join(base, "Cookies"),
+                ]:
+                    if os.path.isfile(cf):
+                        try:
+                            os.remove(cf)
+                            logger.info("Removed cookie file: %s", cf)
+                        except Exception:
+                            pass
+
+            return True
+        except Exception as exc:
+            logger.warning("Failed to clear SSO cookies: %s", exc)
+            return False
 
     def save_file(self, url: str, filename: str) -> bool:
         """Download a file from *url* and save it via a native save dialog.
@@ -131,9 +197,12 @@ class WebViewAPI:
                 # macOS Finder 选中文件
                 subprocess.run(["open", "-R", file_path], check=False, timeout=5)
             elif sys.platform == "win32":
-                # Windows 资源管理器选中
+                # Windows 资源管理器选中 — /select, 和路径之间不能有空格
+                # explorer.exe 要求路径使用反斜杠
+                win_path = os.path.normpath(file_path)
                 subprocess.run(
-                    ["explorer", "/select,", file_path], check=False, timeout=5,
+                    ["explorer", f"/select,{win_path}"], check=False, timeout=5,
+                    creationflags=0x08000000,  # CREATE_NO_WINDOW
                 )
             else:
                 # Linux 打开所在目录
@@ -381,6 +450,114 @@ def _stream_reader(in_stream, out_stream) -> None:
             pass
 
 
+# ── Splash 窗口 HTML ──────────────────────────────────────────────────────
+
+_SPLASH_HTML = """<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #1a2a3a 0%, #0d1b2a 100%);
+    font-family: -apple-system, "Microsoft YaHei", "PingFang SC", sans-serif;
+    overflow: hidden;
+    -webkit-user-select: none; user-select: none;
+  }
+  .logo {
+    width: 72px; height: 72px;
+    border-radius: 16px;
+    background: #1961AC;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(25, 97, 172, 0.4);
+  }
+  .logo svg { width: 40px; height: 40px; }
+  .title {
+    font-size: 18px; font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 28px;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid rgba(255, 255, 255, 0.15);
+    border-top-color: #1961AC;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+      <path d="M2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div class="title">小铁智友</div>
+  <div class="subtitle">正在启动，请稍候...</div>
+  <div class="spinner"></div>
+</body>
+</html>"""
+
+
+def _open_main_window_after_ready(
+    host: str,
+    port: int,
+    splash_window: Any,
+    api_instance: "WebViewAPI",
+) -> None:
+    """Wait for HTTP ready in background, then open main window and close splash.
+
+    Runs as a daemon thread started before webview.start().
+    """
+    timeout_sec = 300.0
+    if _wait_for_http(host, port, timeout_sec=timeout_sec):
+        logger.info("HTTP ready, creating main webview window...")
+        _clear_webview_cache()
+        try:
+            main_window = webview.create_window(
+                "小铁智友 Desktop",
+                f"http://{host}:{port}",
+                width=1280,
+                height=800,
+                text_select=True,
+                js_api=api_instance,
+                maximized=True,
+            )
+            # Close splash after main window is created
+            if splash_window is not None:
+                splash_window.destroy()
+        except Exception:
+            logger.exception("Failed to create main window")
+    else:
+        logger.error("Server did not become ready in time.")
+        # Show error in splash window
+        if splash_window is not None:
+            try:
+                splash_window.load_html(
+                    '<html><body style="display:flex;align-items:center;'
+                    'justify-content:center;height:100vh;margin:0;'
+                    'font-family:sans-serif;background:#1a2a3a;color:#fff;">'
+                    '<div style="text-align:center;">'
+                    '<h2>启动失败</h2>'
+                    '<p>服务器未能在规定时间内启动，请稍后重试。</p>'
+                    '</div></body></html>'
+                )
+            except Exception:
+                pass
+
+
 
 @click.command("desktop")
 @click.option(
@@ -474,49 +651,41 @@ def desktop_cmd(
                 )
                 stdout_thread.start()
                 stderr_thread.start()
-            logger.info("Waiting for HTTP ready...")
-            if _wait_for_http(host, port):
-                logger.info("HTTP ready, creating webview window...")
+            logger.info("Waiting for HTTP ready (with splash window)...")
 
-                # Clear stale WebView cache to ensure frontend updates are loaded
-                _clear_webview_cache()
+            # Create splash window first — shows immediately while backend starts
+            api = WebViewAPI()
+            splash = webview.create_window(
+                "小铁智友",
+                html=_SPLASH_HTML,
+                width=420,
+                height=320,
+                resizable=False,
+                text_select=False,
+                frameless=True,
+                easy_drag=True,
+                on_top=True,
+            )
 
-                api = WebViewAPI()
-                window = webview.create_window(
-                    "小铁智友 Desktop",
-                    url,
-                    width=1280,
-                    height=800,
-                    text_select=True,
-                    js_api=api,
-                    maximized=True,
-                )
+            # Start background thread: wait for HTTP, then open main window
+            # and close splash. This thread runs concurrently with
+            # webview.start() which blocks the main thread.
+            ready_thread = threading.Thread(
+                target=_open_main_window_after_ready,
+                args=(host, port, splash, api),
+                name="wait-http-ready",
+                daemon=True,
+            )
+            ready_thread.start()
 
-                logger.info(
-                    "Calling webview.start() (blocks until closed)...",
-                )
-
-                logger.info(
-                    "Calling webview.start() (blocks until closed)...",
-                )
-                webview.start(
-                    private_mode=False,
-                    storage_path=os.path.expanduser(
-                        "~/.crecpaw_webview_data",
-                    ),
-                )  # blocks until user closes the window
-                logger.info("webview.start() returned (window closed).")
-            else:
-                logger.error("Server did not become ready in time.")
-                click.echo(
-                    "Server did not become ready in time; open manually: "
-                    + url,
-                    err=True,
-                )
-                try:
-                    proc.wait()
-                except KeyboardInterrupt:
-                    pass  # will be handled in finally
+            logger.info("Calling webview.start() with splash (blocks until closed)...")
+            webview.start(
+                private_mode=False,
+                storage_path=os.path.expanduser(
+                    "~/.crecpaw_webview_data",
+                ),
+            )  # blocks until user closes the window
+            logger.info("webview.start() returned (window closed).")
         finally:
             # Ensure backend process is always cleaned up
             # Wrap all cleanup operations to handle race conditions:

@@ -18,6 +18,8 @@ interface PyWebViewAPI {
   reveal_file: (file_path: string) => Promise<boolean>;
   /** Show a native folder selection dialog, returns chosen path or "" */
   select_folder: () => Promise<string>;
+  /** Clear SSO cookies from webview (for logout) */
+  clear_sso_cookies: () => Promise<boolean>;
 }
 
 declare global {

@@ -34,7 +34,7 @@ import {
   SparkDebugLine,
   // SparkSaveLine removed — backups module hidden
 } from "@agentscope-ai/icons";
-import { clearAuthToken, getAuthUsername, setAuthUsername, getApiUrl } from "../api/config";
+import { getAuthUsername, setAuthUsername, getApiUrl } from "../api/config";
 import { authApi } from "../api/modules/auth";
 import { usePlugins } from "../plugins/PluginContext";
 import styles from "./index.module.less";
@@ -562,9 +562,35 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
                   key: "logout",
                   label: t("login.logout"),
                   icon: <LogoutOutlined />,
-                  onClick: () => {
-                    clearAuthToken();
+                  onClick: async () => {
+                    // 1. 先调用后端 revoke 使 token 失效
+                    try {
+                      await authApi.revokeToken();
+                    } catch {
+                      // 忽略错误，继续清除本地数据
+                    }
+                    // 2. 清除本地认证信息
+                    localStorage.removeItem("qwenpaw_auth_token");
+                    localStorage.removeItem("qwenpaw_username");
+                    localStorage.removeItem("language");
+                    sessionStorage.clear();
+                    // 3. 设置标志，让登录页的 OAuth URL 带 prompt=login
+                    //    强制中铁统一认证服务端要求重新扫码
+                    //    必须在 sessionStorage.clear() 之后设置
+                    sessionStorage.setItem("force_reauth", "1");
+                    // 4. 清除 WKWebView 中的 SSO cookie
+                    try {
+                      if (window.pywebview && window.pywebview.api) {
+                        await window.pywebview.api.clear_sso_cookies();
+                      }
+                    } catch {
+                      // 非桌面环境忽略
+                    }
+                    // 5. 跳转到登录页
+                    //    先设置 href 跳转，然后延迟 reload 确保页面完全重新加载
+                    //    sessionStorage 在同 origin 重新加载后仍然保留
                     window.location.href = "/login";
+                    setTimeout(() => window.location.reload(), 200);
                   },
                 },
               ] : []),

@@ -25,7 +25,7 @@ from agentscope_runtime.engine.schemas.agent_schemas import (
 from ....exceptions import ChannelError
 from ....config.config import DiscordConfig as DiscordChannelConfig
 
-from ..utils import file_url_to_local_path
+from ..utils import file_url_to_local_path, resolve_media_url_to_local_path
 from ..base import (
     BaseChannel,
     OnReplySent,
@@ -592,14 +592,9 @@ class DiscordChannel(BaseChannel):
             return
 
         temp_path = None
-        if url.startswith("file://"):
-            local_path = file_url_to_local_path(url)
-            if not local_path:
-                logger.warning(
-                    "discord send_media: invalid file URL %s",
-                    url,
-                )
-                return
+        # Check local file URLs (API preview, file://, or plain path)
+        local_path = resolve_media_url_to_local_path(url)
+        if local_path:
             file = discord.File(local_path)
         elif url.startswith(("http://", "https://")):
             async with aiohttp.ClientSession() as session:

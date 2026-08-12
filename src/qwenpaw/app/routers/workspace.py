@@ -192,7 +192,8 @@ async def read_working_file(
                         f"button to save the file instead."
                     ),
                 )
-            content = file_path.read_text(encoding="utf-8")
+            from ...agents.utils.file_handling import read_text_file_with_encoding_fallback
+            content = read_text_file_with_encoding_fallback(file_path)
             return MdFileContent(content=content)
 
         workspace = await get_agent_for_request(request)
@@ -200,7 +201,16 @@ async def read_working_file(
             str(workspace.workspace_dir),
             agent_id=workspace.agent_id,
         )
-        content = workspace_manager.read_working_md(md_name)
+        # For .md files, use AgentMdManager (which auto-appends .md)
+        # For other file types, read directly to avoid .md auto-append
+        if md_name.endswith(".md"):
+            content = workspace_manager.read_working_md(md_name)
+        else:
+            file_path = workspace_manager.working_dir / md_name
+            if not file_path.is_file():
+                raise FileNotFoundError(f"Working file not found: {md_name}")
+            from ...agents.utils.file_handling import read_text_file_with_encoding_fallback
+            content = read_text_file_with_encoding_fallback(file_path).strip()
         return MdFileContent(content=content)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -265,14 +275,33 @@ async def write_working_file(
     body: MdFileContent,
     request: Request,
 ) -> dict:
-    """Write a working directory markdown file."""
+    """Write a working directory file.
+
+    Supports X-Workspace-Dir header for custom output directories.
+    For .md files, uses AgentMdManager (which auto-appends .md).
+    For other file types, writes directly to avoid .md auto-append.
+    """
     try:
+        raw_dir = request.headers.get("X-Workspace-Dir")
+        user_dir = unquote(raw_dir) if raw_dir else None
+        if user_dir:
+            # Write to user-selected directory
+            file_path = Path(user_dir) / md_name
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.write_text(body.content, encoding="utf-8")
+            return {"written": True}
+
         workspace = await get_agent_for_request(request)
         workspace_manager = AgentMdManager(
             str(workspace.workspace_dir),
             agent_id=workspace.agent_id,
         )
-        workspace_manager.write_working_md(md_name, body.content)
+        if md_name.endswith(".md"):
+            workspace_manager.write_working_md(md_name, body.content)
+        else:
+            # Write directly to avoid .md auto-append
+            file_path = workspace_manager.working_dir / md_name
+            file_path.write_text(body.content, encoding="utf-8")
         return {"written": True}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
