@@ -69,6 +69,13 @@ jobs:
 
       - name: Build Windows installer
         shell: pwsh
+        # Force UTF-8 for conda run's Python stdout: the build log contains
+        # Chinese characters (expert templates, 中文 filenames), and Windows
+        # Python defaults to cp1252 which crashes with UnicodeEncodeError
+        # when `conda run` replays the captured output (conda main_run.py).
+        env:
+          PYTHONIOENCODING: utf-8
+          PYTHONUTF8: "1"
         run: conda run -n qwenpaw-build pwsh -File ./scripts/pack/build_win.ps1
 
       - name: List dist (on failure)
