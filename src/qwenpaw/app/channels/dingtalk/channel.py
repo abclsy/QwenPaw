@@ -55,7 +55,7 @@ from alibabacloud_tea_util import models as tea_util_models
 from Tea.exceptions import TeaException
 from agentscope_runtime.engine.schemas.agent_schemas import RunStatus
 
-from ..utils import file_url_to_local_path
+from ..utils import resolve_media_url_to_local_path
 from ....config.config import DingTalkConfig as DingTalkChannelConfig
 from ....config.utils import get_config_path
 from ....constant import DEFAULT_MEDIA_DIR
@@ -1311,18 +1311,21 @@ class DingTalkChannel(BaseChannel):
     async def _fetch_bytes_from_url(self, url: str) -> Optional[bytes]:
         """Download binary content from URL. Returns None on failure.
 
-        Supports http(s):// and file:// URLs. file:// is read from local disk.
+        Supports http(s)://, file:// URLs, and internal API preview URLs
+        (/api/files/preview/<encoded path>). file:// and API preview URLs
+        are read from local disk.
         """
         logger.info(
             "dingtalk fetch_bytes_from_url: url=%s",
             url[:80] + "..." if len(url) > 80 else url,
         )
         try:
-            path = file_url_to_local_path(url)
+            # Check local file URLs (API preview, file://, or plain path)
+            path = resolve_media_url_to_local_path(url)
             if path is not None:
                 data = await asyncio.to_thread(Path(path).read_bytes)
                 logger.info(
-                    "dingtalk fetch_bytes_from_url ok: size=%s (file)",
+                    "dingtalk fetch_bytes_from_url ok: size=%s (local)",
                     len(data),
                 )
                 return data
@@ -2297,10 +2300,27 @@ class DingTalkChannel(BaseChannel):
                     )
                     for part in parts:
                         if getattr(part, "type", None) in _media_types:
-                            await self._send_media_part_via_webhook(
+                            media_ok = await self._send_media_part_via_webhook(
                                 session_webhook,
                                 part,
                             )
+                            if not media_ok:
+                                # Webhook media send failed: fallback to Open API
+                                logger.warning(
+                                    "dingtalk stream: webhook media send "
+                                    "failed, trying Open API fallback",
+                                )
+                                params = await self._resolve_open_api_params_from_handle(
+                                    to_handle,
+                                    reply_meta,
+                                )
+                                if params["conversation_id"]:
+                                    await self._send_media_part_via_open_api(
+                                        part,
+                                        conversation_id=params["conversation_id"],
+                                        conversation_type=params["conversation_type"],
+                                        sender_staff_id=params["sender_staff_id"],
+                                    )
                 else:
                     accumulated_parts.extend(parts)
             elif obj == "response":

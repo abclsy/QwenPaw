@@ -41,8 +41,8 @@ logger = logging.getLogger(__name__)
 
 AUTH_FILE = SECRET_DIR / "auth.json"
 
-# Token validity: 7 days (default)
-TOKEN_EXPIRY_SECONDS = 7 * 24 * 3600
+# Token validity: 120 hours (5 days) — per CREC requirement
+TOKEN_EXPIRY_SECONDS = 120 * 3600
 
 # Maximum token validity: 100 years (for "permanent" tokens)
 TOKEN_EXPIRY_MAX = 100 * 365 * 24 * 3600
@@ -51,7 +51,9 @@ TOKEN_EXPIRY_MAX = 100 * 365 * 24 * 3600
 _PUBLIC_PATHS: frozenset[str] = frozenset(
     {
         "/api/auth/login",
+        "/api/auth/oauth/login",
         "/api/auth/status",
+        "/api/auth/verify",
         "/api/auth/register",
         "/api/version",
         "/api/settings/language",
@@ -65,6 +67,8 @@ _PUBLIC_PREFIXES: tuple[str, ...] = (
     "/logo.png",
     "/qwenpaw-symbol.svg",
     "/api/plugins/",  # plugin JS bundles served to unauthenticated login page
+    "/api/files/preview/",  # HTML preview via webview navigation
+    "/api/update/",  # update check/status should work without auth
 )
 
 
@@ -327,7 +331,7 @@ def _clean_expired_revocations() -> None:
 
 
 def is_auth_enabled() -> bool:
-    """Check whether authentication is enabled via environment variable.
+    """Check whether local authentication is enabled via environment variable.
 
     Returns ``True`` when ``QWENPAW_AUTH_ENABLED`` is set to a truthy
     value (``true``, ``1``, ``yes``).  The presence of a registered
@@ -336,6 +340,13 @@ def is_auth_enabled() -> bool:
     """
     env_flag = EnvVarLoader.get_str("QWENPAW_AUTH_ENABLED", "").strip().lower()
     return env_flag in ("true", "1", "yes")
+
+
+def _is_oauth_enabled() -> bool:
+    """Return ``True`` when OAuth2 (中铁统一认证) is configured."""
+    # Default client_id matches the hard-coded value in routers/auth.py
+    client_id = EnvVarLoader.get_str("CREC_OAUTH_CLIENT_ID", "tyyfjsgk").strip()
+    return bool(client_id)
 
 
 def has_registered_users() -> bool:
@@ -600,7 +611,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
     @staticmethod
     def _should_skip_auth(request: Request) -> bool:
         """Return ``True`` when the request does not require auth."""
-        if not is_auth_enabled() or not has_registered_users():
+        # No auth mechanism configured at all → skip
+        if not is_auth_enabled() and not _is_oauth_enabled():
+            return True
+
+        # Local auth is on but nobody registered yet → allow first registration
+        if is_auth_enabled() and not has_registered_users():
             return True
 
         path = request.url.path

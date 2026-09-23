@@ -76,6 +76,29 @@ class CreateAgentRequest(BaseModel):
     language: str | None = None
     skill_names: list[str] | None = None
     active_model: ModelSlotConfig | None = None
+    md_template_id: str | None = None
+
+    @field_validator("md_template_id", mode="before")
+    @classmethod
+    def sanitize_md_template_id(cls, value: str | None) -> str | None:
+        """Validate the workspace MD template id (e.g. ``experts/bridge``).
+
+        Only lowercase letters, digits, hyphens and single forward slashes
+        between path segments are allowed. Prevents path traversal.
+        """
+        if value is None or not isinstance(value, str):
+            return None
+        import re
+
+        stripped = value.strip()
+        if not stripped:
+            return None
+        if not re.fullmatch(r"[a-z0-9]+(/[a-z0-9-]+)*", stripped):
+            raise ValueError(
+                "Invalid md_template_id: only [a-z0-9-] path segments "
+                "separated by '/' are allowed.",
+            )
+        return stripped
 
     @field_validator("id", mode="before")
     @classmethod
@@ -334,6 +357,7 @@ async def create_agent(
         skill_names=(
             request.skill_names if request.skill_names is not None else []
         ),
+        md_template_id=request.md_template_id,
         language=language,
     )
 

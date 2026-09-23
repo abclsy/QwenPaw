@@ -7,92 +7,94 @@ import {
   type ReactNode,
 } from "react";
 
-export type ThemeMode = "light" | "dark" | "system";
-export type ResolvedTheme = "light" | "dark";
+export type ThemeMode = "dark" | "light" | "system";
+export type ResolvedTheme = "dark" | "light";
 
-const STORAGE_KEY = "qwenpaw-theme";
+const THEME_STORAGE_KEY = "crecpaw-theme-mode";
 
 interface ThemeContextValue {
-  /** User selected preference: light / dark / system */
   themeMode: ThemeMode;
-  /** Resolved final theme after applying system preference */
+  resolvedTheme: ResolvedTheme;
   isDark: boolean;
   setThemeMode: (mode: ThemeMode) => void;
-  /** Convenience toggle: light ↔ dark (skips system) */
-  toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
   themeMode: "light",
+  resolvedTheme: "light",
   isDark: false,
   setThemeMode: () => {},
-  toggleTheme: () => {},
 });
 
-function getInitialMode(): ThemeMode {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "light" || stored === "dark" || stored === "system") {
-      return stored;
-    }
-  } catch {
-    // ignore storage errors
+function getSystemTheme(): ResolvedTheme {
+  if (typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: light)").matches) {
+    return "light";
   }
-  return "system";
+  return "dark";
 }
 
-function resolveIsDark(mode: ThemeMode): boolean {
-  if (mode === "dark") return true;
-  if (mode === "light") return false;
-  // system
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
+function resolveTheme(mode: ThemeMode): ResolvedTheme {
+  if (mode === "system") {
+    return getSystemTheme();
+  }
+  return mode as ResolvedTheme;
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [themeMode, setThemeModeState] = useState<ThemeMode>(getInitialMode);
-  const [isDark, setIsDark] = useState<boolean>(() =>
-    resolveIsDark(getInitialMode()),
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(THEME_STORAGE_KEY);
+      if (stored === "light" || stored === "dark" || stored === "system") {
+        return stored;
+      }
+    }
+    return "light";
+  });
+
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() =>
+    resolveTheme(themeMode),
   );
 
-  // Apply dark/light class to <html> element for global CSS variable overrides
-  useEffect(() => {
-    const html = document.documentElement;
-    if (isDark) {
-      html.classList.add("dark-mode");
-    } else {
-      html.classList.remove("dark-mode");
-    }
-  }, [isDark]);
-
-  // Listen to system theme changes when mode is "system"
+  // Listen for system theme changes when in "system" mode
   useEffect(() => {
     if (themeMode !== "system") return;
 
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = (e: MediaQueryListEvent) => {
-      setIsDark(e.matches);
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = () => {
+      setResolvedTheme(getSystemTheme());
     };
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, [themeMode]);
+
+  // Update resolved theme when mode changes
+  useEffect(() => {
+    setResolvedTheme(resolveTheme(themeMode));
+  }, [themeMode]);
+
+  // Apply/remove dark-mode class based on resolved theme
+  useEffect(() => {
+    if (resolvedTheme === "dark") {
+      document.documentElement.classList.add("dark-mode");
+    } else {
+      document.documentElement.classList.remove("dark-mode");
+    }
+  }, [resolvedTheme]);
 
   const setThemeMode = useCallback((mode: ThemeMode) => {
     setThemeModeState(mode);
-    setIsDark(resolveIsDark(mode));
-    try {
-      localStorage.setItem(STORAGE_KEY, mode);
-    } catch {
-      // ignore
-    }
+    localStorage.setItem(THEME_STORAGE_KEY, mode);
   }, []);
-
-  const toggleTheme = useCallback(() => {
-    setThemeMode(isDark ? "light" : "dark");
-  }, [isDark, setThemeMode]);
 
   return (
     <ThemeContext.Provider
-      value={{ themeMode, isDark, setThemeMode, toggleTheme }}
+      value={{
+        themeMode,
+        resolvedTheme,
+        isDark: resolvedTheme === "dark",
+        setThemeMode,
+      }}
     >
       {children}
     </ThemeContext.Provider>

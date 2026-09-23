@@ -1,8 +1,8 @@
 // ── URLs ──────────────────────────────────────────────────────────────────
 
-export const PYPI_URL = "https://pypi.org/pypi/qwenpaw/json";
+export const PYPI_URL = ""; // disabled for enterprise
 
-export const GITHUB_URL = "https://github.com/agentscope-ai/QwenPaw" as const;
+export const GITHUB_URL = "" as const; // disabled for enterprise
 
 // ── Timing ────────────────────────────────────────────────────────────────
 
@@ -27,7 +27,8 @@ export const KEY_TO_PATH: Record<string, string> = {
   "skill-pool": "/skill-pool",
   tools: "/tools",
   mcp: "/mcp",
-  acp: "/acp",
+  // ACP module hidden
+  // acp: "/acp",
   workspace: "/workspace",
   agents: "/agents",
   models: "/models",
@@ -39,6 +40,8 @@ export const KEY_TO_PATH: Record<string, string> = {
   "voice-transcription": "/voice-transcription",
   debug: "/debug",
   backups: "/backups",
+  "knowledge-base": "/knowledge-base",
+  experts: "/experts",
 };
 
 export const KEY_TO_LABEL: Record<string, string> = {
@@ -51,7 +54,8 @@ export const KEY_TO_LABEL: Record<string, string> = {
   "skill-pool": "nav.skillPool",
   tools: "nav.tools",
   mcp: "nav.mcp",
-  acp: "nav.acp",
+  // ACP module hidden
+  // acp: "nav.acp",
   "agent-config": "nav.agentConfig",
   workspace: "nav.workspace",
   models: "nav.models",
@@ -61,6 +65,7 @@ export const KEY_TO_LABEL: Record<string, string> = {
   agents: "nav.agents",
   debug: "nav.debug",
   backups: "nav.backups",
+  "knowledge-base": "nav.knowledgeBase",
 };
 
 // ── URL helpers ───────────────────────────────────────────────────────────
@@ -68,14 +73,11 @@ export const KEY_TO_LABEL: Record<string, string> = {
 export const getWebsiteLang = (lang: string): string =>
   lang.startsWith("zh") ? "zh" : "en";
 
-export const getDocsUrl = (lang: string): string =>
-  `https://qwenpaw.agentscope.io/docs/intro?lang=${getWebsiteLang(lang)}`;
+export const getDocsUrl = (_lang: string): string => ""; // disabled for enterprise
 
-export const getFaqUrl = (lang: string): string =>
-  `https://qwenpaw.agentscope.io/docs/faq?lang=${getWebsiteLang(lang)}`;
+export const getFaqUrl = (_lang: string): string => ""; // disabled for enterprise
 
-export const getReleaseNotesUrl = (lang: string): string =>
-  `https://qwenpaw.agentscope.io/release-notes?lang=${getWebsiteLang(lang)}`;
+export const getReleaseNotesUrl = (_lang: string): string => ""; // disabled for enterprise
 
 // ── Version helpers ────────────────────────────────────────────────────────
 
@@ -129,9 +131,9 @@ export const compareVersions = (a: string, b: string): number => {
 // ── Update markdown ───────────────────────────────────────────────────────
 // TODO
 export const UPDATE_MD: Record<string, string> = {
-  zh: `### QwenPaw如何更新
+  zh: `### 小铁智友如何更新
 
-要更新 QwenPaw 到最新版本，可根据你的安装方式选择对应方法：
+要更新 小铁智友 到最新版本，可根据你的安装方式选择对应方法：
 
 1. 如果你使用的是一键安装脚本，直接重新运行安装命令即可自动升级。
 
@@ -144,7 +146,7 @@ qwenpaw update
 3. 如果你是从源码安装，进入项目目录并拉取最新代码后重新安装：
 
 \`\`\`
-cd QwenPaw
+cd 小铁智友
 git pull origin main
 cd console && npm ci && npm run build
 cd .. && mkdir -p src/qwenpaw/console
@@ -161,9 +163,9 @@ docker run -p 127.0.0.1:8088:8088 -v qwenpaw-data:/app/working agentscope/qwenpa
 
 升级后重启服务 qwenpaw app。`,
 
-  ru: `### Как обновить QwenPaw
+  ru: `### Как обновить 小铁智友
 
-Чтобы обновить QwenPaw, выберите способ в зависимости от типа установки:
+Чтобы обновить 小铁智友, выберите способ в зависимости от типа установки:
 
 1. Если вы устанавливали через однострочный скрипт, повторно запустите установщик для обновления.
 
@@ -176,7 +178,7 @@ qwenpaw update
 3. Если устанавливали из исходников, получите последние изменения и переустановите:
 
 \`\`\`
-cd QwenPaw
+cd 小铁智友
 git pull origin main
 cd console && npm ci && npm run build
 cd .. && mkdir -p src/qwenpaw/console
@@ -193,9 +195,9 @@ docker run -p 127.0.0.1:8088:8088 -v qwenpaw-data:/app/working agentscope/qwenpa
 
 After upgrading, restart the service with \`qwenpaw app\`.`,
 
-  en: `### How to update QwenPaw
+  en: `### How to update 小铁智友
 
-To update QwenPaw, use the method matching your installation type:
+To update 小铁智友, use the method matching your installation type:
 
 1. If installed via one-line script, re-run the installer to upgrade.
 
@@ -208,7 +210,7 @@ qwenpaw update
 3. If installed from source, pull the latest code and reinstall:
 
 \`\`\`
-cd QwenPaw
+cd 小铁智友
 git pull origin main
 cd console && npm ci && npm run build
 cd .. && mkdir -p src/qwenpaw/console

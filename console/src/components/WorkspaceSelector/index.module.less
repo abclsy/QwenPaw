@@ -1,0 +1,279 @@
+// ─── WorkspaceSelector (WorkBuddy-style pill in chat input action bar) ──────
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 13px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  user-select: none;
+  flex-shrink: 0;
+  max-width: 180px;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: rgba(0, 0, 0, 0.65);
+  }
+}
+
+.pillActive {
+  color: #1961ac;
+  border-color: rgba(25, 97, 172, 0.28);
+  background: rgba(25, 97, 172, 0.06);
+
+  &:hover,
+  &.pillOpen {
+    background: rgba(25, 97, 172, 0.1);
+    border-color: rgba(25, 97, 172, 0.5);
+    color: #1961ac;
+  }
+}
+
+.pillOpen {
+  background: rgba(0, 0, 0, 0.05);
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.pillName {
+  font-size: 12px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ─── Dropdown panel (portal-rendered; top-level classes only) ───────────────
+
+.panel {
+  width: 280px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sectionLabel {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.4);
+  padding: 6px 8px 3px;
+  user-select: none;
+}
+
+.recentItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+}
+
+.recentCurrent {
+  background: rgba(25, 97, 172, 0.06);
+
+  &:hover {
+    background: rgba(25, 97, 172, 0.1);
+  }
+}
+
+.itemIcon {
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.recentCurrent .itemIcon {
+  color: #1961ac;
+}
+
+.itemTexts {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.itemName {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recentCurrent .itemName {
+  color: #1961ac;
+}
+
+.itemPath {
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.check {
+  flex-shrink: 0;
+  color: #1961ac;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 5px 4px;
+}
+
+.actionItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+}
+
+.actionText {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.7);
+  flex: 1;
+}
+
+.actionDanger {
+  .itemIcon {
+    color: rgba(226, 75, 74, 0.85);
+  }
+
+  &:hover {
+    background: rgba(226, 75, 74, 0.08);
+  }
+
+  .actionText {
+    color: rgba(226, 75, 74, 0.9);
+  }
+}
+
+// ─── Dark mode ───────────────────────────────────────────────────────────────
+// .dark-mode lives on documentElement, so it also matches portal content.
+:global(.dark-mode) {
+  .pill {
+    color: rgba(255, 255, 255, 0.4);
+
+    &:hover,
+    &.pillOpen {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+
+  .pillActive {
+    color: #6ab5e8;
+    border-color: rgba(74, 159, 216, 0.4);
+    background: rgba(25, 97, 172, 0.16);
+
+    &:hover,
+    &.pillOpen {
+      background: rgba(25, 97, 172, 0.26);
+      border-color: rgba(74, 159, 216, 0.65);
+      color: #6ab5e8;
+    }
+  }
+
+  .panel {
+    background: #1f1f1f;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  }
+
+  .sectionLabel {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .recentItem {
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  .recentCurrent {
+    background: rgba(25, 97, 172, 0.22);
+
+    &:hover {
+      background: rgba(25, 97, 172, 0.3);
+    }
+  }
+
+  .itemIcon {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .recentCurrent .itemIcon {
+    color: #6ab5e8;
+  }
+
+  .itemName {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .recentCurrent .itemName {
+    color: #6ab5e8;
+  }
+
+  .itemPath {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .check {
+    color: #6ab5e8;
+  }
+
+  .divider {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .actionItem {
+    &:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  .actionText {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .actionDanger {
+    .itemIcon {
+      color: rgba(232, 106, 106, 0.9);
+    }
+
+    &:hover {
+      background: rgba(226, 75, 74, 0.16);
+    }
+
+    .actionText {
+      color: rgba(232, 106, 106, 0.9);
+    }
+  }
+}

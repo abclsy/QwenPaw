@@ -418,25 +418,44 @@ class ProcessDownloadController:
         with self._lock:
             task = self._task
             if task is None or not task.process.is_alive():
+                # 没有活跃的下载任务，直接标记为 CANCELLED
+                self._progress._set_status(DownloadTaskStatus.CANCELLED)
                 return
             self._progress.request_cancel()
 
+        # 给下载进程更多时间优雅退出（modelscope 的 snapshot_download 需要时间清理）
         shutdown_process_sync(
             task.process,
-            graceful_timeout=2.0,
-            kill_timeout=2.0,
+            graceful_timeout=10.0,
+            kill_timeout=5.0,
         )
 
         if task.monitor_thread is not threading.current_thread():
-            task.monitor_thread.join(timeout=2.0)
+            task.monitor_thread.join(timeout=5.0)
 
-        self._finish_task(
-            task=task,
-            result=DownloadTaskResult(
-                status=DownloadTaskStatus.CANCELLED,
-            ),
-            cleanup_spec=True,
-        )
+        # 检查 monitor 线程是否已经处理了结果
+        # 如果状态已经是 FAILED（monitor 检测到进程退出），改为 CANCELLED
+        current_status = self._progress.get_status()
+        if current_status == DownloadTaskStatus.FAILED:
+            # monitor 线程抢先设置了 FAILED，覆盖为 CANCELLED
+            self._progress._set_status(DownloadTaskStatus.CANCELLED)
+
+        # 只有在状态还是 CANCELING 时才需要 finish_task
+        if self._progress.get_status() == DownloadTaskStatus.CANCELING:
+            self._finish_task(
+                task=task,
+                result=DownloadTaskResult(
+                    status=DownloadTaskStatus.CANCELLED,
+                ),
+                cleanup_spec=True,
+            )
+        else:
+            # monitor 线程或上面已经处理了，只需清理资源
+            with self._lock:
+                self._task = None
+            if task.spec is not None:
+                self._cleanup_task_spec(task.spec)
+            self._release_task_resources(task)
 
     def snapshot(self) -> dict[str, Any]:
         return self._progress.snapshot()
@@ -470,6 +489,23 @@ class ProcessDownloadController:
             if not process.is_alive():
                 process.join(timeout=0.1)
                 if self._handle_message(queue, spec):
+                    return
+
+                # 如果是正在取消，不要标记为 FAILED
+                current_status = self._progress.get_status()
+                if current_status == DownloadTaskStatus.CANCELING:
+                    self._finish_task(
+                        task=ManagedDownloadTask(
+                            process=process,
+                            queue=queue,
+                            monitor_thread=threading.current_thread(),
+                            spec=spec,
+                        ),
+                        result=DownloadTaskResult(
+                            status=DownloadTaskStatus.CANCELLED,
+                        ),
+                        cleanup_spec=True,
+                    )
                     return
 
                 self._finish_task(

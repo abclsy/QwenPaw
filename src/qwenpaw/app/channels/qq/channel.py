@@ -44,7 +44,7 @@ from ..base import (
     OutgoingContentPart,
     ProcessHandler,
 )
-from ..utils import file_url_to_local_path, split_text
+from ..utils import file_url_to_local_path, resolve_media_url_to_local_path, split_text
 
 if TYPE_CHECKING:
     import concurrent.futures
@@ -1880,6 +1880,12 @@ class QQChannel(BaseChannel):
 
         if not raw:
             return None, None
+
+        # Check API preview URL (e.g. /api/files/preview/...)
+        api_path = resolve_media_url_to_local_path(raw)
+        if api_path and os.path.isfile(api_path):
+            local_path = api_path
+            return url, local_path
 
         # file:// protocol → treat as local file
         if raw.startswith("file://"):

@@ -15,9 +15,35 @@
 
   &:hover,
   &.triggerActive {
-    border-color: #ff7f16;
-    color: #ff7f16;
+    border-color: #1961AC;
+    color: #1961AC;
     box-shadow: 0 2px 8px rgba(97, 92, 237, 0.12);
+  }
+}
+
+/* ---- Compact trigger (inside chat input action bar) ---- */
+.triggerCompact {
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 12px;
+  color: rgba(0, 0, 0, 0.55);
+  max-width: 200px;
+
+  &:hover,
+  &.triggerActive {
+    background: rgba(25, 97, 172, 0.06);
+    color: #1961AC;
+    box-shadow: none;
+  }
+
+  .triggerName {
+    max-width: 120px;
+  }
+
+  .triggerArrow {
+    font-size: 14px;
   }
 }
 
@@ -38,7 +64,7 @@
 
   &.triggerArrowOpen {
     transform: rotate(180deg);
-    color: #ff7f16;
+    color: #1961AC;
   }
 }
 
@@ -74,7 +100,7 @@
 
   &:hover {
     background: rgba(97, 92, 237, 0.06);
-    color: #ff7f16;
+    color: #1961AC;
   }
 
   &:hover :global(.modelSubmenu) {
@@ -150,7 +176,7 @@
 
   &:hover {
     background: rgba(97, 92, 237, 0.06);
-    color: #ff7f16;
+    color: #1961AC;
   }
 
   &:first-child {
@@ -163,7 +189,7 @@
 
   &.modelItemActive {
     background: rgba(97, 92, 237, 0.08);
-    color: #ff7f16;
+    color: #1961AC;
     font-weight: 500;
   }
 }
@@ -177,7 +203,7 @@
 .checkIcon {
   flex-shrink: 0;
   font-size: 16px;
-  color: #ff7f16;
+  color: #1961AC;
 }
 
 .emptyTip {
@@ -198,8 +224,19 @@
 
     &:hover,
     &.triggerActive {
-      color: #ff7f16;
+      color: #1961AC;
       box-shadow: 0 2px 8px rgba(97, 92, 237, 0.2);
+    }
+  }
+
+  .triggerCompact {
+    color: rgba(255, 255, 255, 0.55);
+
+    &:hover,
+    &.triggerActive {
+      background: rgba(25, 97, 172, 0.22);
+      color: #6ab5e8;
+      box-shadow: none;
     }
   }
 
@@ -207,7 +244,7 @@
     color: rgba(255, 255, 255, 0.3);
 
     &.triggerArrowOpen {
-      color: #ff7f16;
+      color: #1961AC;
     }
   }
 
@@ -222,7 +259,7 @@
 
     &:hover {
       background: rgba(97, 92, 237, 0.15);
-      color: #ff7f16;
+      color: #1961AC;
     }
   }
 
@@ -241,17 +278,17 @@
 
     &:hover {
       background: rgba(97, 92, 237, 0.15);
-      color: #ff7f16;
+      color: #1961AC;
     }
 
     &.modelItemActive {
       background: rgba(97, 92, 237, 0.18);
-      color: #ff7f16;
+      color: #1961AC;
     }
   }
 
   .checkIcon {
-    color: #ff7f16;
+    color: #1961AC;
   }
 
   .emptyTip {

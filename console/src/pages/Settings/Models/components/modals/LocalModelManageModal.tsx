@@ -376,6 +376,14 @@ export function LocalModelManageModal({
         }
 
         if (
+          previousModelStatusRef.current === "canceling" &&
+          nextModelDownload.status === "canceling" &&
+          !nextModelDownload.error
+        ) {
+          // 仍然在取消中 — 轮询会继续，等后端完成
+        }
+
+        if (
           previousLlamacppStatusRef.current !== "failed" &&
           nextLlamacppDownload.status === "failed" &&
           nextLlamacppDownload.error
@@ -388,6 +396,13 @@ export function LocalModelManageModal({
           nextModelDownload.error
         ) {
           message.error(nextModelDownload.error);
+        }
+        // 取消成功时显示提示
+        if (
+          previousModelStatusRef.current === "canceling" &&
+          nextModelDownload.status === "cancelled"
+        ) {
+          message.success(t("models.localDownloadCancelled"));
         }
 
         previousLlamacppStatusRef.current = nextLlamacppDownload.status;
@@ -704,30 +719,26 @@ export function LocalModelManageModal({
         okButtonProps: { danger: true },
         cancelText: t("common.close"),
         onOk: async () => {
-          try {
-            setModelDownloadState((prev) =>
-              prev
-                ? {
-                    ...prev,
-                    status: "canceling",
-                  }
-                : prev,
-            );
-            await api.cancelLocalModelDownload();
-            message.success(t("models.localDownloadCancelled"));
-            await refreshStatus();
-            startPolling();
-          } catch (error) {
-            const errMsg =
-              error instanceof Error
-                ? error.message
-                : t("models.localCancelDownloadFailed");
-            message.error(errMsg);
-          }
+          // 立即设为 canceling 状态（UI 显示取消中）
+          setModelDownloadState((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  status: "canceling",
+                }
+              : prev,
+          );
+          // 确保轮询在跑，这样取消完成后能自动更新状态
+          startPolling();
+          // 发送取消请求 — 不阻塞，不等返回
+          // 后端可能需要 10-15 秒等进程退出，轮询会自动更新 UI
+          api.cancelLocalModelDownload().catch(() => {
+            // 即使 API 报错也忽略，轮询会获取最终状态
+          });
         },
       });
     },
-    [refreshStatus, setModelDownloadState, startPolling, t],
+    [setModelDownloadState, startPolling, t],
   );
 
   const handleStartServer = useCallback(
@@ -920,7 +931,7 @@ export function LocalModelManageModal({
                         percent={currentModelDownloadPercent ?? 0}
                         showInfo={false}
                         status="active"
-                        strokeColor="#ff7f16"
+                        strokeColor="#1961AC"
                         strokeWidth={10}
                       />
                       <Tooltip title={t("models.localCancelDownloadAction")}>

@@ -23,7 +23,12 @@ interface EligibleProvider {
   models: Array<{ id: string; name: string; is_free?: boolean }>;
 }
 
-export default function ModelSelector() {
+interface ModelSelectorProps {
+  /** Compact mode: renders as a small chip for the input action bar */
+  compact?: boolean;
+}
+
+export default function ModelSelector({ compact = false }: ModelSelectorProps) {
   const { t } = useTranslation();
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
   const [activeModels, setActiveModels] = useState<ActiveModelsInfo | null>(
@@ -253,12 +258,14 @@ export default function ModelSelector() {
     >
       <Tooltip title={t("chat.modelSelectTooltip")} mouseEnterDelay={0.5}>
         <div
-          className={[styles.trigger, open ? styles.triggerActive : ""].join(
-            " ",
-          )}
+          className={[
+            styles.trigger,
+            compact ? styles.triggerCompact : "",
+            open ? styles.triggerActive : "",
+          ].join(" ")}
         >
           {saving && (
-            <LoadingOutlined style={{ fontSize: 11, color: "#FF7F16" }} />
+            <LoadingOutlined style={{ fontSize: 11, color: "#1961AC" }} />
           )}
           {showActiveProviderIcon && activeProviderId && (
             <ProviderIcon providerId={activeProviderId} size={16} />

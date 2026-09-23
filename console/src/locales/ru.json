@@ -38,6 +38,7 @@
   },
   "nav": {
     "chat": "Чат",
+    "knowledgeBase": "База знаний",
     "control": "Управление",
     "channels": "Каналы",
     "sessions": "Сессии",

@@ -57,6 +57,7 @@ export const MCPClientCard = React.memo(function MCPClientCard({
   const [toolsError, setToolsError] = useState<string | null>(null);
   const [editedJson, setEditedJson] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [jsonError, setJsonError] = useState("");
 
   // Determine if MCP client is remote or local based on command
   const isRemote =
@@ -86,6 +87,7 @@ export const MCPClientCard = React.memo(function MCPClientCard({
   };
 
   const handleSaveJson = async () => {
+    setJsonError("");
     try {
       const parsed = JSON.parse(editedJson);
       const { key: _key, ...updates } = parsed;
@@ -96,8 +98,12 @@ export const MCPClientCard = React.memo(function MCPClientCard({
         setJsonModalOpen(false);
         setIsEditing(false);
       }
-    } catch {
-      alert("Invalid JSON format");
+    } catch (error) {
+      setJsonError(
+        error instanceof Error
+          ? `Invalid JSON format: ${error.message}`
+          : "Invalid JSON format",
+      );
     }
   };
 
@@ -279,15 +285,31 @@ export const MCPClientCard = React.memo(function MCPClientCard({
       >
         <div className={styles.maskedFieldHint}>{t("mcp.maskedFieldHint")}</div>
         {isEditing ? (
-          <Input.TextArea
-            value={editedJson}
-            onChange={(e) => setEditedJson(e.target.value)}
-            autoSize={{ minRows: 15, maxRows: 25 }}
-            style={{
-              fontFamily: "Monaco, Courier New, monospace",
-              fontSize: 13,
-            }}
-          />
+          <>
+            <Input.TextArea
+              value={editedJson}
+              onChange={(e) => {
+                setEditedJson(e.target.value);
+                setJsonError("");
+              }}
+              autoSize={{ minRows: 15, maxRows: 25 }}
+              style={{
+                fontFamily: "Monaco, Courier New, monospace",
+                fontSize: 13,
+              }}
+            />
+            {jsonError && (
+              <div
+                style={{
+                  color: "#ff4d4f",
+                  fontSize: 13,
+                  marginTop: 8,
+                }}
+              >
+                {jsonError}
+              </div>
+            )}
+          </>
         ) : (
           <pre
             style={{

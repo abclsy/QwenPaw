@@ -2,6 +2,7 @@ declare const VITE_API_BASE_URL: string;
 declare const TOKEN: string;
 
 const AUTH_TOKEN_KEY = "qwenpaw_auth_token";
+const AUTH_USERNAME_KEY = "qwenpaw_username";
 
 /**
  * Get the full API URL with /api prefix
@@ -34,8 +35,23 @@ export function setAuthToken(token: string): void {
 }
 
 /**
+ * Store the username in localStorage after login.
+ */
+export function setAuthUsername(username: string): void {
+  localStorage.setItem(AUTH_USERNAME_KEY, username);
+}
+
+/**
+ * Get the stored username from localStorage.
+ */
+export function getAuthUsername(): string {
+  return localStorage.getItem(AUTH_USERNAME_KEY) || "";
+}
+
+/**
  * Remove the auth token from localStorage (logout / 401).
  */
 export function clearAuthToken(): void {
   localStorage.removeItem(AUTH_TOKEN_KEY);
+  localStorage.removeItem(AUTH_USERNAME_KEY);
 }

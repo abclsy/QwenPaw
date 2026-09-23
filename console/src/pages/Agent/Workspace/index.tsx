@@ -36,6 +36,15 @@ export default function WorkspacePage() {
   const handleDownload = async () => {
     try {
       const { blob, filename } = await workspaceApi.downloadWorkspace();
+      // If pywebview handled the download (empty blob), skip browser download
+      if (blob.size === 0 && filename) {
+        message.success(t("workspace.downloadSuccess"));
+        return;
+      }
+      if (blob.size === 0 && !filename) {
+        // User cancelled the save dialog
+        return;
+      }
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

@@ -23,7 +23,7 @@ from agentscope_runtime.engine.schemas.agent_schemas import (
 from ....exceptions import ChannelError
 from ....config.config import IMessageChannelConfig
 from ....constant import DEFAULT_MEDIA_DIR
-from ..utils import file_url_to_local_path
+from ..utils import file_url_to_local_path, resolve_media_url_to_local_path
 from ....agents.utils.file_handling import download_file_from_url
 
 from ..base import (
@@ -560,7 +560,8 @@ ORDER BY m.ROWID ASC
 
     async def _handle_local_file(self, url: str) -> Optional[str]:
         """Handle local file paths."""
-        local_path = file_url_to_local_path(url)
+        # Check API preview URL, file:// URL, or plain path
+        local_path = resolve_media_url_to_local_path(url)
         if local_path and Path(local_path).exists():
             logger.info(f"imessage send_media: using local file {local_path}")
             return local_path

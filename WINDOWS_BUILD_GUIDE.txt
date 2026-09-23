@@ -1,0 +1,34 @@
+﻿# ============================================================================
+# 小铁智友 Windows Build Guide (PowerShell)
+# ============================================================================
+# 把下面命令逐行复制到 Windows PowerShell 里执行
+# 不要直接双击任何 bat 文件！
+# ============================================================================
+
+# 第 1 步：确认 Python 版本（应显示 3.13.x）
+python --version
+
+# 第 2 步：创建虚拟环境
+python -m venv venv
+
+# 第 3 步：升级 pip
+venv\Scripts\python -m pip install --upgrade pip
+
+# 第 4 步：安装依赖（加 --no-input 防止交互 prompt 卡住）
+venv\Scripts\pip install --no-input -e .
+venv\Scripts\pip install --no-input pyinstaller
+
+# 第 5 步：安装项目自带前端（如果已经构建好可跳过）
+# 如果 npm 未安装请跳过这步，同事不需要改前端
+# venv\Scripts\npm install
+# venv\Scripts\npm run build
+
+# 第 6 步：手动复制前端（确保 src/qwenpaw/console/ 里有最新构建产物）
+# 如果你已经在 Mac 上构建好前端，直接发完整的 src/qwenpaw/console/ 文件夹即可
+# 如果同事电脑有 Node.js，可以在 console 目录里运行：npm install && npm run build
+
+# 第 7 步：打包
+venv\Scripts\pyinstaller QwenPaw.spec --clean
+
+# 打包完成后的产物在 dist\小铁智友\ 文件夹里
+# 可以直接复制整个 dist\小铁智友\ 文件夹发给其他同事用

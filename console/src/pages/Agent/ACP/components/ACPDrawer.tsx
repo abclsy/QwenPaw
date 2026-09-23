@@ -15,7 +15,7 @@ import {
   type ACPAgentConfig,
   type ACPToolParseMode,
 } from "../../../../api/types";
-import { getWebsiteLang } from "../../../../layouts/constants";
+// import { getWebsiteLang } from "../../../../layouts/constants";
 import styles from "../../../Control/Channels/index.module.less";
 
 interface ACPDrawerProps {
@@ -38,16 +38,13 @@ const TOOL_PARSE_MODE_OPTIONS: { value: ACPToolParseMode; label: string }[] = [
   { value: "call_detail", label: "call_detail" },
 ];
 
-const ACP_DOC_SECTION_HASH = {
-  zh: "如何配置外部-runner",
-  en: "How-to-configure-external-runners",
-} as const;
+// const ACP_DOC_SECTION_HASH = {
+//   zh: "如何配置外部-runner",
+//   en: "How-to-configure-external-runners",
+// } as const;
 
-function getACPDocsUrl(lang: string): string {
-  const websiteLang = getWebsiteLang(lang);
-  const hash =
-    websiteLang === "zh" ? ACP_DOC_SECTION_HASH.zh : ACP_DOC_SECTION_HASH.en;
-  return `https://qwenpaw.agentscope.io/docs/acp-integration?lang=${websiteLang}#${hash}`;
+function getACPDocsUrl(_lang: string): string {
+  return ""; // disabled for enterprise
 }
 
 export function parseArgsText(value: unknown): string[] {
@@ -226,7 +223,7 @@ export function ACPDrawer({
             }
             title={t("acp.docsHelp")}
             className={styles.dingtalkDocBtn}
-            style={{ color: "#FF7F16" }}
+            style={{ color: "#1961AC" }}
           >
             {t("acp.docs")}
           </Button>

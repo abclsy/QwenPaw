@@ -4,6 +4,7 @@
 import os
 from pathlib import Path
 from typing import Optional
+from urllib.parse import quote
 
 from agentscope.message import TextBlock
 from agentscope.tool import ToolResponse
@@ -15,14 +16,29 @@ from .utils import (
 )
 from ...config.context import (
     get_current_workspace_dir,
+    get_current_user_output_dir,
     get_current_recent_max_bytes,
 )
 from ...constant import WORKING_DIR, TRUNCATION_NOTICE_MARKER
 
 
+def _path_to_api_url(path: str) -> str:
+    """Convert a local file path to a relative API preview URL."""
+    abs_path = os.path.abspath(path)
+    if os.name == "nt":
+        abs_path = abs_path.replace("\\", "/")
+    encoded = quote(abs_path, safe="/:@")
+    return f"/api/files/preview/{encoded}"
+
+
 def _resolve_file_path(file_path: str) -> str:
     """Resolve file path: use absolute path as-is,
-    resolve relative path from current workspace or WORKING_DIR.
+    resolve relative path from user output dir, current workspace or WORKING_DIR.
+
+    Priority for relative path resolution:
+    1. User-selected output directory (from X-Workspace-Dir header)
+    2. Current agent's workspace directory
+    3. Global WORKING_DIR
 
     Args:
         file_path: The input file path (absolute or relative).
@@ -34,7 +50,10 @@ def _resolve_file_path(file_path: str) -> str:
     if path.is_absolute():
         return str(path)
     else:
-        # Use current workspace_dir from context, fallback to WORKING_DIR
+        # Priority: user output dir > workspace dir > WORKING_DIR
+        user_output_dir = get_current_user_output_dir()
+        if user_output_dir is not None:
+            return str(user_output_dir / file_path)
         workspace_dir = get_current_workspace_dir() or WORKING_DIR
         return str(workspace_dir / file_path)
 
@@ -234,11 +253,30 @@ async def write_file(
     try:
         with open(file_path, "w", encoding=encoding) as file:
             file.write(content)
+
+        basename = os.path.basename(file_path)
+        is_html = basename.lower().endswith((".html", ".htm"))
+        base_msg = f"Wrote {len(content)} bytes to {file_path}."
+
+        if is_html:
+            preview_url = _path_to_api_url(file_path)
+            return ToolResponse(
+                content=[
+                    TextBlock(
+                        type="text",
+                        text=(
+                            f"{base_msg}\n"
+                            f"预览链接：{preview_url}"
+                        ),
+                    ),
+                ],
+            )
+
         return ToolResponse(
             content=[
                 TextBlock(
                     type="text",
-                    text=f"Wrote {len(content)} bytes to {file_path}.",
+                    text=base_msg,
                 ),
             ],
         )

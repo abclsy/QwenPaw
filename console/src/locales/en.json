@@ -31,6 +31,22 @@
     "yes": "Yes",
     "no": "No"
   },
+  "update": {
+    "title": "Check for updates",
+    "checkUpdate": "Check for updates",
+    "checkNow": "Check now",
+    "downloadNow": "Download update",
+    "restartToUpdate": "Restart to update",
+    "currentVersion": "Current version",
+    "latestVersion": "Latest version",
+    "upToDate": "Already up to date",
+    "updateAvailable": "New version available",
+    "downloading": "Downloading update...",
+    "downloadComplete": "Download complete",
+    "clickToRestart": "Click \"Restart to update\" — the app will restart and apply the update automatically",
+    "applying": "Applying update, the app will restart shortly...",
+    "error": "Update failed"
+  },
   "chunkError": {
     "title": "Failed to load page",
     "subTitle": "This may be caused by a network issue or an application update.",
@@ -40,6 +56,8 @@
   },
   "nav": {
     "chat": "Chat",
+    "knowledgeBase": "Knowledge Base",
+    "guest": "User",
     "control": "Control",
     "channels": "Channels",
     "sessions": "Sessions",
@@ -63,7 +81,14 @@
     "voiceTranscription": "Voice Transcription",
     "debug": "Debug",
     "plugins": "Plugins",
-    "backups": "Backups"
+    "backups": "Backups",
+    "appearance": "Appearance",
+    "experts": "Expert Team",
+    "workbench": "Workbench",
+    "operations": "Operations",
+    "systemSettings": "Settings",
+    "more": "More",
+    "history": "Chat History"
   },
   "debug": {
     "title": "Debug",
@@ -291,7 +316,18 @@
     "configUpdateFailed": "Failed to update system prompt configuration",
     "attribution": "Workspace design partly inspired by the OpenClaw project — thank you! 🐾",
     "saveSuccess": "Saved successfully",
-    "saveFailed": "Save failed"
+    "saveFailed": "Save failed",
+    "binaryFileNotSupported": "This file type cannot be previewed inline. Please use the download button to save the file.",
+    "selectorLabel": "Workspace",
+    "selectorTooltip": "Choose a workspace directory (outputs will be saved here)",
+    "currentPath": "Current workspace: {{dir}}",
+    "recentTitle": "Recent",
+    "browseOther": "Choose another folder…",
+    "clearLabel": "Clear workspace",
+    "setSuccess": "Workspace set to: {{dir}}",
+    "selectFailed": "Failed to select folder",
+    "promptPath": "Enter workspace directory path:",
+    "cleared": "Workspace cleared"
   },
   "agent": {
     "parent": "Settings",
@@ -607,7 +643,8 @@
     "noTools": "No tools available from this MCP server",
     "toolsLoadError": "Failed to load tools from MCP server",
     "toolsConnecting": "MCP server is still connecting, please try again in a moment",
-    "toolSchema": "Input Schema"
+    "toolSchema": "Input Schema",
+    "invalidJsonFormat": "Invalid JSON format"
   },
   "heartbeat": {
     "title": "Heartbeat",
@@ -755,6 +792,7 @@
     "groupPolicyTooltip": "Control who can interact with the bot in group chats. Open: everyone; Allowlist: authorized users only",
     "requireMention": "Require @Mention",
     "requireMentionTooltip": "When enabled, bot only responds in group chats when explicitly @mentioned",
+    "dingtalkMentionRequired": "DingTalk platform requires @mentioning the bot in group chats to trigger replies. This is a platform-level rule and cannot be disabled.",
     "policyOpen": "Open",
     "policyAllowlist": "Allowlist",
     "allowFrom": "Allowlist Users",
@@ -1855,5 +1893,44 @@
       "done": "Done",
       "abandoned": "Abandoned"
     }
+  },
+  "experts": {
+    "subtitle": "CREC Digital Expert Team",
+    "heroTitle": "CREC Expert Team",
+    "count": "experts",
+    "heroDesc": "Built-in experts covering engineering, safety & quality, commercial & legal, finance and more. Click an expert to create a dedicated digital employee and start chatting.",
+    "allCategories": "All",
+    "searchPlaceholder": "Search experts / domains / skills",
+    "empty": "No matching experts",
+    "detail": "Details",
+    "startChat": "Start Chat",
+    "continueChat": "Continue",
+    "createAndChat": "Create expert employee and start chatting",
+    "creating": "Creating…",
+    "createSuccess": "Expert employee created, start chatting",
+    "switchSuccess": "Switched to this expert",
+    "createFailed": "Failed to create expert, please retry",
+    "loadFailed": "Failed to load experts",
+    "createdTooltip": "Dedicated employee already created",
+    "about": "About",
+    "capabilities": "Expertise",
+    "scenarios": "Use Cases",
+    "badgeTooltip": "Current expert — click to switch",
+    "exit": "Exit expert",
+    "exitSuccess": "Exited expert, back to default assistant"
+  },
+  "settingsModal": {
+    "agentsDesc": "Create and manage digital employees",
+    "heartbeatDesc": "Heartbeat jobs and autonomous checks",
+    "tokenUsageDesc": "Model call and token usage stats",
+    "securityDesc": "Security policy and permissions",
+    "voiceDesc": "Voice transcription service",
+    "debugDesc": "Runtime logs and debugging"
+  },
+  "history": {
+    "newChat": "New Chat",
+    "empty": "No chats yet — click + to start",
+    "untitled": "New Chat",
+    "tasksLabel": "Tasks ({{count}})"
   }
 }

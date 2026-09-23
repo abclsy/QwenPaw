@@ -27,12 +27,11 @@ function ModelsPage() {
     void fetchAll(false);
   }, [fetchAll]);
 
-  const { regularProviders, localProviders } = useMemo(() => {
+  const { regularProviders } = useMemo(() => {
     const regular: ProviderInfo[] = [];
-    const local: ProviderInfo[] = [];
     for (const p of providers) {
-      if (p.is_local) local.push(p);
-      else regular.push(p);
+      if (p.is_local) continue;
+      regular.push(p);
     }
 
     // Sort providers: custom/available first, then configured, then the rest.
@@ -68,13 +67,12 @@ function ModelsPage() {
     // Fuzzy search filter: match provider name (case-insensitive)
     const query = searchQuery.trim().toLowerCase();
     if (!query) {
-      return { regularProviders: regular, localProviders: local };
+      return { regularProviders: regular };
     }
     return {
       regularProviders: regular.filter((p) =>
         p.name.toLowerCase().includes(query),
       ),
-      localProviders: local.filter((p) => p.name.toLowerCase().includes(query)),
     };
   }, [providers, searchQuery]);
 
@@ -104,7 +102,7 @@ function ModelsPage() {
           {/* ---- Scrollable Content ---- */}
           <div className={styles.content}>
             <ModelsSection
-              providers={providers}
+              providers={providers.filter((p) => !p.is_local)}
               activeModels={activeModels}
               onSaved={fetchAll}
             />
@@ -144,16 +142,14 @@ function ModelsPage() {
                 </div>
               </div>
 
+              {/* Local providers hidden — not for end users
               {localProviders.length > 0 && (
                 <div className={styles.providerGroup}>
-                  {/* <h4 className={styles.providerGroupTitle}>
-                  {t("models.localEmbedded")}
-                </h4> */}
                   <div className={styles.providerCards}>
                     {renderProviderCards(localProviders)}
                   </div>
                 </div>
-              )}
+              )} */}
 
               {regularProviders.length > 0 && (
                 <div className={styles.providerGroup}>

@@ -8,6 +8,9 @@ const PROVIDER_LETTER_COLORS: Record<string, string> = {
   "azure-openai": "#0078D4",
   "kimi-cn": "#000000",
   "kimi-intl": "#000000",
+  "kimi-crec": "#000000",
+  "glm-crec": "#3366FF",
+  "qwen-crec": "#6236FF",
   anthropic: "#D97757",
   ollama: "#1A1A1A",
   "minimax-cn": "#1A1A2E",
@@ -17,13 +20,12 @@ const PROVIDER_LETTER_COLORS: Record<string, string> = {
   lmstudio: "#6C5CE7",
   "siliconflow-cn": "#5B5FC7",
   "siliconflow-intl": "#5B5FC7",
-  "qwenpaw-local": "#FF7F16",
+  "qwenpaw-local": "#1961AC",
   "zhipu-cn": "#3366FF",
   "zhipu-intl": "#3366FF",
   "zhipu-cn-codingplan": "#3366FF",
   "zhipu-intl-codingplan": "#3366FF",
   openrouter: "#6366F1",
-  opencode: "#2563EB",
 };
 
 /** A palette of fallback colors for providers without a predefined color. */

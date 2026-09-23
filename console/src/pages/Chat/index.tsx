@@ -2,8 +2,10 @@ import {
   AgentScopeRuntimeWebUI,
   IAgentScopeRuntimeWebUIOptions,
   type IAgentScopeRuntimeWebUIRef,
+  WelcomePrompts,
+  type IWelcomePromptsProps,
 } from "@agentscope-ai/chat";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Button, Modal, Result, Tooltip } from "antd";
 import { useAppMessage } from "../../hooks/useAppMessage";
 import { ExclamationCircleOutlined, SettingOutlined } from "@ant-design/icons";
@@ -31,6 +33,9 @@ import { ApprovalCard } from "../../components/ApprovalCard/ApprovalCard";
 import { commandsApi } from "../../api/modules/commands";
 import { useApprovalContext } from "../../contexts/ApprovalContext";
 import { planApi } from "../../api/modules/plan";
+import WorkspaceSelector from "../../components/WorkspaceSelector";
+import ExpertBadge from "../../components/ExpertBadge";
+import SendFileToUserRenderer from "../../components/SendFileToUserRenderer";
 
 interface ApprovalMessageData {
   requestId: string;
@@ -1009,19 +1014,51 @@ export default function ChatPage() {
             <RuntimeLoadingBridge bridgeRef={runtimeLoadingBridgeRef} />
             <ChatHeaderTitle />
             <span style={{ flex: 1 }} />
-            <ModelSelector />
             <ChatActionGroup />
           </>
         ),
       },
       welcome: {
         ...i18nConfig.welcome,
-        nick: "QwenPaw",
-        avatar: "/qwenpaw.png",
+        nick: "小铁智友",
+        avatar: "/crecpaw01.png",
+        render: (
+          props: IWelcomePromptsProps & {
+            onSubmit: (data: { query: string; fileList?: any[] }) => void;
+          },
+        ) => (
+          <WelcomePrompts
+            greeting={props.greeting}
+            description={props.description}
+            avatar={
+              <img
+                src="/小铁智友.gif"
+                alt="小铁智友"
+                style={{
+                  width: 120,
+                  height: 120,
+                  objectFit: "cover",
+                  borderRadius: "16px",
+                }}
+              />
+            }
+            prompts={props.prompts}
+            onClick={(query) => props.onSubmit({ query })}
+          />
+        ),
       },
       sender: {
         ...(i18nConfig as any)?.sender,
         beforeSubmit: handleBeforeSubmit,
+        // Input action bar (WorkBuddy style): workspace picker + expert chip
+        // + model selector, all inline to the left of the send button.
+        prefix: (
+          <>
+            <WorkspaceSelector />
+            <ExpertBadge />
+            <ModelSelector compact />
+          </>
+        ),
         allowSpeech: true,
         attachments: {
           trigger: function (props: any) {
@@ -1111,8 +1148,10 @@ export default function ChatPage() {
           });
         },
       },
-      customToolRenderConfig:
-        Object.keys(toolRenderConfig).length > 0 ? toolRenderConfig : undefined,
+      customToolRenderConfig: {
+        ...toolRenderConfig,
+        send_file_to_user: SendFileToUserRenderer,
+      },
       actions: {
         list: [
           {
@@ -1140,6 +1179,80 @@ export default function ChatPage() {
     scheduleHistoryClear,
     planEnabled,
   ]);
+
+  // ── HTML 预览注入：全局扫描聊天区文本中的 /api/files/preview/ 链接 ──
+  // 预览 URL 在 send_file_to_user 返回的 TextBlock 中，渲染为普通消息文本，
+  // 不在 tool-call 卡片内，因此需要扫描整个聊天区的文本内容。
+  useLayoutEffect(() => {
+    const injectedUrls = new Set<string>();
+    let observer: MutationObserver | null = null;
+
+    const injectButtonsForNode = (root: ParentNode) => {
+      const container = (root as Element).closest?.("[class*=\"AgentScopeRuntimeWebUI\"]")
+        || (root as Element).querySelector?.("[class*=\"AgentScopeRuntimeWebUI\"]")
+        || root;
+      // 在 root 子树中找所有含预览 URL 的元素
+      const walker = document.createTreeWalker(
+        container as Node,
+        NodeFilter.SHOW_TEXT,
+      );
+      let textNode: Text | null;
+      while ((textNode = walker.nextNode() as Text | null)) {
+        const text = textNode.textContent || "";
+        if (!text.includes("/api/files/preview/")) continue;
+        const match = text.match(/\/api\/files\/preview\/[^\s"'\\)，。；;]+/);
+        if (!match) continue;
+        const url = match[0];
+        if (injectedUrls.has(url)) continue;
+        // 找最近的消息容器来挂载按钮
+        const msgBlock = (textNode.parentElement as HTMLElement)?.closest(
+          "[class*=\"message\"], [class*=\"x-markdown\"], [class*=\"markdown\"]",
+        ) as HTMLElement | null;
+        const target = msgBlock || textNode.parentElement;
+        if (!target || target.querySelector("[data-preview-injected]")) continue;
+        injectedUrls.add(url);
+        const btn = document.createElement("a");
+        btn.setAttribute("data-preview-injected", "true");
+        btn.href = url;
+        btn.textContent = "🔍 点击预览 HTML";
+        btn.style.cssText =
+          "display:inline-block;margin:8px 0;padding:6px 18px;" +
+          "background:#1961AC;color:#fff;border-radius:6px;" +
+          "text-decoration:none;font-size:13px;cursor:pointer;";
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          window.location.href = btn.href;
+        });
+        target.appendChild(btn);
+      }
+    };
+
+    const setupTimer = setInterval(() => {
+      const container = document.querySelector("[class*=\"AgentScopeRuntimeWebUI\"]");
+      if (!container) return;
+      clearInterval(setupTimer);
+
+      // 建立 MutationObserver 扫描新增节点
+      observer = new MutationObserver((records) => {
+        for (const rec of records) {
+          for (const node of rec.addedNodes) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              injectButtonsForNode(node as ParentNode);
+            }
+          }
+        }
+      });
+      observer.observe(container, { childList: true, subtree: true });
+
+      // 对已有内容也扫描一次
+      injectButtonsForNode(container);
+    }, 500);
+
+    return () => {
+      clearInterval(setupTimer);
+      observer?.disconnect();
+    };
+  }, []);
 
   return (
     <div

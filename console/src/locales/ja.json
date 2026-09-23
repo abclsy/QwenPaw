@@ -38,6 +38,7 @@
   },
   "nav": {
     "chat": "チャット",
+    "knowledgeBase": "ナレッジベース",
     "control": "コントロール",
     "channels": "チャンネル",
     "sessions": "セッション",
@@ -742,7 +743,7 @@
     "messageTrend": "メッセージ推移",
     "sessionTrend": "セッション推移",
     "tokenTrend": "Token 推移",
-    "llmAndToolTrend": "LLM \u0026 ツール呼び出し推移",
+    "llmAndToolTrend": "LLM & ツール呼び出し推移",
     "sessionsByChannel": "チャンネル別セッション統計",
     "messagesByChannel": "チャンネル別メッセージ統計",
     "totalSessionsTooltip": "作成されたチャットセッションの総数。各セッションは独立した会話コンテキストです",

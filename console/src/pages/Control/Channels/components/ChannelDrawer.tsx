@@ -35,46 +35,46 @@ const CHANNELS_WITH_ACCESS_CONTROL: ChannelKey[] = [
 // Doc EN URLs per channel (anchors on https://qwenpaw.agentscope.io/docs/channels)
 const CHANNEL_DOC_EN_URLS: Partial<Record<ChannelKey, string>> = {
   dingtalk:
-    "https://qwenpaw.agentscope.io/docs/channels/?lang=en#DingTalk-recommended",
-  feishu: "https://qwenpaw.agentscope.io/docs/channels/?lang=en#Feishu-Lark",
+    "",
+  feishu: "",
   imessage:
-    "https://qwenpaw.agentscope.io/docs/channels/?lang=en#iMessage-macOS-only",
-  discord: "https://qwenpaw.agentscope.io/docs/channels/?lang=en#Discord",
-  qq: "https://qwenpaw.agentscope.io/docs/channels/?lang=en#QQ",
-  telegram: "https://qwenpaw.agentscope.io/docs/channels/?lang=en#Telegram",
-  mqtt: "https://qwenpaw.agentscope.io/docs/channels/?lang=en#MQTT",
-  mattermost: "https://qwenpaw.agentscope.io/docs/channels/?lang=en#Mattermost",
-  matrix: "https://qwenpaw.agentscope.io/docs/channels/?lang=en#Matrix",
-  sip: "https://qwenpaw.agentscope.io/docs/channels/?lang=en#SIP",
+    "",
+  discord: "",
+  qq: "",
+  telegram: "",
+  mqtt: "",
+  mattermost: "",
+  matrix: "",
+  sip: "",
   wecom:
-    "https://qwenpaw.agentscope.io/docs/channels/?lang=en#WeCom-WeChat-Work",
+    "",
   weixin:
-    "https://qwenpaw.agentscope.io/docs/channels/?lang=en#WeChat-Personal-iLink",
+    "",
   xiaoyi:
-    "https://developer.huawei.com/consumer/cn/doc/service/openclaw-0000002518410344",
+    "",
   onebot:
-    "https://qwenpaw.agentscope.io/docs/channels/?lang=en#OneBot-v11-NapCat--QQ-full-protocol",
+    "",
 };
 
 // Doc ZH URLs per channel (anchors on https://qwenpaw.agentscope.io/docs/channels)
 const CHANNEL_DOC_ZH_URLS: Partial<Record<ChannelKey, string>> = {
-  dingtalk: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#钉钉推荐",
-  feishu: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#飞书",
+  dingtalk: "",
+  feishu: "",
   imessage:
-    "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#iMessage仅-macOS",
-  discord: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#Discord",
-  qq: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#QQ",
-  telegram: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#Telegram",
-  mqtt: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#MQTT",
-  mattermost: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#Mattermost",
-  matrix: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#Matrix",
-  sip: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#SIP",
-  wecom: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#企业微信",
-  weixin: "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#微信个人iLink",
+    "",
+  discord: "",
+  qq: "",
+  telegram: "",
+  mqtt: "",
+  mattermost: "",
+  matrix: "",
+  sip: "",
+  wecom: "",
+  weixin: "",
   xiaoyi:
-    "https://developer.huawei.com/consumer/cn/doc/service/openclaw-0000002518410344",
+    "",
   onebot:
-    "https://qwenpaw.agentscope.io/docs/channels/?lang=zh#OneBot-v11NapCat--QQ-完整协议",
+    "",
 };
 
 const TWILIO_CONSOLE_URL = "https://console.twilio.com";
@@ -203,6 +203,10 @@ export function ChannelDrawer({
 
   // ── Access control fields (shared across multiple channels) ──────────────
 
+  // Channels where DingTalk-style platform requires @mention by default;
+  // the require_mention toggle is misleading for these channels.
+  const CHANNELS_ALWAYS_REQUIRE_MENTION: ChannelKey[] = ["dingtalk"];
+
   const renderAccessControlFields = () => (
     <>
       <Form.Item
@@ -231,14 +235,28 @@ export function ChannelDrawer({
           ]}
         />
       </Form.Item>
-      <Form.Item
-        name="require_mention"
-        label={t("channels.requireMention")}
-        valuePropName="checked"
-        tooltip={t("channels.requireMentionTooltip")}
-      >
-        <Switch />
-      </Form.Item>
+      {activeKey && CHANNELS_ALWAYS_REQUIRE_MENTION.includes(activeKey) ? (
+        <Form.Item
+          label={t("channels.requireMention")}
+          tooltip={t("channels.requireMentionTooltip")}
+        >
+          <Alert
+            type="info"
+            showIcon
+            message={t("channels.dingtalkMentionRequired")}
+            style={{ marginTop: 0 }}
+          />
+        </Form.Item>
+      ) : (
+        <Form.Item
+          name="require_mention"
+          label={t("channels.requireMention")}
+          valuePropName="checked"
+          tooltip={t("channels.requireMentionTooltip")}
+        >
+          <Switch />
+        </Form.Item>
+      )}
       <Form.Item
         name="allow_from"
         label={t("channels.allowFrom")}
@@ -1283,7 +1301,7 @@ export function ChannelDrawer({
               window.open(finalUrl, "_blank");
             }}
             className={styles.dingtalkDocBtn}
-            style={{ color: "#FF7F16" }}
+            style={{ color: "#1961AC" }}
           >
             {label} Doc
           </Button>
@@ -1297,7 +1315,7 @@ export function ChannelDrawer({
             window.open(TWILIO_CONSOLE_URL, "_blank", "noopener,noreferrer")
           }
           className={styles.dingtalkDocBtn}
-          style={{ color: "#FF7F16" }}
+          style={{ color: "#1961AC" }}
         >
           {t("channels.voiceSetupLink")}
         </Button>

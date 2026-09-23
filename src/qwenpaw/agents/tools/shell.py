@@ -20,6 +20,7 @@ from ...constant import WORKING_DIR
 from ...config.context import (
     get_current_shell_command_timeout,
     get_current_workspace_dir,
+    get_current_user_output_dir,
 )
 
 
@@ -35,6 +36,7 @@ def _kill_process_tree_win32(pid: int) -> None:
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
             timeout=10,
+            creationflags=0x08000000,  # CREATE_NO_WINDOW
         )
     except Exception:
         pass
@@ -225,7 +227,7 @@ def _execute_subprocess_sync(
             text=False,
             cwd=cwd,
             env=env,
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | 0x08000000,  # CREATE_NO_WINDOW
         )
 
         # Parent copies are no longer needed — the child inherited its own
@@ -327,11 +329,15 @@ async def execute_shell_command(
         if configured is not None:
             timeout = configured
 
-    # Use current workspace_dir from context, fallback to WORKING_DIR
+    # Use user output dir if set, else current workspace_dir, fallback to WORKING_DIR
     if cwd is not None:
         working_dir = cwd
     else:
-        working_dir = get_current_workspace_dir() or WORKING_DIR
+        working_dir = (
+            get_current_user_output_dir()
+            or get_current_workspace_dir()
+            or WORKING_DIR
+        )
 
     # Ensure the venv Python is on PATH for subprocesses
     env = os.environ.copy()

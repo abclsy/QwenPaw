@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工作区选择器 · WorkBuddy 风格改版预览</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif;
+    background: #f5f6f8;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px;
+    transition: background 0.3s;
+  }
+  body.dark { background: #17181a; }
+
+  .header { text-align: center; margin-bottom: 24px; }
+  .header h1 { font-size: 18px; color: #1c1e21; font-weight: 600; }
+  body.dark .header h1 { color: #e8eaed; }
+  .header p { font-size: 12px; color: #8a8f99; margin-top: 6px; }
+  body.dark .header p { color: #9aa0a6; }
+
+  .toggle {
+    position: fixed; top: 16px; right: 20px;
+    padding: 6px 14px; border-radius: 14px; border: 1px solid #d9dde3;
+    background: #fff; color: #444; font-size: 12px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  body.dark .toggle { background: #26282b; border-color: #3a3d41; color: #cfd2d6; }
+
+  /* ─── Chat input mock ─── */
+  .chatInputWrap { width: 640px; max-width: 94vw; }
+  .chatInput {
+    background: #fff;
+    border: 1px solid #e2e5ea;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    overflow: visible;
+    transition: all 0.3s;
+  }
+  body.dark .chatInput { background: #232528; border-color: #34373b; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+
+  .textarea {
+    min-height: 76px;
+    padding: 14px 16px 8px;
+    font-size: 13px;
+    color: #9aa0a6;
+    line-height: 1.6;
+  }
+
+  .actionBar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px 10px;
+    position: relative;
+  }
+
+  .iconBtn {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    color: #9aa0a6; cursor: pointer; transition: all 0.15s;
+  }
+  .iconBtn:hover { background: rgba(0,0,0,0.05); color: #666; }
+  body.dark .iconBtn:hover { background: rgba(255,255,255,0.08); color: #ccc; }
+  .iconBtn svg { width: 15px; height: 15px; }
+
+  /* ─── Expert badge (mock) ─── */
+  .expertChip {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 26px; padding: 0 6px 0 4px;
+    border-radius: 13px;
+    border: 1px solid rgba(25,97,172,0.28);
+    background: rgba(25,97,172,0.06);
+    cursor: pointer; white-space: nowrap; user-select: none;
+  }
+  body.dark .expertChip { background: rgba(25,97,172,0.16); border-color: rgba(74,159,216,0.4); }
+  .expertAvatar {
+    width: 19px; height: 19px; border-radius: 50%;
+    background: linear-gradient(135deg, #2E7CD6 0%, #1961AC 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #fff;
+  }
+  .expertName { font-size: 12px; font-weight: 500; color: #1961AC; }
+  body.dark .expertName { color: #6ab5e8; }
+
+  /* ─── Model chip (mock) ─── */
+  .modelChip {
+    display: inline-flex; align-items: center; gap: 4px;
+    height: 24px; padding: 0 8px;
+    font-size: 12px; font-weight: 500; border-radius: 12px;
+    color: rgba(0,0,0,0.55); cursor: pointer;
+  }
+  .modelChip:hover { background: rgba(25,97,172,0.06); color: #1961AC; }
+  body.dark .modelChip { color: rgba(255,255,255,0.55); }
+  body.dark .modelChip:hover { background: rgba(25,97,172,0.22); color: #6ab5e8; }
+
+  /* ─── Workspace pill (the new component) ─── */
+  .wsPill {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 26px; padding: 0 10px;
+    border-radius: 13px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: rgba(0,0,0,0.4);
+    font-size: 12px; font-weight: 500;
+    cursor: pointer; white-space: nowrap; user-select: none;
+    transition: all 0.2s ease;
+    max-width: 180px;
+  }
+  .wsPill:hover { background: rgba(0,0,0,0.05); color: rgba(0,0,0,0.65); }
+  .wsPill svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .wsPill .name { overflow: hidden; text-overflow: ellipsis; }
+
+  .wsPill.active {
+    color: #1961AC;
+    border-color: rgba(25,97,172,0.28);
+    background: rgba(25,97,172,0.06);
+  }
+  .wsPill.active:hover, .wsPill.active.open {
+    background: rgba(25,97,172,0.1);
+    border-color: rgba(25,97,172,0.5);
+    color: #1961AC;
+  }
+
+  body.dark .wsPill { color: rgba(255,255,255,0.4); }
+  body.dark .wsPill:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
+  body.dark .wsPill.active { color: #6ab5e8; border-color: rgba(74,159,216,0.4); background: rgba(25,97,172,0.16); }
+  body.dark .wsPill.active:hover, body.dark .wsPill.active.open {
+    background: rgba(25,97,172,0.26); border-color: rgba(74,159,216,0.65); color: #6ab5e8;
+  }
+
+  .sendBtn {
+    margin-left: auto;
+    width: 30px; height: 30px; border-radius: 9px;
+    background: #1961AC; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .sendBtn svg { width: 15px; height: 15px; }
+
+  /* ─── Dropdown panel ─── */
+  .wsPanel {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 0;
+    width: 280px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    padding: 6px;
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 10;
+  }
+  .wsPanel.show { display: flex; animation: pop 0.16s ease; }
+  @keyframes pop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  body.dark .wsPanel { background: #1f1f1f; border-color: rgba(255,255,255,0.1); box-shadow: 0 6px 20px rgba(0,0,0,0.45); }
+
+  .sectionLabel { font-size: 11px; color: rgba(0,0,0,0.4); padding: 6px 8px 3px; user-select: none; }
+  body.dark .sectionLabel { color: rgba(255,255,255,0.4); }
+
+  .recentItem {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border-radius: 8px; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .recentItem:hover { background: rgba(0,0,0,0.05); }
+  body.dark .recentItem:hover { background: rgba(255,255,255,0.08); }
+  .recentItem svg { width: 13px; height: 13px; flex-shrink: 0; color: rgba(0,0,0,0.45); }
+  body.dark .recentItem svg { color: rgba(255,255,255,0.5); }
+  .recentItem.current { background: rgba(25,97,172,0.06); }
+  .recentItem.current:hover { background: rgba(25,97,172,0.1); }
+  body.dark .recentItem.current { background: rgba(25,97,172,0.22); }
+  .recentItem.current svg { color: #1961AC; }
+  body.dark .recentItem.current svg { color: #6ab5e8; }
+  .itemTexts { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .itemName { font-size: 12px; font-weight: 500; color: rgba(0,0,0,0.85); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.dark .itemName { color: rgba(255,255,255,0.85); }
+  .recentItem.current .itemName { color: #1961AC; }
+  body.dark .recentItem.current .itemName { color: #6ab5e8; }
+  .itemPath { font-size: 10px; color: rgba(0,0,0,0.4); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.dark .itemPath { color: rgba(255,255,255,0.4); }
+  .check { color: #1961AC; }
+  body.dark .check { color: #6ab5e8; }
+
+  .divider { height: 1px; background: rgba(0,0,0,0.06); margin: 5px 4px; }
+  body.dark .divider { background: rgba(255,255,255,0.1); }
+
+  .actionItem {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border-radius: 8px; cursor: pointer;
+    font-size: 12px; font-weight: 500; color: rgba(0,0,0,0.7);
+    transition: background 0.15s;
+  }
+  .actionItem:hover { background: rgba(0,0,0,0.05); }
+  body.dark .actionItem { color: rgba(255,255,255,0.75); }
+  body.dark .actionItem:hover { background: rgba(255,255,255,0.08); }
+  .actionItem svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .actionItem.browse svg { color: rgba(0,0,0,0.45); }
+  body.dark .actionItem.browse svg { color: rgba(255,255,255,0.5); }
+  .actionItem.danger svg { color: rgba(226,75,74,0.85); }
+  .actionItem.danger { color: rgba(226,75,74,0.9); }
+  .actionItem.danger:hover { background: rgba(226,75,74,0.08); }
+  body.dark .actionItem.danger svg { color: rgba(232,106,106,0.9); }
+  body.dark .actionItem.danger { color: rgba(232,106,106,0.9); }
+  body.dark .actionItem.danger:hover { background: rgba(226,75,74,0.16); }
+
+  .note {
+    margin-top: 22px;
+    font-size: 12px;
+    color: #8a8f99;
+    background: rgba(25,97,172,0.05);
+    border: 1px solid rgba(25,97,172,0.15);
+    border-radius: 10px;
+    padding: 12px 16px;
+    max-width: 640px;
+    line-height: 1.8;
+  }
+  body.dark .note { background: rgba(25,97,172,0.1); border-color: rgba(74,159,216,0.2); color: #9aa0a6; }
+  .note b { color: #1961AC; }
+  body.dark .note b { color: #6ab5e8; }
+</style>
+</head>
+<body>
+<button class="toggle" onclick="document.body.classList.toggle('dark')">🌙 暗色 / 亮色</button>
+
+<div class="header">
+  <h1>工作区选择器 · WorkBuddy 风格胶囊</h1>
+  <p>点击左侧「📁 胶囊」体验下拉交互 —— 与 dist/小铁智友.app 内的实现一致</p>
+</div>
+
+<div class="chatInputWrap">
+  <div class="chatInput">
+    <div class="textarea">给专家发消息，试试输入 / 引用文件…</div>
+    <div class="actionBar">
+      <div style="position:relative">
+        <div class="wsPill active open" id="wsPill" onclick="togglePanel(event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+          <span class="name" id="pillName">QwenPaw</span>
+        </div>
+
+        <div class="wsPanel show" id="wsPanel">
+          <div class="sectionLabel">最近使用</div>
+          <div class="recentItem current" onclick="pick(this, '/Users/liusiyuan/Documents/workSpaceNew/QwenPaw')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+            <div class="itemTexts">
+              <span class="itemName">QwenPaw</span>
+              <span class="itemPath">/Users/liusiyuan/Documents/workSpaceNew/QwenPaw</span>
+            </div>
+            <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </div>
+          <div class="recentItem" onclick="pick(this, '/Users/liusiyuan/Documents/大桥施组方案')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+            <div class="itemTexts">
+              <span class="itemName">大桥施组方案</span>
+              <span class="itemPath">/Users/liusiyuan/Documents/大桥施组方案</span>
+            </div>
+          </div>
+          <div class="recentItem" onclick="pick(this, '/Users/liusiyuan/Desktop/试验检测报告')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+            <div class="itemTexts">
+              <span class="itemName">试验检测报告</span>
+              <span class="itemPath">/Users/liusiyuan/Desktop/试验检测报告</span>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="actionItem browse" onclick="browse()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10v6"/><path d="M9 13h6"/><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+            选择其他文件夹…
+          </div>
+          <div class="actionItem danger" onclick="clearWs()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+            清除工作区
+          </div>
+        </div>
+      </div>
+
+      <div class="expertChip">
+        <span class="expertAvatar">🌉</span>
+        <span class="expertName">桥隧工程专家</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </div>
+
+      <div class="modelChip">✦ Qwen3-Max</div>
+
+      <div class="iconBtn" title="附件">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      </div>
+
+      <div class="sendBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>改动说明：</b>原来输入框里的 28px 文件夹图标按钮，已改为 WorkBuddy 风格的「📁 文件夹名」胶囊。
+    点击胶囊弹出下拉：<b>最近使用</b>（最多 5 条，basename + 完整路径，当前项蓝色高亮打勾）、<b>选择其他文件夹…</b>（系统原生选框）、<b>清除工作区</b>。
+    未设置时胶囊灰字显示「工作区」。悬停胶囊 Tooltip 显示完整路径。亮/暗色均适配，样式与专家徽章、模型胶囊同排对齐（26px 高、中铁蓝主题）。
+  </div>
+</div>
+
+<script>
+  const pill = document.getElementById('wsPill');
+  const panel = document.getElementById('wsPanel');
+  const pillName = document.getElementById('pillName');
+
+  function togglePanel(e) { e.stopPropagation(); panel.classList.toggle('show'); pill.classList.toggle('open'); }
+  panel.addEventListener('click', e => e.stopPropagation());
+  document.addEventListener('click', () => { panel.classList.remove('show'); pill.classList.remove('open'); });
+
+  function pick(el, dir) {
+    const name = dir.split('/').filter(Boolean).pop();
+    panel.querySelectorAll('.recentItem').forEach(r => { r.classList.remove('current'); r.querySelector('.check')?.remove(); });
+    el.classList.add('current');
+    el.insertAdjacentHTML('beforeend', '<svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M20 6 9 17l-5-5"/></svg>');
+    pillName.textContent = name;
+    pill.classList.add('active');
+    panel.classList.remove('show'); pill.classList.remove('open');
+  }
+
+  function browse() {
+    const dir = prompt('请输入工作空间目录路径（App 内为系统原生选框）:', '/Users/liusiyuan/Documents/workSpaceNew/QwenPaw');
+    if (dir && dir.trim()) {
+      pillName.textContent = dir.trim().split('/').filter(Boolean).pop();
+      pill.classList.add('active');
+    }
+    panel.classList.remove('show'); pill.classList.remove('open');
+  }
+
+  function clearWs() {
+    pillName.textContent = '工作区';
+    pill.classList.remove('active');
+    panel.querySelectorAll('.recentItem').forEach(r => { r.classList.remove('current'); r.querySelector('.check')?.remove(); });
+    panel.classList.remove('show'); pill.classList.remove('open');
+  }
+</script>
+</body>
+</html>

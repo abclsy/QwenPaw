@@ -88,7 +88,14 @@ def build_env_context(
             "  3. Use tool calls to perform actions. A response without a "
             "tool call indicates the task is complete. To continue a task, "
             "you must generate a tool call or provide useful feedback if "
-            "you are blocked.\n",
+            "you are blocked.\n"
+            "  4. When you create or generate files (reports, code, "
+            "documents, images, \
+etc.), you MUST tell the user the EXACT "
+            "file path where the file is stored. The working directory is "
+            "shown above — use it to construct the full path.\n"
+            "     Example: \"✅ 报告已生成 → "
+            "`~/.qwenpaw/workspaces/<agent_id>/report.html`\"\n",
         )
 
     return (

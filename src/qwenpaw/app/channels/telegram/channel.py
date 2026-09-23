@@ -35,7 +35,7 @@ from agentscope_runtime.engine.schemas.agent_schemas import (
 from ....config.config import TelegramConfig as TelegramChannelConfig
 from ....constant import WORKING_DIR
 from .format_html import markdown_to_telegram_html
-from ..utils import file_url_to_local_path
+from ..utils import file_url_to_local_path, resolve_media_url_to_local_path
 from ..base import (
     BaseChannel,
     OnReplySent,
@@ -941,50 +941,46 @@ class TelegramChannel(BaseChannel):
         """Send media from URL or local file path."""
         if not value:
             return
-        if isinstance(value, str) and value.startswith("file://"):
-            raw_path = file_url_to_local_path(value)
-            if not raw_path:
-                logger.warning(
-                    "telegram: could not resolve file URL: %s",
-                    value,
-                )
-                raise _MediaFileUnavailableError(
-                    "Could not resolve media file from URL.",
-                )
-            local_path = Path(raw_path).resolve()
-            if not local_path.exists():
-                logger.warning(
-                    "telegram: media file not found at path: %s",
-                    local_path,
-                )
-                raise _MediaFileUnavailableError(
-                    f"Media file not found: {local_path.name}",
-                )
-            file_size = local_path.stat().st_size
-            if file_size > TELEGRAM_MAX_FILE_SIZE_BYTES:
-                file_size_mb = file_size / (1024 * 1024)
-                raise _FileTooLargeError(
-                    f"File too large to send via Telegram: {local_path.name} "
-                    f"({file_size_mb:.1f} MB, Telegram bot limit: 50 MB)",
-                )
-            try:
-                with open(local_path, "rb") as media_file:
-                    await self._send_media_payload(
-                        bot=bot,
-                        chat_id=chat_id,
-                        method_name=method_name,
-                        payload_name=payload_name,
-                        payload=media_file,
-                        message_thread_id=message_thread_id,
+        # Check for local file URLs (API preview, file://, or plain path)
+        if isinstance(value, str):
+            local_path_str = resolve_media_url_to_local_path(value)
+            if local_path_str:
+                local_path = Path(local_path_str).resolve()
+                if not local_path.exists():
+                    logger.warning(
+                        "telegram: media file not found at path: %s",
+                        local_path,
                     )
-            except OSError as exc:
-                logger.warning(
-                    "telegram: failed to open media file: %s: %s",
-                    local_path,
-                    exc,
-                )
-                raise
-            return
+                    raise _MediaFileUnavailableError(
+                        f"Media file not found: {local_path.name}",
+                    )
+                file_size = local_path.stat().st_size
+                if file_size > TELEGRAM_MAX_FILE_SIZE_BYTES:
+                    file_size_mb = file_size / (1024 * 1024)
+                    raise _FileTooLargeError(
+                        f"File too large to send via Telegram: "
+                        f"{local_path.name} "
+                        f"({file_size_mb:.1f} MB, "
+                        f"Telegram bot limit: 50 MB)",
+                    )
+                try:
+                    with open(local_path, "rb") as media_file:
+                        await self._send_media_payload(
+                            bot=bot,
+                            chat_id=chat_id,
+                            method_name=method_name,
+                            payload_name=payload_name,
+                            payload=media_file,
+                            message_thread_id=message_thread_id,
+                        )
+                except OSError as exc:
+                    logger.warning(
+                        "telegram: failed to open media file: %s: %s",
+                        local_path,
+                        exc,
+                    )
+                    raise
+                return
         await self._send_media_payload(
             bot=bot,
             chat_id=chat_id,

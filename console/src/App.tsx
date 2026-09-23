@@ -24,13 +24,13 @@ import MainLayout from "./layouts/MainLayout";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { PluginProvider, usePlugins } from "./plugins/PluginContext";
 import { ApprovalProvider } from "./contexts/ApprovalContext";
+import DesktopFileLinkGuard from "./components/DesktopFileLinkGuard";
 import { Suspense } from "react";
 import { lazyImportWithRetry } from "./utils/lazyWithRetry";
 
 const LoginPage = lazyImportWithRetry("./pages/Login/index");
 import { authApi } from "./api/modules/auth";
-import { languageApi } from "./api/modules/language";
-import { getApiUrl, getApiToken, clearAuthToken } from "./api/config";
+import { getApiUrl, getApiToken, clearAuthToken, setAuthUsername } from "./api/config";
 import "./styles/layout.css";
 import "./styles/form-override.css";
 
@@ -81,6 +81,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
           });
           if (cancelled) return;
           if (r.ok) {
+            const data = await r.json().catch(() => ({}));
+            if (data.username) {
+              setAuthUsername(data.username);
+            }
             setStatus("ok");
           } else {
             clearAuthToken();
@@ -128,19 +132,11 @@ function AppInner() {
   );
 
   useEffect(() => {
-    if (!localStorage.getItem("language")) {
-      languageApi
-        .getLanguage()
-        .then(({ language }) => {
-          if (language && language !== i18n.language) {
-            i18n.changeLanguage(language);
-            localStorage.setItem("language", language);
-          }
-        })
-        .catch((err) =>
-          console.error("Failed to fetch language preference:", err),
-        );
+    // Always use Chinese — this app is for Chinese users only
+    if (i18n.language !== "zh") {
+      i18n.changeLanguage("zh");
     }
+    localStorage.setItem("language", "zh");
   }, []);
 
   useEffect(() => {
@@ -178,11 +174,12 @@ function AppInner() {
             ? antdTheme.darkAlgorithm
             : antdTheme.defaultAlgorithm,
           token: {
-            colorPrimary: "#FF7F16",
+            colorPrimary: "#1961AC",
           },
         }}
       >
         <AntdApp>
+          <DesktopFileLinkGuard />
           <ApprovalProvider>
             <Routes>
               <Route

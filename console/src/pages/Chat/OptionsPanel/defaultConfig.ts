@@ -2,12 +2,12 @@ import type { TFunction } from "i18next";
 
 const defaultConfig = {
   theme: {
-    colorPrimary: "#FF7F16",
+    colorPrimary: "#1961AC",
     darkMode: false,
     prefix: "qwenpaw",
     leftHeader: {
       logo: "",
-      title: "Work with QwenPaw",
+      title: "Work with 小铁智友",
     },
   },
   sender: {
@@ -16,16 +16,19 @@ const defaultConfig = {
     disclaimer: "Works for you, grows with you",
   },
   welcome: {
-    greeting: "Hello, how can I help you today?",
+    greeting: "Hello, I'm 小铁智友 🐾",
     description:
-      "I am a helpful assistant that can help you with your questions.",
+      "Your smart work assistant — I can help with coding, documents, data analysis, and task management. Just tell me what you need!",
     avatar: "/online.svg",
     prompts: [
       {
-        value: "Let's start a new journey!",
+        value: "What can you do? Tell me about your features.",
       },
       {
-        value: "Can you tell me what skills you have?",
+        value: "Help me create a project task list template.",
+      },
+      {
+        value: "What should I focus on today?",
       },
     ],
   },
@@ -45,7 +48,11 @@ class ChatConfigProvider {
   }
 
   getPrompts(t: TFunction): Array<{ value: string }> {
-    return [{ value: t("chat.prompt1") }, { value: t("chat.prompt2") }];
+    return [
+      { value: t("chat.prompt1") },
+      { value: t("chat.prompt2") },
+      { value: t("chat.prompt3") },
+    ];
   }
 
   getConfig(t: TFunction) {

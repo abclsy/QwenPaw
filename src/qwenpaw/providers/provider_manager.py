@@ -262,25 +262,6 @@ OPENAI_MODELS: List[ModelInfo] = [
     ),
 ]
 
-OPENCODE_MODELS: List[ModelInfo] = [
-    ModelInfo(
-        id="big-pickle",
-        name="Big Pickle",
-        supports_image=False,
-        supports_video=False,
-        probe_source="documentation",
-        is_free=True,
-    ),
-    ModelInfo(
-        id="nemotron-3-super-free",
-        name="Nemotron 3 Super Free",
-        supports_image=False,
-        supports_video=False,
-        probe_source="documentation",
-        is_free=True,
-    ),
-]
-
 AZURE_OPENAI_MODELS: List[ModelInfo] = [
     ModelInfo(
         id="gpt-5-chat",
@@ -373,45 +354,30 @@ MINIMAX_MODELS: List[ModelInfo] = [
 
 KIMI_MODELS: List[ModelInfo] = [
     ModelInfo(
-        id="kimi-k2.5",
-        name="Kimi K2.5",
+        id="kimi",
+        name="Kimi",
         supports_image=True,
         supports_video=True,
         probe_source="documentation",
     ),
+]
+
+GLM_MODELS: List[ModelInfo] = [
     ModelInfo(
-        id="kimi-k2-0905-preview",
-        name="Kimi K2 0905 Preview",
-        supports_image=False,
-        supports_video=False,
+        id="glm",
+        name="GLM",
+        supports_image=True,
+        supports_video=True,
         probe_source="documentation",
     ),
+]
+
+QWEN_CREC_MODELS: List[ModelInfo] = [
     ModelInfo(
-        id="kimi-k2-0711-preview",
-        name="Kimi K2 0711 Preview",
-        supports_image=False,
-        supports_video=False,
-        probe_source="documentation",
-    ),
-    ModelInfo(
-        id="kimi-k2-turbo-preview",
-        name="Kimi K2 Turbo Preview",
-        supports_image=False,
-        supports_video=False,
-        probe_source="documentation",
-    ),
-    ModelInfo(
-        id="kimi-k2-thinking",
-        name="Kimi K2 Thinking",
-        supports_image=False,
-        supports_video=False,
-        probe_source="documentation",
-    ),
-    ModelInfo(
-        id="kimi-k2-thinking-turbo",
-        name="Kimi K2 Thinking Turbo",
-        supports_image=False,
-        supports_video=False,
+        id="qwen3.6",
+        name="Qwen3.6",
+        supports_image=True,
+        supports_video=True,
         probe_source="documentation",
     ),
 ]
@@ -448,6 +414,10 @@ DEEPSEEK_MODELS: List[ModelInfo] = [
 ]
 
 ANTHROPIC_MODELS: List[ModelInfo] = []
+
+# Shared CREC AI gateway configuration for internal model aliases.
+CREC_BASE_URL = "https://ai-api.crec.cn/v1"
+CREC_API_KEY = "sk-KxX2wHd1RFoZWu3QoTWftzfeAXkDrUPPCFRu8eaOKnGkkOCo"
 
 GEMINI_MODELS: List[ModelInfo] = [
     ModelInfo(
@@ -595,16 +565,6 @@ PROVIDER_OPENAI = OpenAIProvider(
     freeze_url=True,
 )
 
-PROVIDER_OPENCODE = OpenAIProvider(
-    id="opencode",
-    name="OpenCode",
-    base_url="https://opencode.ai/zen/v1",
-    api_key_prefix="",
-    models=OPENCODE_MODELS,
-    freeze_url=True,
-    require_api_key=False,
-)
-
 PROVIDER_AZURE_OPENAI = OpenAIProvider(
     id="azure-openai",
     name="Azure OpenAI",
@@ -649,6 +609,36 @@ PROVIDER_KIMI_INTL = OpenAIProvider(
     base_url="https://api.moonshot.ai/v1",
     api_key_prefix="",
     models=KIMI_MODELS,
+    freeze_url=True,
+)
+
+PROVIDER_KIMI_CREC = OpenAIProvider(
+    id="kimi-crec",
+    name="Kimi",
+    base_url=CREC_BASE_URL,
+    api_key=CREC_API_KEY,
+    api_key_prefix="",
+    models=KIMI_MODELS,
+    freeze_url=True,
+)
+
+PROVIDER_GLM_CREC = OpenAIProvider(
+    id="glm-crec",
+    name="GLM",
+    base_url=CREC_BASE_URL,
+    api_key=CREC_API_KEY,
+    api_key_prefix="",
+    models=GLM_MODELS,
+    freeze_url=True,
+)
+
+PROVIDER_QWEN_CREC = OpenAIProvider(
+    id="qwen-crec",
+    name="Qwen",
+    base_url=CREC_BASE_URL,
+    api_key=CREC_API_KEY,
+    api_key_prefix="",
+    models=QWEN_CREC_MODELS,
     freeze_url=True,
 )
 
@@ -755,6 +745,11 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         except Exception as e:
             logger.warning("Failed to migrate legacy providers: %s", e)
         self._init_from_storage()
+        self.active_model = ModelSlotConfig(
+            provider_id="kimi-crec",
+            model="kimi",
+        )
+        self.save_active_model(self.active_model)
         self._apply_default_annotations()
 
     def _prepare_disk_storage(self):
@@ -772,30 +767,11 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
                 pass
 
     def _init_builtins(self):
+        # Minimal built-in providers for the internal CREC AI gateway.
         self._add_builtin(PROVIDER_QWENPAW)
-        self._add_builtin(PROVIDER_OLLAMA)
-        self._add_builtin(PROVIDER_LMSTUDIO)
-        self._add_builtin(PROVIDER_OPENROUTER)
-        self._add_builtin(PROVIDER_MODELSCOPE)
-        self._add_builtin(PROVIDER_DASHSCOPE)
-        self._add_builtin(PROVIDER_ALIYUN_CODINGPLAN)
-        self._add_builtin(PROVIDER_ALIYUN_CODINGPLAN_INTL)
-        self._add_builtin(PROVIDER_OPENCODE)
-        self._add_builtin(PROVIDER_OPENAI)
-        self._add_builtin(PROVIDER_AZURE_OPENAI)
-        self._add_builtin(PROVIDER_ANTHROPIC)
-        self._add_builtin(PROVIDER_GEMINI)
-        self._add_builtin(PROVIDER_DEEPSEEK)
-        self._add_builtin(PROVIDER_KIMI_CN)
-        self._add_builtin(PROVIDER_KIMI_INTL)
-        self._add_builtin(PROVIDER_MINIMAX_CN)
-        self._add_builtin(PROVIDER_MINIMAX)
-        self._add_builtin(PROVIDER_ZHIPU_CN)
-        self._add_builtin(PROVIDER_ZHIPU_CN_CODINGPLAN)
-        self._add_builtin(PROVIDER_ZHIPU_INTL)
-        self._add_builtin(PROVIDER_ZHIPU_INTL_CODINGPLAN)
-        self._add_builtin(PROVIDER_SILICONFLOW_CN)
-        self._add_builtin(PROVIDER_SILICONFLOW_INTL)
+        self._add_builtin(PROVIDER_KIMI_CREC)
+        self._add_builtin(PROVIDER_GLM_CREC)
+        self._add_builtin(PROVIDER_QWEN_CREC)
 
     def _add_builtin(self, provider: Provider):
         self.builtin_providers[provider.id] = provider

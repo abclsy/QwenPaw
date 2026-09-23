@@ -191,6 +191,13 @@ class WecomQRCodeAuthHandler(QRCodeAuthHandler):
             async with httpx.AsyncClient(
                 timeout=15,
                 follow_redirects=True,
+                headers={
+                    "User-Agent": (
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) "
+                        "Chrome/120.0.0.0 Safari/537.36"
+                    ),
+                },
             ) as client:
                 resp = await client.get(gen_url)
                 resp.raise_for_status()
@@ -201,27 +208,48 @@ class WecomQRCodeAuthHandler(QRCodeAuthHandler):
                 detail=f"WeCom auth page fetch failed: {exc}",
             ) from exc
 
+        # Try multiple patterns to extract settings from the page.
+        # WeCom may embed settings in different JS formats across versions.
+        scode = ""
+        auth_url = ""
+
+        # Pattern 1: window.settings = {...} (original format)
         settings_match = re.search(
-            r"window\.settings\s*=\s*(\{.*\})",
+            r"window\.settings\s*=\s*(\{.*?\})\s*[;\n<]",
             html,
             re.DOTALL,
         )
+        # Pattern 2: window.settings = {...} (greedy, fallback)
         if not settings_match:
-            raise HTTPException(
-                status_code=502,
-                detail="Failed to parse WeCom auth page settings",
+            settings_match = re.search(
+                r"window\.settings\s*=\s*(\{.*\})",
+                html,
+                re.DOTALL,
             )
 
-        try:
-            settings = json.loads(settings_match.group(1))
-        except json.JSONDecodeError as exc:
-            raise HTTPException(
-                status_code=502,
-                detail=f"Failed to parse WeCom settings JSON: {exc}",
-            ) from exc
+        if settings_match:
+            try:
+                settings = json.loads(settings_match.group(1))
+                scode = settings.get("scode", "")
+                auth_url = settings.get("auth_url", "")
+            except json.JSONDecodeError:
+                pass
 
-        scode = settings.get("scode", "")
-        auth_url = settings.get("auth_url", "")
+        # Pattern 3: Extract scode and auth_url directly from HTML/JS
+        if not scode:
+            scode_match = re.search(
+                r'["\']?scode["\']?\s*[:=]\s*["\']([^"\']+)["\']',
+                html,
+            )
+            if scode_match:
+                scode = scode_match.group(1)
+        if not auth_url:
+            auth_url_match = re.search(
+                r'["\']?auth_url["\']?\s*[:=]\s*["\']([^"\']+)["\']',
+                html,
+            )
+            if auth_url_match:
+                auth_url = auth_url_match.group(1)
 
         if not scode or not auth_url:
             raise HTTPException(

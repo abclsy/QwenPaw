@@ -138,6 +138,50 @@ def file_url_to_local_path(url: str) -> Optional[str]:
     return None
 
 
+def api_preview_url_to_local_path(url: str) -> Optional[str]:
+    """Convert an internal API preview URL to the real local file path.
+
+    The send_file_to_user() and file_io tools generate URLs in the format:
+        /api/files/preview/<percent-encoded-absolute-path>
+
+    These URLs are meant for the console webview to fetch via the API
+    server. However, channel backends (DingTalk, QQ, Telegram, etc.)
+    need the actual local file path to read bytes for uploading to
+    their respective platforms.
+
+    Returns the decoded local file path, or None if the URL is not an
+    API preview URL.
+    """
+    if not url or not isinstance(url, str):
+        return None
+    s = url.strip()
+    prefix = "/api/files/preview/"
+    if not s.startswith(prefix):
+        return None
+    encoded_path = s[len(prefix):]
+    from urllib.parse import unquote
+    local_path = unquote(encoded_path)
+    return local_path if local_path else None
+
+
+def resolve_media_url_to_local_path(url: str) -> Optional[str]:
+    """Resolve any media URL (API preview, file://, or plain path) to a local path.
+
+    This is a convenience function that checks both API preview URLs and
+    file:// URLs / plain paths. Use this in channel backends that need
+    to read file bytes for uploading to their platform.
+
+    Returns the local file path, or None if the URL is an HTTP(S) URL
+    (which should be fetched via HTTP, not read from disk).
+    """
+    # Check API preview URL first
+    api_path = api_preview_url_to_local_path(url)
+    if api_path is not None:
+        return api_path
+    # Then check file:// or plain local path
+    return file_url_to_local_path(url)
+
+
 def make_process_from_runner(runner: Any):
     """
     Use runner.stream_query as the channel's process.

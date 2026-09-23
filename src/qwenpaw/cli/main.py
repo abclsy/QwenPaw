@@ -145,7 +145,7 @@ class LazyGroup(click.Group):
         "doctor": ("qwenpaw.cli.doctor_cmd", "doctor_cmd", ".doctor_cmd"),
     },
 )
-@click.version_option(version=__version__, prog_name="QwenPaw")
+@click.version_option(version=__version__, prog_name="小铁智友")
 @click.option("--host", default=None, help="API Host")
 @click.option(
     "--port",

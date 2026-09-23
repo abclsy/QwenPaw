@@ -31,6 +31,22 @@
     "yes": "是",
     "no": "否"
   },
+  "update": {
+    "title": "检查更新",
+    "checkUpdate": "检查更新",
+    "checkNow": "检查更新",
+    "downloadNow": "下载更新",
+    "restartToUpdate": "重启更新",
+    "currentVersion": "当前版本",
+    "latestVersion": "最新版本",
+    "upToDate": "已是最新版本",
+    "updateAvailable": "发现新版本",
+    "downloading": "正在下载更新...",
+    "downloadComplete": "下载完成",
+    "clickToRestart": "点击「重启更新」按钮，应用将自动重启并完成更新",
+    "applying": "正在应用更新，应用即将重启...",
+    "error": "更新失败"
+  },
   "chunkError": {
     "title": "页面加载失败",
     "subTitle": "可能由网络问题或应用更新导致，请稍后重试。",
@@ -40,6 +56,8 @@
   },
   "nav": {
     "chat": "聊天",
+    "knowledgeBase": "知识库",
+    "guest": "用户",
     "control": "控制",
     "channels": "频道",
     "sessions": "会话",
@@ -63,7 +81,14 @@
     "voiceTranscription": "语音转写",
     "debug": "调试",
     "plugins": "插件",
-    "backups": "备份"
+    "backups": "备份",
+    "appearance": "外观",
+    "experts": "专家团队",
+    "workbench": "工作台",
+    "operations": "运营管理",
+    "systemSettings": "系统设置",
+    "more": "更多",
+    "history": "对话历史"
   },
   "debug": {
     "title": "调试",
@@ -109,7 +134,18 @@
     "configUpdateFailed": "更新系统提示词配置失败",
     "attribution": "工作区设计部分灵感源自 OpenClaw 项目，在此表示感谢 🐾",
     "saveSuccess": "保存成功",
-    "saveFailed": "保存失败"
+    "saveFailed": "保存失败",
+    "binaryFileNotSupported": "此文件类型不支持在线预览，请使用下载按钮获取文件",
+    "selectorLabel": "工作区",
+    "selectorTooltip": "选择工作区目录（产物将保存到此目录）",
+    "currentPath": "当前工作空间: {{dir}}",
+    "recentTitle": "最近使用",
+    "browseOther": "选择其他文件夹…",
+    "clearLabel": "清除工作区",
+    "setSuccess": "工作空间已设置为: {{dir}}",
+    "selectFailed": "选择文件夹失败",
+    "promptPath": "请输入工作空间目录路径:",
+    "cleared": "已清除工作空间设置"
   },
   "agent": {
     "parent": "设置",
@@ -461,7 +497,8 @@
     "noTools": "该 MCP 服务器暂无可用工具",
     "toolsLoadError": "获取 MCP 服务器工具列表失败",
     "toolsConnecting": "MCP 服务器正在连接中，请稍后重试",
-    "toolSchema": "输入参数"
+    "toolSchema": "输入参数",
+    "invalidJsonFormat": "JSON格式无效"
   },
   "heartbeat": {
     "title": "心跳",
@@ -618,6 +655,7 @@
     "groupPolicyTooltip": "控制谁可以在群聊中与机器人交互。开放：所有人；白名单：仅限授权用户",
     "requireMention": "需要 @提及",
     "requireMentionTooltip": "开启后，群聊中仅在被 @提及 时才会回复",
+    "dingtalkMentionRequired": "钉钉平台限制：群聊中必须 @机器人 才能触发回复，此行为为平台默认规则，无法关闭",
     "policyOpen": "开放",
     "policyAllowlist": "白名单",
     "allowFrom": "白名单用户",
@@ -637,7 +675,7 @@
     "welcomeGreeting": "欢迎语",
     "welcomeText": "欢迎消息",
     "welcomeTextTooltip": "用户当天首次进入机器人单聊会话时机器人自动发送的消息",
-    "welcomeTextPlaceholder": "例如：你好！我是 QwenPaw，有什么可以帮你的？",
+    "welcomeTextPlaceholder": "例如：你好！我是 小铁智友，有什么可以帮你的？",
     "loginWeCom": "获取企业微信二维码",
     "wecomSetupGuide": "使用二维码创建机器人时，授权机器人可使用的能力时请选择「暂不授权」。如果选择了「确认授权」，除了机器人创建者，其他用户可能无法与机器人交互。",
     "wecomScanAuth": "扫码授权",
@@ -797,7 +835,7 @@
     "messageTrend": "消息趋势",
     "sessionTrend": "会话趋势",
     "tokenTrend": "Token 趋势",
-    "llmAndToolTrend": "LLM \u0026 工具调用趋势",
+    "llmAndToolTrend": "LLM & 工具调用趋势",
     "sessionsByChannel": "按渠道会话统计",
     "messagesByChannel": "按渠道消息统计",
     "totalSessionsTooltip": "创建的会话总数，每个会话对应一次独立聊天上下文",
@@ -1144,7 +1182,7 @@
     "contextManagementTitle": "上下文管理",
     "memoryManagerBackend": "记忆管理后端",
     "memoryManagerBackendTooltip": "记忆管理器的后端类型，目前仅支持 remelight",
-    "memoryManagerBackendRestartWarning": "切换记忆管理后端不支持热更新，保存后需要重启 QwenPaw 才能生效",
+    "memoryManagerBackendRestartWarning": "切换记忆管理后端不支持热更新，保存后需要重启 小铁智友 才能生效",
     "maxIters": "最大迭代次数",
     "maxItersTooltip": "ReAct 智能体的最大推理-行动迭代次数",
     "maxItersPlaceholder": "请输入最大迭代次数",
@@ -1244,7 +1282,7 @@
     "dreamCronTooltip": "设置梦境任务自动整理和优化长期记忆（留空则禁用）",
     "dreamCronPlaceholder": "0 23 * * *",
     "autoMemorySearch": "自动记忆搜索(beta)",
-    "autoMemorySearchTooltip": "每轮对话都自动触发记忆搜索。每次 query 进来都会自动调用记忆搜索能力，让 QwenPaw 更懂你，但会增加 token 消耗。",
+    "autoMemorySearchTooltip": "每轮对话都自动触发记忆搜索。每次 query 进来都会自动调用记忆搜索能力，让 小铁智友 更懂你，但会增加 token 消耗。",
     "autoMaxResults": "自动搜索最大结果数",
     "autoMaxResultsTooltip": "自动记忆搜索时返回的最大结果数",
     "autoMaxResultsRequired": "最大结果数为必填项",
@@ -1326,7 +1364,7 @@
     "recursiveFileWatcherTooltip": "是否递归监听记忆目录。开启后将包含 memory/subdirectory/* 等子目录中的文件到向量搜索索引。",
     "contextManagerBackend": "上下文管理后端",
     "contextManagerBackendTooltip": "上下文管理器的后端类型，目前仅支持 Light",
-    "backendRestartWarning": "切换后端不支持热更新，保存后需要重启 QwenPaw 才能生效"
+    "backendRestartWarning": "切换后端不支持热更新，保存后需要重启 小铁智友 才能生效"
   },
   "tools": {
     "title": "内置工具",
@@ -1386,11 +1424,12 @@
     "createNewChat": "创建新聊天",
     "statusIdle": "空闲",
     "statusInProgress": "进行中",
-    "disclaimer": "懂你所需，伴你左右",
-    "greeting": "你好，我今天能帮你做什么？",
-    "description": "我是一个智能助手，可以帮助你解答问题。",
-    "prompt1": "让我们开启一段新的旅程吧！",
-    "prompt2": "能告诉我你有哪些技能吗？",
+    "disclaimer": "懂你心意，伴你同行",
+    "greeting": "你好，我是 小铁智友 🐾",
+    "description": "你的智能工作助手，帮你写代码、处理文档、分析数据、管理任务。试试告诉我你需要什么吧！",
+    "prompt1": "你能帮我做什么？介绍一下你的功能",
+    "prompt2": "帮我创建一个项目任务清单模板",
+    "prompt3": "今天有哪些重要事项需要关注？",
     "inputPlaceholder": "\"↑↓\" 浏览消息 · \"/\" 快捷指令（审批时 \"/approve\" 或 \"/deny\"）",
     "commands": {
       "clear": {
@@ -1653,7 +1692,7 @@
     }
   },
   "login": {
-    "title": "登录 QwenPaw",
+    "title": "登录 小铁智友",
     "registerTitle": "创建账户",
     "firstUserHint": "创建管理员账户以开始使用",
     "usernamePlaceholder": "用户名",
@@ -1669,7 +1708,12 @@
     "logout": "退出登录",
     "logoutSuccess": "已成功退出",
     "sessionExpired": "会话已过期，请重新登录",
-    "unauthorized": "未授权，请登录"
+    "unauthorized": "未授权，请登录",
+    "crecOAuth": "中铁统一认证登录",
+    "or": "或",
+    "oauthProcessing": "正在通过统一认证登录...",
+    "success": "登录成功",
+    "localAdmin": "管理员本地登录"
   },
   "account": {
     "title": "账户管理",
@@ -1715,7 +1759,7 @@
     "providerTypeLocalWhisperDesc": "使用本地安装的 openai-whisper Python 库进行转写。需要同时安装 ffmpeg 和 openai-whisper。",
     "localWhisperReady": "本地 Whisper 已就绪。ffmpeg 和 openai-whisper 均已安装。",
     "localWhisperMissing": "本地 Whisper 未就绪，缺少必要依赖。",
-    "localWhisperMissingDesc": "ffmpeg: {{ffmpeg}} | openai-whisper: {{whisper}}。请安装缺少的依赖：ffmpeg（系统包）和 openai-whisper（uv pip install openai-whisper，或使用 [whisper] 额外依赖安装 QwenPaw）。",
+    "localWhisperMissingDesc": "ffmpeg: {{ffmpeg}} | openai-whisper: {{whisper}}。请安装缺少的依赖：ffmpeg（系统包）和 openai-whisper（uv pip install openai-whisper，或使用 [whisper] 额外依赖安装 小铁智友）。",
     "providerLabel": "Whisper API 提供商",
     "providerDescription": "选择用于 Whisper API 音频转写的提供商。仅显示支持 Whisper 端点的提供商。",
     "providerPlaceholder": "选择提供商...",
@@ -1863,5 +1907,44 @@
       "done": "已完成",
       "abandoned": "已放弃"
     }
+  },
+  "experts": {
+    "subtitle": "中国中铁数字专家团队",
+    "heroTitle": "中铁专家团队",
+    "count": "位专家",
+    "heroDesc": "覆盖工程技术、安全质量、商务法务、财务金融等领域的内置专家，点击专家即可创建专属数字员工并开始对话。",
+    "allCategories": "全部",
+    "searchPlaceholder": "搜索专家 / 领域 / 能力",
+    "empty": "没有找到匹配的专家",
+    "detail": "详情",
+    "startChat": "开始对话",
+    "continueChat": "继续对话",
+    "createAndChat": "创建专家数字员工并开始对话",
+    "creating": "创建中…",
+    "createSuccess": "已创建专家数字员工，开始对话吧",
+    "switchSuccess": "已切换到该专家，继续对话",
+    "createFailed": "创建专家失败，请重试",
+    "loadFailed": "专家列表加载失败",
+    "createdTooltip": "已创建对应数字员工",
+    "about": "专家介绍",
+    "capabilities": "擅长领域",
+    "scenarios": "使用场景",
+    "badgeTooltip": "当前对话专家，点击可切换专家",
+    "exit": "退出专家",
+    "exitSuccess": "已退出专家，回到默认助手"
+  },
+  "settingsModal": {
+    "agentsDesc": "数字员工的创建与启停管理",
+    "heartbeatDesc": "心跳任务与自主巡检配置",
+    "tokenUsageDesc": "模型调用与消耗统计",
+    "securityDesc": "安全策略与权限配置",
+    "voiceDesc": "语音转写服务配置",
+    "debugDesc": "运行日志与调试信息"
+  },
+  "history": {
+    "newChat": "新对话",
+    "empty": "暂无对话，点击右上角 + 开始",
+    "untitled": "新对话",
+    "tasksLabel": "任务（{{count}}）"
   }
 }

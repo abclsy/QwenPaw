@@ -27,10 +27,8 @@ export function useSkillFilter<T extends Filterable>(skills: T[]) {
   const filteredSkills = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return skills.filter((skill) => {
-      const matchesText =
-        !q ||
-        skill.name.toLowerCase().includes(q) ||
-        (skill.description || "").toLowerCase().includes(q);
+      // Only filter by name, not by description
+      const matchesText = !q || skill.name.toLowerCase().includes(q);
       const matchesTag =
         selectedTags.length === 0 ||
         selectedTags.some((tag) => skill.tags?.includes(tag));
