@@ -42,13 +42,19 @@ dependencies = [
     "modelscope>=1.35.0",
     "huggingface_hub>=0.20.0",
     "pillow>=10.0.0",
-    "agent-client-protocol>=0.9.0",
     # anyio 4.13.0: _deliver_cancellation busy-loop / getpid storm (QwenPaw#2632)
     "anyio>=4.0.0,<4.13.0",
     # agentscope 1.0.19 imports `streamablehttp_client` from
     # mcp.client.streamable_http — removed in mcp 2.x (2026-09 CI resolved
     # mcp 2.2.0 and the backend failed to import). Keep mcp on 1.x.
     "mcp>=1.16.0,<2",
+    # acp 0.12+ removed SetSessionModelResponse which our ACP server
+    # imports directly (agents/acp/server.py) — keep on 0.10.x like the
+    # dev environment until the import surface is re-audited.
+    "agent-client-protocol>=0.9.0,<0.11",
+    # openai: providers/* import the SDK directly; openai 3.x is a
+    # breaking major (dev env runs 2.41.0).
+    "openai>=2.0.0,<3",
 ]
 
 [tool.setuptools.dynamic]
