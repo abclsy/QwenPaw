@@ -93,7 +93,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: QwenPaw-Desktop-Windows-${{ steps.version.outputs.version }}
-          path: dist/QwenPaw-Setup-*.exe
+          path: dist/*-Setup-*.exe
 
   build-macos:
     runs-on: macos-14
@@ -151,14 +151,14 @@ jobs:
 
       - name: Move artifacts to root for upload
         run: |
-          mv QwenPaw-Desktop-Windows-*/QwenPaw-Setup-*.exe . 2>/dev/null || true
+          mv QwenPaw-Desktop-Windows-*/*-Setup-*.exe . 2>/dev/null || true
           mv QwenPaw-Desktop-macOS-*/QwenPaw-*.zip . 2>/dev/null || true
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            QwenPaw-Setup-*.exe
+            *-Setup-*.exe
             QwenPaw-*-macOS.zip
           fail-on-unmatched-files: false
         env:

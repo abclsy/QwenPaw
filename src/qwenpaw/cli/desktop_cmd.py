@@ -593,11 +593,15 @@ def _clear_webview_cache() -> None:
                 logger.warning("Failed to clear %s: %s", cache_dir, exc)
 
 
-def _stream_reader(in_stream, out_stream) -> None:
+def _stream_reader(in_stream, out_stream, buffer: list | None = None) -> None:
     """Read from in_stream line by line and write to out_stream.
 
     Used on Windows to prevent subprocess buffer blocking. Runs in a
     background thread to continuously drain the subprocess output.
+
+    If *buffer* is given, the last lines are also kept there (ring buffer)
+    so startup failures can be surfaced to the user when the backend
+    crashes before its own file logging is mounted.
     """
     try:
         for line in iter(in_stream.readline, ""):
@@ -605,6 +609,9 @@ def _stream_reader(in_stream, out_stream) -> None:
                 break
             out_stream.write(line)
             out_stream.flush()
+            if buffer is not None:
+                buffer.append(line.rstrip("\r\n"))
+                del buffer[:-40]  # keep last 40 lines only
     except Exception:
         pass
     finally:
@@ -677,12 +684,21 @@ def _open_main_window_after_ready(
     port: int,
     splash_window: Any,
     api_instance: "WebViewAPI",
+    backend_output: list | None = None,
 ) -> None:
     """Wait for HTTP ready in background, then open main window and close splash.
 
     Runs as a daemon thread started before webview.start().
+
+    On timeout the splash is replaced with a diagnostic page showing the
+    backend's last output lines — on Windows the first launch can be slow
+    (Defender scans the freshly unpacked env), and backend crashes would
+    otherwise be invisible because the console window is hidden.
     """
-    timeout_sec = 300.0
+    # Generous timeout: Windows Defender real-time scanning of the
+    # conda-packed env (tens of thousands of files) can make the very
+    # first backend startup take several minutes.
+    timeout_sec = 900.0
     if _wait_for_http(host, port, timeout_sec=timeout_sec):
         logger.info("HTTP ready, creating main webview window...")
         _clear_webview_cache()
@@ -701,7 +717,7 @@ def _open_main_window_after_ready(
 
         try:
             main_window = webview.create_window(
-                "小铁智友 Desktop",
+                "小铁智友",
                 f"http://{host}:{port}",
                 width=1280,
                 height=800,
@@ -731,17 +747,39 @@ def _open_main_window_after_ready(
             logger.exception("Failed to create main window")
     else:
         logger.error("Server did not become ready in time.")
-        # Show error in splash window
+        # Show error in splash window, with backend tail output for diagnosis
         if splash_window is not None:
             try:
+                import html as _html
+
+                tail = (
+                    "\n".join(backend_output[-15:])
+                    if backend_output
+                    else "(无输出)"
+                )
+                tail_escaped = _html.escape(tail) or "(无输出)"
+                log_hint = _html.escape(
+                    os.path.expanduser("~/.qwenpaw/qwenpaw.log")
+                )
                 splash_window.load_html(
-                    '<html><body style="display:flex;align-items:center;'
+                    '<html><head><meta charset="utf-8"></head>'
+                    '<body style="display:flex;align-items:center;'
                     'justify-content:center;height:100vh;margin:0;'
                     'font-family:sans-serif;background:#1a2a3a;color:#fff;">'
-                    '<div style="text-align:center;">'
-                    '<h2>启动失败</h2>'
-                    '<p>服务器未能在规定时间内启动，请稍后重试。</p>'
-                    '</div></body></html>'
+                    '<div style="text-align:center;max-width:90%;">'
+                    "<h2>启动失败</h2>"
+                    "<p>服务器未能在规定时间内启动。</p>"
+                    '<div style="text-align:left;background:#0d1826;'
+                    "border-radius:8px;padding:12px 16px;"
+                    "font-size:12px;color:#ffb3b3;"
+                    "white-space:pre-wrap;word-break:break-all;\">"
+                    f"{tail_escaped}</div>"
+                    "<p></p>"
+                    "<p>完整日志: "
+                    f"<code>{log_hint}</code></p>"
+                    '<p style="color:rgba(255,255,255,0.5;font-size:12px;">'
+                    "首次启动较慢（杀毒软件扫描），可关闭本窗口后重试一次。</p>"
+                    "</div></body></html>"
                 )
             except Exception:
                 pass
@@ -847,15 +885,16 @@ def desktop_cmd(
             universal_newlines=True,
         )
         try:
+            backend_output: list[str] = []
             if is_windows:
                 stdout_thread = threading.Thread(
                     target=_stream_reader,
-                    args=(proc.stdout, sys.stdout),
+                    args=(proc.stdout, sys.stdout, backend_output),
                     daemon=True,
                 )
                 stderr_thread = threading.Thread(
                     target=_stream_reader,
-                    args=(proc.stderr, sys.stderr),
+                    args=(proc.stderr, sys.stderr, backend_output),
                     daemon=True,
                 )
                 stdout_thread.start()
@@ -881,7 +920,7 @@ def desktop_cmd(
             # webview.start() which blocks the main thread.
             ready_thread = threading.Thread(
                 target=_open_main_window_after_ready,
-                args=(host, port, splash, api),
+                args=(host, port, splash, api, backend_output),
                 name="wait-http-ready",
                 daemon=True,
             )

@@ -135,30 +135,49 @@ $pythonExe = Join-Path $EnvRoot "python.exe"
 if (Test-Path $pythonExe) {
   Write-Host "[build_win] Compiling all .py files to .pyc..."
   $compileStart = Get-Date
-  
+
   # Compile all Python files to bytecode
   # -q: quiet mode (only show errors)
   # -j 0: use all CPU cores for parallel compilation
-  & $pythonExe -m compileall -q -j 0 $EnvRoot
-  
+  # Capture output: a syntax error here means conda-unpack corrupted a
+  # package that is NOT in the known-affected list — the app would crash
+  # on the user's machine at startup, so fail the build instead.
+  $compileOutput = & $pythonExe -m compileall -q -j 0 $EnvRoot 2>&1 | Out-String
+
   if ($LASTEXITCODE -eq 0) {
     $compileEnd = Get-Date
     $compileTime = ($compileEnd - $compileStart).TotalSeconds
     Write-Host "[build_win] ✓ Bytecode compilation completed in $($compileTime.ToString('F1')) seconds"
-    
+
     # Count compiled files for reporting
     $pycCount = (Get-ChildItem -Path $EnvRoot -Recurse -Filter "*.pyc" -ErrorAction SilentlyContinue | Measure-Object).Count
     Write-Host "[build_win] Generated $pycCount .pyc files (these will be included in installer)"
   } else {
-    Write-Host "[build_win] WARN: Bytecode compilation had some errors (exit code: $LASTEXITCODE)" -ForegroundColor Yellow
-    Write-Host "[build_win] This is usually not critical - app will compile on first run" -ForegroundColor Yellow
+    Write-Host "[build_win] ERROR: Bytecode compilation failed - a package was corrupted by conda-unpack:" -ForegroundColor Red
+    Write-Host $compileOutput
+    Write-Host "[build_win] Add the affected package to `$CondaUnpackAffectedPackages and rebuild." -ForegroundColor Red
+    throw "compileall failed - conda-unpack corrupted package(s) outside the known-affected list"
   }
 } else {
   Write-Host "[build_win] WARN: python.exe not found at $pythonExe, skipping bytecode compilation" -ForegroundColor Yellow
 }
 
+# Smoke test: the backend must be importable in the packed env.
+# This catches conda-unpack corruption of packages that only blow up at
+# runtime (ImportError/SyntaxError on `qwenpaw app` startup), which would
+# otherwise manifest as the desktop splash spinning forever on the user's
+# machine because the hidden console swallows the traceback.
+Write-Host "== Smoke test: backend import in packed env =="
+& $pythonExe -c "import importlib; importlib.import_module('qwenpaw.app._app'); print('backend import OK')"
+if ($LASTEXITCODE -ne 0) {
+  throw "Smoke test failed: backend is not importable in the packed env (see traceback above)"
+}
+
 # Main launcher .bat (will be hidden by VBS)
-$LauncherBat = Join-Path $EnvRoot "QwenPaw Desktop.bat"
+# NOTE: launcher filenames stay ASCII (CrecPaw.*) — .bat/.vbs CONTENT is
+# written with ASCII encoding and cannot contain Chinese; the user-visible
+# names (shortcuts, installer title) are Chinese and set in desktop.nsi.
+$LauncherBat = Join-Path $EnvRoot "CrecPaw.bat"
 @"
 @echo off
 cd /d "%~dp0"
@@ -194,7 +213,7 @@ if not exist "%USERPROFILE%\.qwenpaw\config.json" (
 "@ | Set-Content -Path $LauncherBat -Encoding ASCII
 
 # Debug launcher .bat (shows console)
-$DebugBat = Join-Path $EnvRoot "QwenPaw Desktop (Debug).bat"
+$DebugBat = Join-Path $EnvRoot "CrecPaw (Debug).bat"
 @"
 @echo off
 cd /d "%~dp0"
@@ -249,10 +268,10 @@ pause
 "@ | Set-Content -Path $DebugBat -Encoding ASCII
 
 # VBScript launcher (no console window)
-$LauncherVbs = Join-Path $EnvRoot "QwenPaw Desktop.vbs"
+$LauncherVbs = Join-Path $EnvRoot "CrecPaw.vbs"
 @"
 Set WshShell = CreateObject("WScript.Shell")
-batPath = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName) & "\QwenPaw Desktop.bat"
+batPath = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName) & "\CrecPaw.bat"
 WshShell.Run Chr(34) & batPath & Chr(34), 0, False
 Set WshShell = Nothing
 "@ | Set-Content -Path $LauncherVbs -Encoding ASCII
@@ -295,7 +314,7 @@ if (-not $Version) {
 if (-not $Version) { $Version = "0.0.0"; Write-Host "[build_win] WARN: Using fallback version 0.0.0" }
 Write-Host "[build_win] Version determined: $Version"
 Write-Host "[build_win] QWENPAW_VERSION=$Version OUTPUT_EXE will be under $Dist"
-$OutInstaller = Join-Path (Join-Path $RepoRoot $Dist) "QwenPaw-Setup-$Version.exe"
+$OutInstaller = Join-Path (Join-Path $RepoRoot $Dist) "CrecPaw-Setup-$Version.exe"
 # Pass absolute paths to NSIS (keep backslashes).
 $UnpackedFull = (Resolve-Path $EnvRoot).Path
 $OutputExeNsi = [System.IO.Path]::GetFullPath($OutInstaller)
