@@ -28,6 +28,8 @@ ENV_PREFIX = "qwenpaw_pack_"
 CONDA_UNPACK_AFFECTED_PACKAGES = [
     "huggingface_hub",  # file_download.py, _local_folder.py use Windows long path prefix
     "discord.py",       # ARG_NAME_SUBREGEX contains \\?\* which gets corrupted
+    "docker",           # constants.py WINDOWS_LONGPATH_PREFIX (pulled by modelscope)
+    "pywin32",          # win32\test\test_win32api.py long-path strings
 ]
 
 

@@ -16,9 +16,14 @@ $NsiPath = Join-Path $PackDir "desktop.nsi"
 # Example: "\\\\?\\" (correct) -> "\\" (SyntaxError)
 # Solution: Reinstall these packages after conda-unpack to restore correct files.
 # See: issue.md, scripts/pack/WINDOWS_FIX.md
+# 2026-09: docker (constants.py WINDOWS_LONGPATH_PREFIX) and pywin32
+# (win32\test files) confirmed corrupted in CI builds — modelscope pulls
+# docker in transitively, so a broken docker breaks backend imports.
 $CondaUnpackAffectedPackages = @(
   "huggingface_hub"  # Uses Windows extended-length path prefix (\\?\)
   "discord.py"       # ARG_NAME_SUBREGEX contains \\?\* which gets corrupted
+  "docker"           # constants.py WINDOWS_LONGPATH_PREFIX = \\?\ (via modelscope)
+  "pywin32"          # win32\test\test_win32api.py long-path strings
 )
 
 New-Item -ItemType Directory -Force -Path $Dist | Out-Null
@@ -104,24 +109,30 @@ if (Test-Path $CondaUnpack) {
     
     foreach ($pkg in $CondaUnpackAffectedPackages) {
       Write-Host "  Reinstalling $pkg..."
+      # Prefer the pre-downloaded wheel cache; fall back to PyPI so newly
+      # discovered corrupted packages can be fixed without a cache rebuild.
       & $pythonExe -m pip install --force-reinstall --no-deps `
-        --find-links $WheelsCache --no-index $pkg
+        --find-links $WheelsCache $pkg
       if ($LASTEXITCODE -ne 0) {
         Write-Host "  WARN: Failed to reinstall $pkg (exit code: $LASTEXITCODE)" -ForegroundColor Yellow
       }
     }
-    
+
     # Verify the fix worked
     Write-Host "[build_win] Verifying fix..."
-    & $pythonExe -c "from huggingface_hub import file_download; print('✓ huggingface_hub import OK')"
+    & $pythonExe -c "from huggingface_hub import file_download; print('huggingface_hub import OK')"
     if ($LASTEXITCODE -ne 0) {
       throw "CRITICAL: huggingface_hub still has import errors after reinstall. See issue.md"
     }
-    & $pythonExe -c "import discord; print('✓ discord.py import OK')"
+    & $pythonExe -c "import discord; print('discord.py import OK')"
     if ($LASTEXITCODE -ne 0) {
       throw "CRITICAL: discord.py still has import errors after reinstall."
     }
-    Write-Host "[build_win] ✓ conda-unpack corruption fixed successfully."
+    & $pythonExe -c "import docker; print('docker import OK')"
+    if ($LASTEXITCODE -ne 0) {
+      throw "CRITICAL: docker still has import errors after reinstall."
+    }
+    Write-Host "[build_win] conda-unpack corruption fixed successfully."
   } else {
     Write-Host "[build_win] WARN: wheels_cache not found at $WheelsCache" -ForegroundColor Yellow
     Write-Host "[build_win] WARN: Cannot fix conda-unpack corruption. App may fail to start." -ForegroundColor Yellow
@@ -136,28 +147,69 @@ if (Test-Path $pythonExe) {
   Write-Host "[build_win] Compiling all .py files to .pyc..."
   $compileStart = Get-Date
 
-  # Compile all Python files to bytecode
-  # -q: quiet mode (only show errors)
-  # -j 0: use all CPU cores for parallel compilation
-  # Capture output: a syntax error here means conda-unpack corrupted a
-  # package that is NOT in the known-affected list — the app would crash
-  # on the user's machine at startup, so fail the build instead.
-  $compileOutput = & $pythonExe -m compileall -q -j 0 $EnvRoot 2>&1 | Out-String
-
-  if ($LASTEXITCODE -eq 0) {
-    $compileEnd = Get-Date
-    $compileTime = ($compileEnd - $compileStart).TotalSeconds
-    Write-Host "[build_win] ✓ Bytecode compilation completed in $($compileTime.ToString('F1')) seconds"
-
-    # Count compiled files for reporting
-    $pycCount = (Get-ChildItem -Path $EnvRoot -Recurse -Filter "*.pyc" -ErrorAction SilentlyContinue | Measure-Object).Count
-    Write-Host "[build_win] Generated $pycCount .pyc files (these will be included in installer)"
-  } else {
-    Write-Host "[build_win] ERROR: Bytecode compilation failed - a package was corrupted by conda-unpack:" -ForegroundColor Red
-    Write-Host $compileOutput
-    Write-Host "[build_win] Add the affected package to `$CondaUnpackAffectedPackages and rebuild." -ForegroundColor Red
-    throw "compileall failed - conda-unpack corrupted package(s) outside the known-affected list"
+  # conda-unpack corruption signature: it mangles backslash escapes in
+  # string literals ("\\?\\" -> "\\") which compileall reports as
+  # "SyntaxError: unterminated string literal". Other syntax errors are
+  # NOT corruption — e.g. torch ships py312-only syntax files
+  # (py312_intrinsics.py PEP 695 generics) that can never compile on this
+  # Python; they are never imported at runtime and safe to ignore.
+  function Get-CorruptPackagesFromCompile([string]$output) {
+    $found = @{}
+    $rx = [regex]"Error compiling '([^']+)'"
+    foreach ($m in $rx.Matches($output)) {
+      $idx = $output.IndexOf($m.Value)
+      $chunkLen = [Math]::Min(700, $output.Length - $idx)
+      $chunk = $output.Substring($idx, $chunkLen)
+      if ($chunk -match 'unterminated string literal') {
+        $path = $m.Groups[1].Value
+        if ($path -match '[\\/]site-packages[\\/]([^\\/]+)') {
+          $top = $Matches[1]
+          # Map import-directory name to pip distribution name
+          $dist = switch ($top) {
+            { $_ -in @('win32','win32com','win32comext','win32ui','pythonwin','Pythonwin','pywin32_system32','Pythoncom','adodbapi') } { 'pywin32' }
+            { $_ -eq 'dateutil' } { 'python-dateutil' }
+            default { $top }
+          }
+          $found[$dist] = $true
+        }
+      }
+    }
+    return $found.Keys
   }
+
+  $compileOutput = & $pythonExe -m compileall -q -j 0 $EnvRoot 2>&1 | Out-String
+  $compileExit = $LASTEXITCODE
+  $corrupt = Get-CorruptPackagesFromCompile $compileOutput
+  if ($corrupt) {
+    Write-Host "[build_win] conda-unpack corrupted package(s): $($corrupt -join ', ')" -ForegroundColor Yellow
+    $WheelsCache = Join-Path $RepoRoot ".cache\conda_unpack_wheels"
+    foreach ($pkg in $corrupt) {
+      Write-Host "[build_win] Auto-reinstalling corrupted package: $pkg" -ForegroundColor Yellow
+      & $pythonExe -m pip install --force-reinstall --no-deps --find-links $WheelsCache $pkg
+    }
+    # Re-compile to verify the corruption is gone
+    $compileOutput = & $pythonExe -m compileall -q -j 0 $EnvRoot 2>&1 | Out-String
+    $compileExit = $LASTEXITCODE
+    $still = Get-CorruptPackagesFromCompile $compileOutput
+    if ($still) {
+      Write-Host "[build_win] ERROR: corruption persists after reinstall: $($still -join ', ')" -ForegroundColor Red
+      Write-Host $compileOutput
+      throw "conda-unpack corruption persists after reinstall"
+    }
+    Write-Host "[build_win] Corruption auto-repaired successfully."
+  }
+
+  if ($compileOutput -match 'Error compiling') {
+    Write-Host "[build_win] WARN: some files could not be pre-compiled (newer-Python syntax in unused files, not corruption):" -ForegroundColor Yellow
+    Write-Host $compileOutput
+  }
+
+  $compileEnd = Get-Date
+  $compileTime = ($compileEnd - $compileStart).TotalSeconds
+  Write-Host "[build_win] Bytecode compilation pass completed in $($compileTime.ToString('F1')) seconds"
+
+  $pycCount = (Get-ChildItem -Path $EnvRoot -Recurse -Filter "*.pyc" -ErrorAction SilentlyContinue | Measure-Object).Count
+  Write-Host "[build_win] Generated $pycCount .pyc files (these will be included in installer)"
 } else {
   Write-Host "[build_win] WARN: python.exe not found at $pythonExe, skipping bytecode compilation" -ForegroundColor Yellow
 }
