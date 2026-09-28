@@ -1321,7 +1321,7 @@
     "memoryManagerBackendTooltip": "Backend for the memory manager. Currently only remelight is supported.",
     "memoryManagerBackendRestartWarning": "Switching the memory manager backend does not support hot reload. Save and restart QwenPaw for changes to take effect.",
     "maxIters": "Max Iterations",
-    "maxItersTooltip": "Maximum number of reasoning-acting iterations for ReAct agent",
+    "maxItersTooltip": "Max consecutive steps per turn (default 500). On reaching the limit the agent pauses with progress preserved — type \"continue\" to resume",
     "maxItersPlaceholder": "Enter max iterations",
     "maxItersRequired": "Max iterations is required",
     "maxItersMin": "Max iterations must be at least 1",

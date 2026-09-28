@@ -25,6 +25,7 @@ import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import { PluginProvider, usePlugins } from "./plugins/PluginContext";
 import { ApprovalProvider } from "./contexts/ApprovalContext";
 import DesktopFileLinkGuard from "./components/DesktopFileLinkGuard";
+import FreezeDetector from "./components/FreezeDetector";
 import { Suspense } from "react";
 import { lazyImportWithRetry } from "./utils/lazyWithRetry";
 
@@ -180,6 +181,7 @@ function AppInner() {
       >
         <AntdApp>
           <DesktopFileLinkGuard />
+          <FreezeDetector />
           <ApprovalProvider>
             <Routes>
               <Route

@@ -761,10 +761,15 @@ class AgentsRunningConfig(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     max_iters: int = Field(
-        default=100,
+        default=500,
         ge=1,
         description=(
-            "Maximum number of reasoning-acting iterations for ReAct agent"
+            "Maximum number of reasoning-acting iterations for ReAct agent. "
+            "Raised from 100 to 500 (2026-09): complex multi-step tasks "
+            "(e.g. document generation pipelines) were being cut off "
+            "mid-run, which users perceived as the session crashing. "
+            "When the limit is hit the round pauses with a "
+            "\"type 继续 to resume\" notice — context is preserved."
         ),
     )
 

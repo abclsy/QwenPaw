@@ -136,28 +136,47 @@ rm -f "$0"
 
 
 def _apply_windows(zip_path: Path, target_dir: Path) -> bool:
-    """Apply update on Windows: replace install dir and restart."""
-    exe_name = Path(sys.executable).name
+    """Apply update on Windows.
+
+    The published Windows artifact is a zip containing an NSIS installer
+    (CrecPaw-Setup-<ver>.exe), NOT a flat directory tree. The old
+    implementation assumed flat files and Expand-Archive'd them over the
+    install dir, which produced a broken install. Correct flow: extract
+    the installer from the zip and run it (NSIS supports /S silent mode;
+    it writes to the same $LOCALAPPDATA dir and recreates shortcuts).
+    """
     target_parent = target_dir.parent
 
     # PowerShell script for Windows
     script = f"""# Auto-update script for 小铁智友
 Start-Sleep -Seconds 2
 
-# Remove old files (except the zip and this script)
-Get-ChildItem -Path "{target_parent}" -Exclude "updates" | Remove-Item -Recurse -Force
+# Extract the installer from the update zip
+$ErrorActionPreference = "Stop"
+$extractDir = "{_UPDATE_DIR / 'extracted'}"
+New-Item -ItemType Directory -Force -Path $extractDir | Out-Null
+Expand-Archive -Path "{zip_path}" -DestinationPath $extractDir -Force
 
-# Extract new files
-Expand-Archive -Path "{zip_path}" -DestinationPath "{target_parent}" -Force
+# Find the NSIS installer (CrecPaw-Setup-*.exe or any setup exe)
+$installer = Get-ChildItem -Path $extractDir -Filter "*.exe" |
+    Where-Object {{ $_.Name -match "Setup|CrecPaw" }} |
+    Select-Object -First 1
+if (-not $installer) {{
+    # Fall back to flat update (legacy zip layout: files only)
+    Get-ChildItem -Path "{target_parent}" -Exclude "updates" -ErrorAction SilentlyContinue |
+        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+    Expand-Archive -Path "{zip_path}" -DestinationPath "{target_parent}" -Force
+    Start-Process -FilePath "{target_dir / Path(sys.executable).name}"
+}} else {{
+    # Run installer silently; NSIS /S installs to the default dir.
+    # The installer may require the old app to be closed — we are exiting.
+    Start-Process -FilePath $installer.FullName -ArgumentList "/S" -Wait
+}}
 
-# Clean up zip
-Remove-Item -Path "{zip_path}" -Force
-
-# Restart the app
-Start-Process -FilePath "{target_dir / exe_name}"
-
-# Remove this script
-Remove-Item -Path $MyInvocation.MyCommand.Path -Force
+# Clean up
+Remove-Item -Path "{zip_path}" -Force -ErrorAction SilentlyContinue
+Remove-Item -Path $extractDir -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -Path $MyInvocation.MyCommand.Path -Force -ErrorAction SilentlyContinue
 """
 
     script_path = _UPDATE_DIR / "apply_update.ps1"

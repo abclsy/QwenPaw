@@ -1142,9 +1142,10 @@ class QwenPawAgent(ToolGuardMixin, ReActAgent):
 
     _ROUND_END_NOTICE = (
         "\n\n---\n"
-        "本轮调用已达最大次数，回复已终止，请继续输入。\n"
-        "Maximum iterations reached for this round. "
-        "Please send a new message to continue."
+        "本轮已达最大连续执行次数，为控制资源消耗先暂停。\n"
+        "任务上下文已保留：直接输入「继续」即可接着执行，无需重新描述需求。\n"
+        "Max iterations reached for this round. Context is preserved — "
+        "type \"继续\" (continue) to resume."
     )
 
     @staticmethod

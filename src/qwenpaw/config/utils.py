@@ -569,11 +569,45 @@ def load_config(config_path: Optional[Path] = None) -> Config:
         if data is None:
             config = Config()
         else:
+            _migrate_legacy_max_iters(data, config_path)
             config = _load_and_validate_config(config_path, data)
 
         _config_cache = config
         _config_mtime = current_mtime
         return config
+
+
+# Legacy default for agents.running.max_iters before 2026-09; complex
+# multi-step tasks were being cut off mid-run at this value.
+_LEGACY_MAX_ITERS = 100
+_CURRENT_MAX_ITERS_DEFAULT = 500
+
+
+def _migrate_legacy_max_iters(data: dict, config_path: Path) -> None:
+    """Raise agents.running.max_iters from the legacy default 100 to 500.
+
+    Old installs have ``"max_iters": 100`` materialized in their
+    config.json (explicit value overrides the code default), so simply
+    changing the default in the model does not help them.  Only migrate
+    when the value is still the untouched legacy default — a user-chosen
+    value (e.g. 50 or 200) is respected.
+    """
+    try:
+        running = data.get("agents", {}).get("running")
+        if not isinstance(running, dict):
+            return
+        if running.get("max_iters") == _LEGACY_MAX_ITERS:
+            running["max_iters"] = _CURRENT_MAX_ITERS_DEFAULT
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(config_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            logger.info(
+                "Migrated agents.running.max_iters 100 -> %d in %s",
+                _CURRENT_MAX_ITERS_DEFAULT,
+                config_path,
+            )
+    except Exception:
+        logger.exception("Failed to migrate legacy max_iters")
 
 
 def strict_validate_config_file(

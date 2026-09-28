@@ -1184,7 +1184,7 @@
     "memoryManagerBackendTooltip": "记忆管理器的后端类型，目前仅支持 remelight",
     "memoryManagerBackendRestartWarning": "切换记忆管理后端不支持热更新，保存后需要重启 小铁智友 才能生效",
     "maxIters": "最大迭代次数",
-    "maxItersTooltip": "ReAct 智能体的最大推理-行动迭代次数",
+    "maxItersTooltip": "单轮对话中智能体可连续执行的最大步骤数（默认 500）。达到上限时会暂停并保留进度，输入「继续」即可接着执行",
     "maxItersPlaceholder": "请输入最大迭代次数",
     "maxItersRequired": "最大迭代次数为必填项",
     "maxItersMin": "最大迭代次数必须大于等于 1",
