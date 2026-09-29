@@ -1906,7 +1906,12 @@
       "in_progress": "进行中",
       "done": "已完成",
       "abandoned": "已放弃"
-    }
+    },
+    "awaitingConfirmation": "计划已就绪，确认后开始执行",
+    "confirmExecute": "确认并执行",
+    "revisePlan": "修改计划",
+    "confirmMessage": "确认，按计划执行",
+    "reviseMessage": "计划需要调整："
   },
   "experts": {
     "subtitle": "中国中铁数字专家团队",

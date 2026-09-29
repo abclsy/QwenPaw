@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Drawer, Progress, Spin } from "antd";
+import { Button, Drawer, Progress, Spin } from "antd";
 import { IconButton } from "@agentscope-ai/design";
 import { SparkOperateRightLine } from "@agentscope-ai/icons";
 import { useChatAnywhereSessionsState } from "@agentscope-ai/chat";
@@ -14,6 +14,8 @@ import styles from "./index.module.less";
 interface PlanPanelProps {
   open: boolean;
   onClose: () => void;
+  /** Programmatic send (chatRef.input.submit) for the confirm button. */
+  onSubmitQuery?: (query: string) => void;
 }
 
 const STATE_ICONS: Record<string, string> = {
@@ -40,7 +42,11 @@ function getBackendSessionId(): string {
   return (window as any).currentSessionId || "";
 }
 
-const PlanPanel: React.FC<PlanPanelProps> = ({ open, onClose }) => {
+const PlanPanel: React.FC<PlanPanelProps> = ({
+  open,
+  onClose,
+  onSubmitQuery,
+}) => {
   const { t } = useTranslation();
   const { currentSessionId } = useChatAnywhereSessionsState();
   const [plan, setPlan] = useState<PlanStateResponse | null>(null);
@@ -118,6 +124,23 @@ const PlanPanel: React.FC<PlanPanelProps> = ({ open, onClose }) => {
   const totalCount = plan?.subtasks.length ?? 0;
   const percent =
     totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+
+  // The plan awaits user confirmation when it exists, nothing is done
+  // yet, and there are pending todo subtasks (the plan tool gate keeps
+  // all non-plan tools blocked until the user confirms in chat).
+  const awaitingConfirmation =
+    plan !== null &&
+    plan.state === "todo" &&
+    doneCount === 0 &&
+    totalCount > 0 &&
+    plan.subtasks.some((s) => s.state === "todo");
+
+  const handleConfirm = () => {
+    // The plan flow is conversational: sending a confirmation message
+    // releases the plan tool gate (see plan/hints.py SimplePlanToHint).
+    onSubmitQuery?.(t("plan.confirmMessage", "确认，按计划执行"));
+    onClose();
+  };
 
   return (
     <Drawer
@@ -200,6 +223,38 @@ const PlanPanel: React.FC<PlanPanelProps> = ({ open, onClose }) => {
                 </li>
               ))}
             </ul>
+
+            {awaitingConfirmation && (
+              <div className={styles.confirmBar}>
+                <div className={styles.confirmHint}>
+                  {t(
+                    "plan.awaitingConfirmation",
+                    "计划已就绪，确认后开始执行",
+                  )}
+                </div>
+                <div className={styles.confirmActions}>
+                  <Button
+                    type="primary"
+                    size="small"
+                    onClick={handleConfirm}
+                    disabled={!onSubmitQuery}
+                  >
+                    {t("plan.confirmExecute", "确认并执行")}
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      onSubmitQuery?.(
+                        t("plan.reviseMessage", "计划需要调整："),
+                      );
+                    }}
+                    disabled={!onSubmitQuery}
+                  >
+                    {t("plan.revisePlan", "修改计划")}
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {plan.outcome && (
               <div style={{ marginTop: 16, fontSize: 13 }}>

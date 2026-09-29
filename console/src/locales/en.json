@@ -1892,7 +1892,12 @@
       "in_progress": "In Progress",
       "done": "Done",
       "abandoned": "Abandoned"
-    }
+    },
+    "awaitingConfirmation": "Plan ready — confirm to start execution",
+    "confirmExecute": "Confirm & Execute",
+    "revisePlan": "Revise Plan",
+    "confirmMessage": "Confirmed, execute the plan",
+    "reviseMessage": "The plan needs changes: "
   },
   "experts": {
     "subtitle": "CREC Digital Expert Team",

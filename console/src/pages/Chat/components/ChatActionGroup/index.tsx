@@ -31,6 +31,7 @@ import ChatSearchPanel from "../ChatSearchPanel";
 import PlanPanel from "../../../../components/PlanPanel";
 import { planApi } from "../../../../api/modules/plan";
 import { useAgentStore } from "../../../../stores/agentStore";
+import { useWorkModeStore } from "../../../../stores/workModeStore";
 import { workspaceApi } from "../../../../api/modules/workspace";
 import type { MarkdownFile } from "../../../../api/types/workspace";
 import { getApiUrl } from "../../../../api/config";
@@ -570,6 +571,13 @@ const ChatActionGroup: React.FC = () => {
   const { createSession } = useChatAnywhereSessions();
   const { selectedAgent } = useAgentStore();
 
+  // Work mode (ask/plan/craft): in plan mode the PlanPanel must be
+  // available even when the agent-level plan toggle is off — the
+  // backend enables the plan notebook per-query for plan mode.
+  const workMode = useWorkModeStore((s) =>
+    s.getMode((window as any).currentSessionId || undefined),
+  );
+
   useEffect(() => {
     let cancelled = false;
     planApi
@@ -582,6 +590,8 @@ const ChatActionGroup: React.FC = () => {
       cancelled = true;
     };
   }, [selectedAgent]);
+
+  const planAvailable = planEnabled || workMode === "plan";
 
   // Listen for "new chat" requests from the sidebar history section.
   // The sidebar lives outside the chat context, so it dispatches a window
@@ -605,7 +615,7 @@ const ChatActionGroup: React.FC = () => {
 
   return (
     <Flex gap={8} align="center">
-      {planEnabled && (
+      {planAvailable && (
         <Tooltip title={t("plan.title", "Plan")} mouseEnterDelay={0.5}>
           <IconButton
             bordered={false}
@@ -647,8 +657,16 @@ const ChatActionGroup: React.FC = () => {
         onClose={() => setHistoryOpen(false)}
       />
       <ChatSearchPanel open={searchOpen} onClose={() => setSearchOpen(false)} />
-      {planEnabled && (
-        <PlanPanel open={planOpen} onClose={() => setPlanOpen(false)} />
+      {planAvailable && (
+        <PlanPanel
+          open={planOpen}
+          onClose={() => setPlanOpen(false)}
+          onSubmitQuery={
+            (window as any).chatSubmitQuery
+              ? (q: string) => (window as any).chatSubmitQuery(q)
+              : undefined
+          }
+        />
       )}
       <WorkspaceFilesDrawer
         open={filesOpen}

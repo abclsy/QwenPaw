@@ -1275,7 +1275,20 @@ export default function ChatPage() {
     >
       <div className={styles.chatMessagesArea}>
         <AgentScopeRuntimeWebUI
-          ref={chatRef}
+          ref={(r: IAgentScopeRuntimeWebUIRef | null) => {
+            // The React ref callback is where the library hands us the
+            // instance; chatRef is a RefObject (readonly .current) so we
+            // only bridge the submit capability to window for components
+            // outside this tree (e.g. PlanPanel's confirm button).
+            (window as any).chatSubmitQuery = (query: string) => {
+              r?.input.submit({ query });
+            };
+            if (r) {
+              // Keep chatRef compatible for existing consumers via the
+              // mutable object trick used elsewhere in this codebase.
+              (chatRef as { current: IAgentScopeRuntimeWebUIRef | null }).current = r;
+            }
+          }}
           key={refreshKey}
           options={options}
         />
