@@ -1,0 +1,44 @@
+// Sparkle button: a compact round icon button that lives in the input
+// action bar next to the work-mode chip. Accent #1961ac to match.
+
+.sparkleBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #1961ac;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease;
+
+  &:hover {
+    background: rgba(25, 97, 172, 0.1);
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.7;
+  }
+}
+
+.sparkleIcon {
+  font-size: 14px;
+}
+
+:global(.dark-mode) & {
+  color: #69b1ff;
+
+  &:hover {
+    background: rgba(64, 150, 255, 0.18);
+  }
+}

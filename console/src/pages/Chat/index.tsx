@@ -30,6 +30,7 @@ import ChatActionGroup from "./components/ChatActionGroup";
 import ChatHeaderTitle from "./components/ChatHeaderTitle";
 import ChatSessionInitializer from "./components/ChatSessionInitializer";
 import WorkModeSwitcher from "./components/WorkModeSwitcher";
+import PromptSparkleButton from "./components/PromptSparkleButton";
 import { useWorkModeStore } from "../../stores/workModeStore";
 import { ApprovalCard } from "../../components/ApprovalCard/ApprovalCard";
 import { commandsApi } from "../../api/modules/commands";
@@ -1064,6 +1065,7 @@ export default function ChatPage() {
         prefix: (
           <>
             <WorkModeSwitcher />
+            <PromptSparkleButton />
             <WorkspaceSelector />
             <ExpertBadge />
             <ModelSelector compact />

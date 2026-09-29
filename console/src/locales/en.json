@@ -1949,5 +1949,11 @@
     "planDesc": "Plans first, executes after your confirmation",
     "craftDesc": "Executes tasks directly, may create/modify files (default)",
     "switchHint": "Switch work mode"
+  },
+  "sparkle": {
+    "tooltip": "AI prompt enhance: turn a one-liner into a structured task",
+    "emptyInput": "Type your request first — one sentence is enough",
+    "done": "Prompt enhanced",
+    "error": "Enhance failed"
   }
 }
