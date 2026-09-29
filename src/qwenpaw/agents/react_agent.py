@@ -192,37 +192,31 @@ class QwenPawAgent(ToolGuardMixin, ReActAgent):
             "max_iters": running_config.max_iters,
         }
         if mode == "ask":
-            # Ask mode: lightweight Q&A — no tools, direct text reply.
-            # The base sys_prompt describes a tool-using agent, so it is
-            # suffixed with an explicit "answer in text, never call tools"
-            # instruction. A small max_iters (3) leaves room for one
-            # refused stray tool call + the final text answer, instead of
-            # dying after a single pass with no visible reply.
-            init_kwargs["toolkit"] = None
-            init_kwargs["max_iters"] = 3
+            # Ask mode (WorkBuddy 语义): 问答和信息查看，不修改文件、
+            # 不执行任务。保留工具包（只读工具可用：浏览器搜索、读文件、
+            # 查看图片/时间等），写入/命令执行/外发类工具在 _acting
+            # 里按白名单拦截。max_iters 压低保证响应快。
+            init_kwargs["max_iters"] = min(running_config.max_iters, 20)
             init_kwargs["sys_prompt"] = (
                 sys_prompt.rstrip()
                 + "\n\n[工作模式：问一问（Ask）]\n"
-                "当前处于快速问答模式。请直接用文字回答用户的问题，"
-                "不要调用任何工具，不要读写文件，不要执行任务。\n"
-                "如果问题需要实时数据或联网信息（如今日天气、最新新闻、"
-                "股价行情等），你无法获取，请直接说明这一点，并基于已有"
-                "知识给出尽可能有用的回答或建议，最后可提示用户切换到"
-                "「做一做」模式来执行需要工具的任务。\n"
-                "[Work mode: Ask] Answer the user directly in text. Do "
-                "NOT call any tools, read/write files, or execute tasks. "
-                "If the question needs real-time data or internet access "
-                "(weather, news, prices...), say you cannot fetch it, "
-                "then give the best answer you can from existing "
-                "knowledge, and suggest switching to Craft mode."
+                "当前处于问答模式。你可以使用只读工具查询信息"
+                "（浏览器搜索、读取文件、查看图片、获取时间等），"
+                "但不要修改文件、不要执行命令、不要生成或外发内容。\n"
+                "回答完用户的问题即结束，不要主动扩展成更大的任务；"
+                "如用户需要执行任务，提示其切换到「想一想」或「做一做」。\n"
+                "[Work mode: Ask] You may use READ-ONLY tools (browser "
+                "search, read files, view media, get time) to look up "
+                "information. Do NOT modify files, execute commands, or "
+                "produce/send content. Answer the question, then stop — "
+                "suggest Plan/Craft mode if the user wants execution."
             )
         if plan_notebook is not None:
             init_kwargs["plan_notebook"] = plan_notebook
         super().__init__(**init_kwargs)
 
         # Register memory tools provided by the memory manager
-        # (skipped entirely in ask mode: no toolkit, no tools)
-        if mode != "ask" and self.memory_manager is not None:
+        if self.memory_manager is not None:
             memory_tools = self.memory_manager.list_memory_tools()
             for tool_fn in memory_tools:
                 self.toolkit.register_tool_function(
@@ -748,39 +742,59 @@ class QwenPawAgent(ToolGuardMixin, ReActAgent):
                         except (ValueError, TypeError):
                             pass
 
+    # Ask mode whitelist: read-only tools that may run (info lookup).
+    # Everything else (write/edit/execute/send/delegate) is refused.
+    _ASK_ALLOWED_TOOLS = frozenset(
+        {
+            "browser_use",       # web search / browse (read-only usage)
+            "read_file",
+            "grep_search",
+            "glob_search",
+            "view_image",
+            "view_video",
+            "get_current_time",
+            "get_token_usage",
+        },
+    )
+
     async def _acting(self, tool_call) -> dict | None:
         """Check ask/plan tool gates before delegating to ToolGuardMixin."""
         from ..plan.hints import check_plan_tool_gate
 
         tool_name = str(tool_call.get("name", ""))
 
-        # Ask mode: tools are not available at all. If the model still
-        # emits a tool call (e.g. a prompt injection or a model glitch),
-        # refuse it with a visible notice instead of executing.
+        # Ask mode: only whitelisted read-only tools may run. Anything
+        # with side effects (write/edit/execute/send/delegate) or an
+        # unknown name is refused with a visible notice instead of
+        # executing (also guards against prompt injection).
         if getattr(self, "work_mode", "craft") == "ask":
-            from agentscope.message import ToolResultBlock
+            if tool_name not in self._ASK_ALLOWED_TOOLS:
+                from agentscope.message import ToolResultBlock
 
-            notice = (
-                "当前为「问」模式，不调用工具。"
-                "如需执行任务，请切换到「想」或「做」模式。\n"
-                "Ask mode has no tools. Switch to Plan or Craft mode "
-                "to execute tasks."
-            )
-            tool_res_msg = Msg(
-                "system",
-                [
-                    ToolResultBlock(
-                        type="tool_result",
-                        id=tool_call["id"],
-                        name=tool_name,
-                        output=[{"type": "text", "text": notice}],
-                    ),
-                ],
-                "system",
-            )
-            await self.print(tool_res_msg, True)
-            await self.memory.add(tool_res_msg)
-            return None
+                notice = (
+                    f"当前为「问一问」模式，工具 {tool_name} 不可用"
+                    "（问答模式仅允许查询类操作）。"
+                    "如需修改文件或执行任务，请切换到「想一想」或"
+                    "「做一做」模式。\n"
+                    f"Tool '{tool_name}' is not allowed in Ask mode "
+                    "(read-only lookups only). Switch to Plan or Craft "
+                    "mode to execute tasks."
+                )
+                tool_res_msg = Msg(
+                    "system",
+                    [
+                        ToolResultBlock(
+                            type="tool_result",
+                            id=tool_call["id"],
+                            name=tool_name,
+                            output=[{"type": "text", "text": notice}],
+                        ),
+                    ],
+                    "system",
+                )
+                await self.print(tool_res_msg, True)
+                await self.memory.add(tool_res_msg)
+                return None
 
         if tool_name in self._PLAN_TOOLS_WITH_JSON_ARGS:
             self._fix_stringified_json_args(tool_call)

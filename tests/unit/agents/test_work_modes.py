@@ -72,18 +72,12 @@ class TestWorkModeAssembly:
         agent = _make_agent("craft")
         assert agent.work_mode == "craft"
 
-    def test_ask_mode_no_toolkit_single_iter(self):
+    def test_ask_mode_keeps_toolkit_with_capped_iters(self):
         agent = _make_agent("ask")
         assert agent.work_mode == "ask"
-        # toolkit must be None (parent stores our init kwarg as-is
-        # or replaces with an empty one — assert no tools registered)
-        toolkit = getattr(agent, "toolkit", None)
-        if toolkit is not None:
-            # agentscope may install an empty toolkit object; ensure
-            # it has no registered tools.
-            names = getattr(toolkit, "tools", None)
-            if isinstance(names, dict):
-                assert len(names) == 0
+        # Ask mode keeps a toolkit (read-only tools allowed) but caps
+        # iterations to keep replies fast.
+        assert agent.max_iters <= 20
 
     def test_unknown_mode_falls_back_to_craft(self):
         agent = _make_agent("bogus-mode")
@@ -96,13 +90,30 @@ class TestWorkModeAssembly:
         agent.memory = MagicMock()
         agent.memory.add = AsyncMock()
 
-        tool_call = {"id": "call-1", "name": "read_file", "arguments": {}}
-        result = await agent._acting(tool_call)
-
-        # The gate must swallow the tool call: no execution result,
-        # and a visible refusal notice printed to the user.
-        assert result is None
+        # Write tool must be refused with a visible notice.
+        write_call = {"id": "call-1", "name": "write_file", "arguments": {}}
+        assert await agent._acting(write_call) is None
         agent.print.assert_awaited_once()
+
+        # Read-only tool must pass through to the parent executor.
+        agent.print.reset_mock()
+        from qwenpaw.agents.tool_guard_mixin import ToolGuardMixin
+
+        async def tgm_acting(self, tool_call):
+            return {"type": "tool_result", "output": "ok"}
+
+        ToolGuardMixin._acting = tgm_acting
+        try:
+            read_call = {
+                "id": "call-2",
+                "name": "read_file",
+                "arguments": {},
+            }
+            result = await agent._acting(read_call)
+            assert result is not None
+            agent.print.assert_not_awaited()
+        finally:
+            del ToolGuardMixin._acting
 
     @pytest.mark.asyncio
     async def test_craft_mode_allows_tool_calls(self):
