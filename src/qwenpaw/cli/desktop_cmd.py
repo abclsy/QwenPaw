@@ -28,6 +28,109 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# Windows taskbar icon: the process is conda-pack's python.exe (which
+# carries the Python logo), so without an explicit window icon the
+# taskbar shows the Python icon even though shortcuts are correct.
+_APP_USER_MODEL_ID = "crec.xiaotiezhiyou.desktop"
+
+
+def _find_bundled_icon() -> Path | None:
+    """Locate icon.ico shipped next to the runtime (NSIS installs it
+    beside python.exe in $INSTDIR)."""
+    exe_dir = Path(sys.executable).resolve().parent
+    for cand in (
+        exe_dir / "icon.ico",
+        exe_dir.parent / "icon.ico",
+        Path(__file__).resolve().parent.parent / "pack" / "assets" / "icon.ico",
+    ):
+        if cand.is_file():
+            return cand
+    return None
+
+
+def _set_windows_app_icon() -> None:
+    """Give the webview window our app icon (Win32 WM_SETICON) and set
+    an explicit AppUserModelID so the taskbar groups correctly.
+
+    Runs only on win32; all failures are silent (icon is cosmetic, the
+    app must never die here). Called after the main window is shown.
+    """
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+        from ctypes import wintypes  # noqa: F401
+
+        # AppUserModelID: without it the taskbar button may fall back to
+        # the hosting exe (python.exe → Python logo).
+        try:
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
+                _APP_USER_MODEL_ID,
+            )
+        except Exception:
+            logger.debug("SetCurrentProcessExplicitAppUserModelID failed")
+
+        icon_path = _find_bundled_icon()
+        if icon_path is None:
+            logger.debug("No bundled icon.ico found; taskbar icon unchanged")
+            return
+
+        user32 = ctypes.windll.user32
+        WM_SETICON = 0x80
+        ICON_SMALL, ICON_BIG = 0, 1
+        IMAGE_ICON = 1
+        LR_LOADFROMFILE = 0x0010
+        LR_DEFAULTSIZE = 0x0040
+
+        user32.LoadImageW.restype = ctypes.c_void_p
+        user32.LoadImageW.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_wchar_p,
+            ctypes.c_uint,
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.c_uint,
+        ]
+        user32.SendMessageW.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_uint,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+        ]
+
+        hicon = user32.LoadImageW(
+            None,
+            str(icon_path),
+            IMAGE_ICON,
+            0,
+            0,
+            LR_LOADFROMFILE | LR_DEFAULTSIZE,
+        )
+        if not hicon:
+            logger.debug("LoadImageW failed for %s", icon_path)
+            return
+
+        # Apply to every top-level window with our title (main window;
+        # splash is destroyed separately).
+        hwnd = user32.FindWindowW(None, "小铁智友")
+        tries = 0
+        while hwnd and tries < 5:
+            user32.SendMessageW(hwnd, WM_SETICON, ctypes.c_void_p(ICON_SMALL), ctypes.c_void_p(hicon))
+            user32.SendMessageW(hwnd, WM_SETICON, ctypes.c_void_p(ICON_BIG), ctypes.c_void_p(hicon))
+            hwnd = user32.FindWindowExW(None, hwnd, None, "小铁智友")
+            tries += 1
+        logger.info("Applied app icon to webview window(s) from %s", icon_path)
+    except Exception:
+        logger.debug("Failed to set Windows app icon", exc_info=True)
+
+
+def _schedule_windows_app_icon(window: Any) -> None:
+    """Attach the icon fixer to a window's shown event (once)."""
+    try:
+        window.events.shown += _set_windows_app_icon
+    except Exception:
+        logger.debug("events.shown unavailable; icon fix skipped")
+
 
 class WebViewAPI:
     """API exposed to the webview for external links and file downloads."""
@@ -725,6 +828,9 @@ def _open_main_window_after_ready(
                 js_api=api_instance,
                 maximized=True,
             )
+            # Apply our app icon to the window/taskbar (Windows shows
+            # the python.exe icon otherwise — see _set_windows_app_icon)
+            _schedule_windows_app_icon(main_window)
             # Close splash after main window is created
             if splash_window is not None:
                 splash_window.destroy()
@@ -914,6 +1020,8 @@ def desktop_cmd(
                 easy_drag=True,
                 on_top=True,
             )
+            # Splash shares the app title; icon fix also covers it.
+            _schedule_windows_app_icon(splash)
 
             # Start background thread: wait for HTTP, then open main window
             # and close splash. This thread runs concurrently with
