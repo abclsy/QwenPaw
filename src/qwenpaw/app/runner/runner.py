@@ -477,6 +477,28 @@ class AgentRunner(Runner):
                     refresher + original,
                 )
 
+            # --- Work Mode (ask / plan / craft) -----------------------
+            # The console sends ``mode`` in the query payload; agentscope's
+            # AgentRequest is extra="allow" so it passes through untouched.
+            # ask     → lightweight Q&A (no tools, single pass)
+            # plan    → plan-first (plan notebook + tool gate)
+            # craft   → full autonomous execution (default, unchanged)
+            work_mode = str(
+                getattr(request, "mode", "") or "craft",
+            ).strip().lower()
+            if work_mode not in ("ask", "plan", "craft"):
+                logger.warning(
+                    "Unknown work mode %r from request, using craft",
+                    work_mode,
+                )
+                work_mode = "craft"
+            if work_mode != "craft":
+                logger.info(
+                    "Work mode for this query: %s (session=%s)",
+                    work_mode,
+                    session_id[:12] if session_id else "-",
+                )
+
             # --- Plan Mode ------------------------------------------
             plan_notebook = None
             plan_enabled = getattr(
@@ -484,6 +506,10 @@ class AgentRunner(Runner):
                 "enabled",
                 False,
             )
+            # Plan work mode implies the plan notebook even when the
+            # agent-level toggle is off (session-level mode wins).
+            if work_mode == "plan":
+                plan_enabled = True
             if plan_enabled:
                 try:
                     from agentscope.plan import (
@@ -570,9 +596,13 @@ class AgentRunner(Runner):
                 workspace_dir=self.workspace_dir,
                 task_tracker=self._task_tracker,
                 plan_notebook=plan_notebook,
+                mode=work_mode,
             )
             await agent.register_mcp_clients()
             agent.set_console_output_enabled(enabled=False)
+            # Ask mode: skip MCP tool registration entirely (no toolkit)
+            if work_mode == "ask":
+                agent._mcp_clients = []  # pylint: disable=protected-access
 
             logger.debug(
                 f"Agent Query msgs {msgs}",

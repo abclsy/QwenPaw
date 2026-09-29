@@ -109,6 +109,7 @@ class QwenPawAgent(ToolGuardMixin, ReActAgent):
         workspace_dir: Path | None = None,
         task_tracker: Any | None = None,
         plan_notebook: Any | None = None,
+        mode: str = "craft",
     ):
         """Initialize QwenPawAgent.
 
@@ -130,6 +131,10 @@ class QwenPawAgent(ToolGuardMixin, ReActAgent):
                 (default: "skip")
             workspace_dir: Workspace directory for reading prompt files
                 (if None, uses global WORKING_DIR)
+            mode: Work mode for this query — "craft" (default, full
+                autonomous execution with tools), "ask" (lightweight
+                Q&A: no tools, single-pass reply), or "plan" (plan-first,
+                gated by the plan notebook until user confirms).
         """
         self._agent_config = agent_config
         self._env_context = env_context
@@ -138,6 +143,12 @@ class QwenPawAgent(ToolGuardMixin, ReActAgent):
         self._namesake_strategy = namesake_strategy
         self._workspace_dir = workspace_dir
         self._task_tracker = task_tracker
+        # Work mode: craft / ask / plan (see docstring). Persisted for
+        # downstream gating (e.g. _guard_tool_call double-checks ask mode).
+        if mode not in ("ask", "plan", "craft"):
+            logger.warning("Unknown work mode %r, falling back to craft", mode)
+            mode = "craft"
+        self.work_mode = mode
 
         # Extract configuration from agent_config
         running_config = agent_config.running
@@ -167,7 +178,8 @@ class QwenPawAgent(ToolGuardMixin, ReActAgent):
         )
         logger.info(
             f"Agent '{agent_config.id}' initialized with model: "
-            f"{model_info} (class: {model.__class__.__name__})",
+            f"{model_info} (class: {model.__class__.__name__}) "
+            f"mode={mode}",
         )
         # Initialize parent ReActAgent
         init_kwargs: dict[str, Any] = {
@@ -179,12 +191,20 @@ class QwenPawAgent(ToolGuardMixin, ReActAgent):
             "formatter": formatter,
             "max_iters": running_config.max_iters,
         }
+        if mode == "ask":
+            # Ask mode: lightweight Q&A — no tools, single-pass reply.
+            # An empty toolkit (no registered tools) keeps the model from
+            # emitting tool calls; max_iters=1 exits after one pass so
+            # we never enter the reasoning-acting loop.
+            init_kwargs["toolkit"] = None
+            init_kwargs["max_iters"] = 1
         if plan_notebook is not None:
             init_kwargs["plan_notebook"] = plan_notebook
         super().__init__(**init_kwargs)
 
         # Register memory tools provided by the memory manager
-        if self.memory_manager is not None:
+        # (skipped entirely in ask mode: no toolkit, no tools)
+        if mode != "ask" and self.memory_manager is not None:
             memory_tools = self.memory_manager.list_memory_tools()
             for tool_fn in memory_tools:
                 self.toolkit.register_tool_function(
@@ -486,6 +506,14 @@ class QwenPawAgent(ToolGuardMixin, ReActAgent):
                 Options: "override", "skip", "raise", "rename"
                 (default: "skip")
         """
+        # Ask mode has no toolkit — nothing to register on. Callers
+        # normally clear _mcp_clients too; this guard keeps any stray
+        # caller from crashing the query.
+        if getattr(self, "work_mode", "craft") == "ask":
+            logger.debug(
+                "register_mcp_clients skipped: ask mode has no toolkit",
+            )
+            return
         for i, client in enumerate(self._mcp_clients):
             client_name = getattr(client, "name", repr(client))
             try:
@@ -703,10 +731,38 @@ class QwenPawAgent(ToolGuardMixin, ReActAgent):
                             pass
 
     async def _acting(self, tool_call) -> dict | None:
-        """Check plan tool gate before delegating to ToolGuardMixin."""
+        """Check ask/plan tool gates before delegating to ToolGuardMixin."""
         from ..plan.hints import check_plan_tool_gate
 
         tool_name = str(tool_call.get("name", ""))
+
+        # Ask mode: tools are not available at all. If the model still
+        # emits a tool call (e.g. a prompt injection or a model glitch),
+        # refuse it with a visible notice instead of executing.
+        if getattr(self, "work_mode", "craft") == "ask":
+            from agentscope.message import ToolResultBlock
+
+            notice = (
+                "当前为「问」模式，不调用工具。"
+                "如需执行任务，请切换到「想」或「做」模式。\n"
+                "Ask mode has no tools. Switch to Plan or Craft mode "
+                "to execute tasks."
+            )
+            tool_res_msg = Msg(
+                "system",
+                [
+                    ToolResultBlock(
+                        type="tool_result",
+                        id=tool_call["id"],
+                        name=tool_name,
+                        output=[{"type": "text", "text": notice}],
+                    ),
+                ],
+                "system",
+            )
+            await self.print(tool_res_msg, True)
+            await self.memory.add(tool_res_msg)
+            return None
 
         if tool_name in self._PLAN_TOOLS_WITH_JSON_ARGS:
             self._fix_stringified_json_args(tool_call)
