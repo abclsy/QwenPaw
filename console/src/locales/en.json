@@ -1932,5 +1932,13 @@
     "empty": "No chats yet — click + to start",
     "untitled": "New Chat",
     "tasksLabel": "Tasks ({{count}})"
+  },
+  "workMode": {
+    "ask": "Ask",
+    "plan": "Plan",
+    "craft": "Craft",
+    "askTooltip": "Fast Q&A: no tools, no file access, quickest response",
+    "planTooltip": "Plan first, execute after your confirmation",
+    "craftTooltip": "Full autonomous execution (default, same as before)"
   }
 }

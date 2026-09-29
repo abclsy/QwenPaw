@@ -29,6 +29,8 @@ import { IconButton } from "@agentscope-ai/design";
 import ChatActionGroup from "./components/ChatActionGroup";
 import ChatHeaderTitle from "./components/ChatHeaderTitle";
 import ChatSessionInitializer from "./components/ChatSessionInitializer";
+import WorkModeSwitcher from "./components/WorkModeSwitcher";
+import { useWorkModeStore } from "../../stores/workModeStore";
 import { ApprovalCard } from "../../components/ApprovalCard/ApprovalCard";
 import { commandsApi } from "../../api/modules/commands";
 import { useApprovalContext } from "../../contexts/ApprovalContext";
@@ -883,11 +885,17 @@ export default function ChatPage() {
             ]
           : lastInput;
 
+      const currentSessionId =
+        window.currentSessionId || session?.session_id || "";
       const requestBody = {
         input: rewrittenInput,
-        session_id: window.currentSessionId || session?.session_id || "",
+        session_id: currentSessionId,
         user_id: window.currentUserId || session?.user_id || DEFAULT_USER_ID,
         channel: window.currentChannel || session?.channel || DEFAULT_CHANNEL,
+        // Work mode (ask/plan/craft): consumed by the backend runner to
+        // assemble the agent (ask = no tools single-pass; plan = plan
+        // notebook + tool gate). Default craft keeps prior behavior.
+        mode: useWorkModeStore.getState().getMode(currentSessionId),
         stream: true,
         ...biz_params,
       };
@@ -1050,10 +1058,12 @@ export default function ChatPage() {
       sender: {
         ...(i18nConfig as any)?.sender,
         beforeSubmit: handleBeforeSubmit,
-        // Input action bar (WorkBuddy style): workspace picker + expert chip
-        // + model selector, all inline to the left of the send button.
+        // Input action bar (WorkBuddy style): work-mode switcher
+        // (问/想/做) + workspace picker + expert chip + model selector,
+        // all inline to the left of the send button.
         prefix: (
           <>
+            <WorkModeSwitcher />
             <WorkspaceSelector />
             <ExpertBadge />
             <ModelSelector compact />
