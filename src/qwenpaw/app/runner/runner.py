@@ -478,13 +478,16 @@ class AgentRunner(Runner):
                 )
 
             # --- Work Mode (ask / plan / craft) -----------------------
-            # The console sends ``mode`` in the query payload; agentscope's
-            # AgentRequest is extra="allow" so it passes through untouched.
+            # The console router forwards the frontend ``mode`` field via
+            # native_payload meta → AgentRequest.channel_meta (the schema
+            # is also extra=allow, so a top-level mode is a fallback).
             # ask     → lightweight Q&A (no tools, single pass)
             # plan    → plan-first (plan notebook + tool gate)
             # craft   → full autonomous execution (default, unchanged)
             work_mode = str(
-                getattr(request, "mode", "") or "craft",
+                channel_meta.get("mode")
+                or getattr(request, "mode", "")
+                or "craft",
             ).strip().lower()
             if work_mode not in ("ask", "plan", "craft"):
                 logger.warning(

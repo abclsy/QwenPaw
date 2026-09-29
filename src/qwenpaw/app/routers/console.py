@@ -74,6 +74,7 @@ def _extract_session_and_payload(request_data: Union[AgentRequest, dict]):
         content_parts = (
             list(request_data.input[0].content) if request_data.input else []
         )
+        work_mode = getattr(request_data, "mode", None)
     else:
         channel_id = request_data.get("channel", "console")
         sender_id = request_data.get("user_id", "default")
@@ -85,6 +86,7 @@ def _extract_session_and_payload(request_data: Union[AgentRequest, dict]):
                 content_parts.extend(list(content_part.content or []))
             elif isinstance(content_part, dict) and "content" in content_part:
                 content_parts.extend(content_part["content"] or [])
+        work_mode = request_data.get("mode")
 
     native_payload = {
         "channel_id": channel_id,
@@ -95,6 +97,12 @@ def _extract_session_and_payload(request_data: Union[AgentRequest, dict]):
             "user_id": sender_id,
         },
     }
+    # Work mode (ask/plan/craft) rides in meta: the console channel
+    # attaches meta to AgentRequest.channel_meta, and the runner reads
+    # it to assemble the agent per query. Without this the mode field
+    # from the frontend would be dropped here.
+    if work_mode in ("ask", "plan", "craft"):
+        native_payload["meta"]["mode"] = work_mode
     return native_payload
 
 
