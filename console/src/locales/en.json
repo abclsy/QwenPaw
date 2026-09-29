@@ -1944,6 +1944,10 @@
     "craft": "Craft",
     "askTooltip": "Fast Q&A: no tools, no file access, quickest response",
     "planTooltip": "Plan first, execute after your confirmation",
-    "craftTooltip": "Full autonomous execution (default, same as before)"
+    "craftTooltip": "Full autonomous execution (default, same as before)",
+    "askDesc": "Questions and analysis only — no file changes, fastest",
+    "planDesc": "Plans first, executes after your confirmation",
+    "craftDesc": "Executes tasks directly, may create/modify files (default)",
+    "switchHint": "Switch work mode"
   }
 }

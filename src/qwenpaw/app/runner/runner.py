@@ -541,6 +541,18 @@ class AgentRunner(Runner):
                                 "Plan mode: /plan gate set, desc=%s",
                                 plan_desc[:60],
                             )
+                    elif work_mode == "plan":
+                        # Plan work mode (session-level mode selector):
+                        # arm the gate for every query so the agent must
+                        # create a plan and wait for user confirmation
+                        # before any non-plan tool runs — same behavior
+                        # as an explicit /plan entry.
+                        set_plan_gate(plan_notebook, enabled=True)
+                        logger.info(
+                            "Plan work mode: gate armed for query "
+                            "(session=%s)",
+                            session_id[:12] if session_id else "-",
+                        )
 
                     # Register SSE broadcast hook + state tracking
                     from ...plan.broadcast import broadcast_plan_update

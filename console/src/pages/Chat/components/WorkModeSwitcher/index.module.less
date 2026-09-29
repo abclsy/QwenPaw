@@ -1,84 +1,132 @@
-// WorkBuddy-style compact pill group for the work-mode switcher.
-// Colors follow the app's existing accent (#1961ac, same as
-// WorkspaceSelector) with dark-theme aware values.
+// Work-mode chip + dropdown menu (WorkBuddy style):
+// a compact chip showing the current mode at the input area's left,
+// click to open a menu where each mode carries a one-line description.
 
-.pillGroup {
+.chip {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  padding: 2px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(5, 5, 5, 0.06);
-}
-
-.tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 24px;
-  padding: 0 9px;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(0, 0, 0, 0.5);
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid rgba(25, 97, 172, 0.28);
+  border-radius: 13px;
+  background: rgba(25, 97, 172, 0.06);
+  color: #1961ac;
   font-size: 12px;
   line-height: 1;
   cursor: pointer;
   user-select: none;
   transition:
     background 0.18s ease,
-    color 0.18s ease,
+    border-color 0.18s ease,
     box-shadow 0.18s ease;
 
   &:hover {
-    color: rgba(0, 0, 0, 0.85);
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(25, 97, 172, 0.12);
+    border-color: rgba(25, 97, 172, 0.45);
   }
 
   &:active {
-    transform: scale(0.96);
+    transform: scale(0.97);
   }
 }
 
-.tabActive {
-  background: #1961ac;
-  color: #fff;
-  box-shadow: 0 1px 4px rgba(25, 97, 172, 0.35);
-  font-weight: 500;
-
-  &:hover {
-    background: #2b74b8;
-    color: #fff;
-  }
-}
-
-.tabIcon {
+.chipIcon {
+  display: inline-flex;
+  align-items: center;
   font-size: 12px;
 }
 
-.tabLabel {
+.chipLabel {
   white-space: nowrap;
+  font-weight: 500;
 }
 
-.tabCheck {
-  font-size: 10px;
-  opacity: 0.9;
+.chipArrow {
+  font-size: 9px;
+  opacity: 0.65;
 }
 
-// ── Dark theme (ThemeContext adds .dark-mode to <html>) ───────────────
+// ── Dropdown menu rows ───────────────────────────────────────────────
+.menuRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 4px 2px;
+  min-width: 230px;
+}
+
+.menuRowIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(25, 97, 172, 0.08);
+  color: #1961ac;
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.menuRowBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.menuRowLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.88);
+  line-height: 18px;
+}
+
+.menuRowDesc {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  line-height: 16px;
+}
+
+.menuRowCheck {
+  color: #1961ac;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.menuIcon {
+  font-size: 14px;
+}
+
+// ── Dark theme (ThemeContext adds .dark-mode to <html>) ──────────────
 :global(.dark-mode) & {
-  .pillGroup {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.12);
-  }
-
-  .tab {
-    color: rgba(255, 255, 255, 0.55);
+  .chip {
+    background: rgba(64, 150, 255, 0.12);
+    border-color: rgba(64, 150, 255, 0.35);
+    color: #69b1ff;
 
     &:hover {
-      color: rgba(255, 255, 255, 0.85);
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(64, 150, 255, 0.2);
+      border-color: rgba(64, 150, 255, 0.5);
     }
+  }
+
+  .menuRowIcon {
+    background: rgba(64, 150, 255, 0.15);
+    color: #69b1ff;
+  }
+
+  .menuRowLabel {
+    color: rgba(255, 255, 255, 0.88);
+  }
+
+  .menuRowDesc {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .menuRowCheck {
+    color: #69b1ff;
   }
 }

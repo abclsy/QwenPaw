@@ -1,22 +1,25 @@
 import { useMemo } from "react";
-import { Tooltip } from "antd";
+import { Dropdown, Tooltip } from "antd";
+import type { MenuProps } from "antd";
 import {
+  CheckOutlined,
   MessageOutlined,
   OrderedListOutlined,
   ThunderboltOutlined,
-  CheckOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { useWorkModeStore, type WorkMode } from "../../../../stores/workModeStore";
 import styles from "./index.module.less";
 
 /**
- * Work-mode switcher: 问 / 想 / 做 (Ask / Plan / Craft).
+ * Work-mode selector (WorkBuddy style).
  *
- * WorkBuddy-style compact pill group at the left of the input action
- * bar: a single rounded pill with three icon tabs; the active tab is
- * highlighted with the theme color and shows its label, inactive tabs
- * are icon-only. Tooltips explain each mode on hover.
+ * WorkBuddy's pattern: the mode entry is a compact chip at the
+ * bottom-left of the input area showing the CURRENT mode; clicking it
+ * opens a menu with the three modes, each carrying a one-line
+ * description of what it does. After selection the chip updates to
+ * reflect (and remind of) the active mode.
  */
 export default function WorkModeSwitcher({ sessionId }: { sessionId?: string }) {
   const { t } = useTranslation();
@@ -25,59 +28,80 @@ export default function WorkModeSwitcher({ sessionId }: { sessionId?: string }) 
   );
   const setMode = useWorkModeStore((s) => s.setMode);
 
-  const tabs = useMemo(
+  const modes = useMemo(
     () => [
       {
         value: "ask" as WorkMode,
-        icon: <MessageOutlined className={styles.tabIcon} />,
-        label: t("workMode.ask", "问"),
-        tooltip: t(
-          "workMode.askTooltip",
-          "快速问答：不调用工具、不读写文件，响应最快",
+        icon: <MessageOutlined className={styles.menuIcon} />,
+        label: t("workMode.ask", "问一问"),
+        desc: t(
+          "workMode.askDesc",
+          "只问答和分析，不修改文件，响应最快",
         ),
       },
       {
         value: "plan" as WorkMode,
-        icon: <OrderedListOutlined className={styles.tabIcon} />,
-        label: t("workMode.plan", "想"),
-        tooltip: t(
-          "workMode.planTooltip",
-          "先出执行计划，确认后再动手，适合复杂任务",
+        icon: <OrderedListOutlined className={styles.menuIcon} />,
+        label: t("workMode.plan", "想一想"),
+        desc: t(
+          "workMode.planDesc",
+          "先出执行计划，你确认后再动手",
         ),
       },
       {
         value: "craft" as WorkMode,
-        icon: <ThunderboltOutlined className={styles.tabIcon} />,
-        label: t("workMode.craft", "做"),
-        tooltip: t(
-          "workMode.craftTooltip",
-          "直接自主执行完整任务（默认，与之前版本一致）",
+        icon: <ThunderboltOutlined className={styles.menuIcon} />,
+        label: t("workMode.craft", "做一做"),
+        desc: t(
+          "workMode.craftDesc",
+          "直接执行任务，可生成或修改文件（默认）",
         ),
       },
     ],
     [t],
   );
 
+  const current = modes.find((m) => m.value === mode) ?? modes[2];
+
+  const menuItems: MenuProps["items"] = modes.map((m) => ({
+    key: m.value,
+    label: (
+      <div className={styles.menuRow}>
+        <span className={styles.menuRowIcon}>{m.icon}</span>
+        <span className={styles.menuRowBody}>
+          <span className={styles.menuRowLabel}>{m.label}</span>
+          <span className={styles.menuRowDesc}>{m.desc}</span>
+        </span>
+        {mode === m.value && (
+          <CheckOutlined className={styles.menuRowCheck} />
+        )}
+      </div>
+    ),
+  }));
+
+  const onClick: MenuProps["onClick"] = ({ key }) => {
+    if (key === "ask" || key === "plan" || key === "craft") {
+      setMode(key, sessionId);
+    }
+  };
+
   return (
-    <div className={styles.pillGroup} role="tablist" aria-label="work mode">
-      {tabs.map((tab) => {
-        const active = mode === tab.value;
-        return (
-          <Tooltip key={tab.value} title={tab.tooltip} mouseEnterDelay={0.4}>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={active}
-              className={`${styles.tab} ${active ? styles.tabActive : ""}`}
-              onClick={() => setMode(tab.value, sessionId)}
-            >
-              {tab.icon}
-              <span className={styles.tabLabel}>{tab.label}</span>
-              {active && <CheckOutlined className={styles.tabCheck} />}
-            </button>
-          </Tooltip>
-        );
-      })}
-    </div>
+    <Dropdown
+      menu={{ items: menuItems, onClick, selectedKeys: [mode] }}
+      trigger={["click"]}
+      placement="topLeft"
+      overlayClassName={styles.menuOverlay}
+    >
+      <Tooltip
+        title={t("workMode.switchHint", "切换工作模式")}
+        mouseEnterDelay={0.6}
+      >
+        <button type="button" className={styles.chip} aria-label="work mode">
+          <span className={styles.chipIcon}>{current.icon}</span>
+          <span className={styles.chipLabel}>{current.label}</span>
+          <DownOutlined className={styles.chipArrow} />
+        </button>
+      </Tooltip>
+    </Dropdown>
   );
 }

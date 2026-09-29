@@ -192,12 +192,22 @@ class QwenPawAgent(ToolGuardMixin, ReActAgent):
             "max_iters": running_config.max_iters,
         }
         if mode == "ask":
-            # Ask mode: lightweight Q&A — no tools, single-pass reply.
-            # An empty toolkit (no registered tools) keeps the model from
-            # emitting tool calls; max_iters=1 exits after one pass so
-            # we never enter the reasoning-acting loop.
+            # Ask mode: lightweight Q&A — no tools, direct text reply.
+            # The base sys_prompt describes a tool-using agent, so it is
+            # suffixed with an explicit "answer in text, never call tools"
+            # instruction. A small max_iters (3) leaves room for one
+            # refused stray tool call + the final text answer, instead of
+            # dying after a single pass with no visible reply.
             init_kwargs["toolkit"] = None
-            init_kwargs["max_iters"] = 1
+            init_kwargs["max_iters"] = 3
+            init_kwargs["sys_prompt"] = (
+                sys_prompt.rstrip()
+                + "\n\n[工作模式：问（Ask）]\n"
+                "当前处于快速问答模式。请直接用文字回答用户的问题，"
+                "不要调用任何工具，不要读写文件，不要执行任务。\n"
+                "[Work mode: Ask] Answer the user directly in text. "
+                "Do NOT call any tools, read/write files, or execute tasks."
+            )
         if plan_notebook is not None:
             init_kwargs["plan_notebook"] = plan_notebook
         super().__init__(**init_kwargs)

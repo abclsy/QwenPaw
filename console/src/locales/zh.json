@@ -1953,11 +1953,15 @@
     "tasksLabel": "任务（{{count}}）"
   },
   "workMode": {
-    "ask": "问",
-    "plan": "想",
-    "craft": "做",
+    "ask": "问一问",
+    "plan": "想一想",
+    "craft": "做一做",
     "askTooltip": "快速问答：不调用工具、不读写文件，响应最快",
     "planTooltip": "先出执行计划，确认后再动手，适合复杂任务",
-    "craftTooltip": "直接自主执行完整任务（默认，与之前版本一致）"
+    "craftTooltip": "直接自主执行完整任务（默认，与之前版本一致）",
+    "askDesc": "只问答和分析，不修改文件，响应最快",
+    "planDesc": "先出执行计划，你确认后再动手",
+    "craftDesc": "直接执行任务，可生成或修改文件（默认）",
+    "switchHint": "切换工作模式"
   }
 }
