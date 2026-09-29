@@ -202,11 +202,19 @@ class QwenPawAgent(ToolGuardMixin, ReActAgent):
             init_kwargs["max_iters"] = 3
             init_kwargs["sys_prompt"] = (
                 sys_prompt.rstrip()
-                + "\n\n[工作模式：问（Ask）]\n"
+                + "\n\n[工作模式：问一问（Ask）]\n"
                 "当前处于快速问答模式。请直接用文字回答用户的问题，"
                 "不要调用任何工具，不要读写文件，不要执行任务。\n"
-                "[Work mode: Ask] Answer the user directly in text. "
-                "Do NOT call any tools, read/write files, or execute tasks."
+                "如果问题需要实时数据或联网信息（如今日天气、最新新闻、"
+                "股价行情等），你无法获取，请直接说明这一点，并基于已有"
+                "知识给出尽可能有用的回答或建议，最后可提示用户切换到"
+                "「做一做」模式来执行需要工具的任务。\n"
+                "[Work mode: Ask] Answer the user directly in text. Do "
+                "NOT call any tools, read/write files, or execute tasks. "
+                "If the question needs real-time data or internet access "
+                "(weather, news, prices...), say you cannot fetch it, "
+                "then give the best answer you can from existing "
+                "knowledge, and suggest switching to Craft mode."
             )
         if plan_notebook is not None:
             init_kwargs["plan_notebook"] = plan_notebook
@@ -1174,6 +1182,43 @@ class QwenPawAgent(ToolGuardMixin, ReActAgent):
         after a page refresh.  Intermediate events that become empty
         after filtering are silently skipped to avoid blank UI flashes.
         """
+
+        # Ask-mode safety net: if the final message carries no visible
+        # text (e.g. the model emitted only an unparseable tool call,
+        # which the tag parser drops), append a fallback notice so the
+        # user never sees a "thinking then nothing" dead end.
+        if (
+            last
+            and getattr(self, "work_mode", "craft") == "ask"
+            and not getattr(self, "_in_summarizing", False)
+        ):
+            content = getattr(msg, "content", None)
+            has_text = False
+            if isinstance(content, str):
+                has_text = bool(content.strip())
+            elif isinstance(content, list):
+                has_text = any(
+                    isinstance(b, dict)
+                    and b.get("type") == "text"
+                    and str(b.get("text", "")).strip()
+                    for b in content
+                )
+            if not has_text:
+                fallback = (
+                    "（问一问模式无法调用工具获取实时信息。"
+                    "如需执行联网查询或文件操作的任务，"
+                    "请切换到「做一做」模式后重试。）"
+                )
+                if isinstance(content, list):
+                    msg.content = list(content) + [
+                        {"type": "text", "text": fallback},
+                    ]
+                else:
+                    msg.content = fallback
+                logger.warning(
+                    "Ask mode: empty final reply, appended fallback notice",
+                )
+                return await super().print(msg, last, speech=speech)
 
         if not getattr(self, "_in_summarizing", False):
             return await super().print(msg, last, speech=speech)
