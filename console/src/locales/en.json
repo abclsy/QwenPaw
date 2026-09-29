@@ -1955,5 +1955,11 @@
     "emptyInput": "Type your request first — one sentence is enough",
     "done": "Prompt enhanced",
     "error": "Enhance failed"
+  },
+  "voiceInput": {
+    "tooltip": "Voice input: record and transcribe to text",
+    "stop": "Click to stop recording and transcribe",
+    "error": "Transcription failed",
+    "micDenied": "Microphone access denied"
   }
 }

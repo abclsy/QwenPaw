@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Tooltip, message } from "antd";
 import { LoadingOutlined, StarFilled } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
@@ -6,31 +6,32 @@ import { promptApi } from "../../../../api/modules/prompt";
 import styles from "./index.module.less";
 
 /**
- * Sparkle button (WorkBuddy's "星光按钮"): sits in the input action
- * bar; one click takes the current rough draft and rewrites it into a
- * structured, complete task prompt via the backend LLM, streaming the
- * result back into the input box.
+ * Sparkle button (WorkBuddy's "星光按钮"): rewrites the current rough
+ * draft into a structured task prompt via the backend LLM, streaming
+ * the result back into the input box.
+ *
+ * UX details (per user feedback):
+ * - Lives in the RIGHT-side toolbar of the input area, next to the
+ *   voice button and the send button.
+ * - Only visible when the input box has text (hidden when empty).
  *
  * Reading/writing the input: the chat library does not expose input
- * content through its context (only loading/disabled), so we talk to
- * the textarea directly — reading `textarea.value` and writing through
- * the native value setter so React's onChange picks the change up
- * (setting `.value` directly would be swallowed by React's synthetic
- * event system).
+ * content through its context, so we talk to the textarea directly —
+ * writing through the native value setter + input event so React's
+ * onChange picks it up.
  */
 
 function getInputTextarea(): HTMLTextAreaElement | null {
-  const el = document.querySelector<HTMLTextAreaElement>(
+  return document.querySelector<HTMLTextAreaElement>(
     ".qwenpaw-sender textarea, .qwenpaw-chat-input textarea, textarea",
   );
-  return el;
 }
 
-function readInputValue(): string {
+export function readInputValue(): string {
   return getInputTextarea()?.value ?? "";
 }
 
-function writeInputValue(text: string): void {
+export function writeInputValue(text: string): void {
   const textarea = getInputTextarea();
   if (!textarea) return;
   const setter = Object.getOwnPropertyDescriptor(
@@ -39,13 +40,34 @@ function writeInputValue(text: string): void {
   )?.set;
   setter?.call(textarea, text);
   textarea.dispatchEvent(new Event("input", { bubbles: true }));
-  // Make the optimized text visible even if the textarea was collapsed
   textarea.focus();
+}
+
+/** Subscribe to input-box text changes (textarea may mount late). */
+function useInputHasText(): boolean {
+  const [hasText, setHasText] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      setHasText(Boolean(readInputValue().trim()));
+    };
+    // Initial + late-mount check
+    check();
+    const timer = window.setInterval(check, 500);
+    document.addEventListener("input", check, true);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("input", check, true);
+    };
+  }, []);
+
+  return hasText;
 }
 
 export default function PromptSparkleButton() {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+  const hasText = useInputHasText();
 
   const handleClick = () => {
     if (loading) return;
@@ -74,6 +96,10 @@ export default function PromptSparkleButton() {
       },
     });
   };
+
+  // Hidden until the user has typed something (also stays visible
+  // while enhancing). Rendered inside the right-side toolbar.
+  if (!hasText && !loading) return null;
 
   return (
     <Tooltip

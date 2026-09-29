@@ -30,7 +30,7 @@ import ChatActionGroup from "./components/ChatActionGroup";
 import ChatHeaderTitle from "./components/ChatHeaderTitle";
 import ChatSessionInitializer from "./components/ChatSessionInitializer";
 import WorkModeSwitcher from "./components/WorkModeSwitcher";
-import PromptSparkleButton from "./components/PromptSparkleButton";
+import InputRightToolbar from "./components/InputRightToolbar";
 import { useWorkModeStore } from "../../stores/workModeStore";
 import { ApprovalCard } from "../../components/ApprovalCard/ApprovalCard";
 import { commandsApi } from "../../api/modules/commands";
@@ -1065,13 +1065,13 @@ export default function ChatPage() {
         prefix: (
           <>
             <WorkModeSwitcher />
-            <PromptSparkleButton />
             <WorkspaceSelector />
             <ExpertBadge />
             <ModelSelector compact />
           </>
         ),
-        allowSpeech: true,
+        allowSpeech: false, // broken in WebView (SpeechRecognition unsupported); replaced by VoiceInputButton in InputRightToolbar
+        afterUI: <InputRightToolbar />,
         attachments: {
           trigger: function (props: any) {
             const tooltipKey = multimodalCaps.supportsMultimodal

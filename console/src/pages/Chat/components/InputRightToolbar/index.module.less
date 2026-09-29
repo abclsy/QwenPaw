@@ -1,0 +1,20 @@
+// Right-side toolbar inside the input action column.
+//
+// The chat library's Sender renders a fixed structure:
+//   .qwenpaw-sender-content-bottom
+//     ├── .qwenpaw-sender-prefix        (left: mode chip etc.)
+//     └── .qwenpaw-sender-actions       (right: char count + send)
+// There is no slot to inject custom buttons into the actions column,
+// so this toolbar is absolutely positioned to sit just left of the
+// actions column, vertically aligned with it.
+
+.rightToolbar {
+  position: absolute;
+  right: 56px; // clear the send/stop button column
+  bottom: 9px; // align with the action row
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  z-index: 5;
+  pointer-events: auto;
+}

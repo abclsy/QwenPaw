@@ -1,0 +1,60 @@
+// Voice input button: round icon button beside the sparkle button in
+// the right-side input toolbar. Recording state pulses.
+
+.micBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #1961ac;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease;
+
+  &:hover {
+    background: rgba(25, 97, 172, 0.1);
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+
+  &:disabled {
+    cursor: wait;
+    opacity: 0.7;
+  }
+}
+
+.micRecording {
+  color: #e5484d;
+  background: rgba(229, 72, 77, 0.1);
+  animation: micPulse 1.2s ease-in-out infinite;
+
+  &:hover {
+    background: rgba(229, 72, 77, 0.18);
+  }
+}
+
+@keyframes micPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(229, 72, 77, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(229, 72, 77, 0);
+  }
+}
+
+:global(.dark-mode) & {
+  color: #69b1ff;
+
+  &:hover {
+    background: rgba(64, 150, 255, 0.18);
+  }
+}

@@ -12,7 +12,9 @@ const defaultConfig = {
   },
   sender: {
     attachments: true,
-    maxLength: 10000,
+    // maxLength intentionally omitted: the "12/10000" character
+    // counter cluttered the action bar (user feedback). Backend still
+    // enforces its own hard cap.
     disclaimer: "Works for you, grows with you",
   },
   welcome: {
