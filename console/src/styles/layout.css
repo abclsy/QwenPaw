@@ -1134,3 +1134,24 @@ html.dark-mode .qwenpaw-chat-anywhere-message-list .ant-avatar img {
 html.dark-mode .qwenpaw-welcome-prompts img[alt="小铁智友"] {
   background: transparent;
 }
+
+/* ── 渲染层虚拟化（长会话性能）──────────────────────────────────────
+ * content-visibility: auto 让浏览器跳过屏幕外气泡的布局与绘制，
+ * 等价于 CSS 层面的"虚拟列表"——长对话滚动不再整体重排。
+ * contain-intrinsic-size 预估高度，避免滚动条跳动。
+ */
+.qwenpaw-bubble-list-scroll .qwenpaw-bubble {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 140px;
+}
+
+/* 气泡内容隔离：限制重绘范围，流式输出时只影响最后一个气泡 */
+.qwenpaw-bubble-content-wrapper {
+  contain: layout style;
+}
+
+/* Markdown 内部同样受益（长报告/大表格滚动流畅） */
+.qwenpaw-bubble-list-scroll .qwenpaw-markdown {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 200px;
+}
