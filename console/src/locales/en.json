@@ -29,7 +29,9 @@
     "clear": "Clear",
     "paste": "Paste",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "quote": "Quote",
+    "quoted": "Message quoted — type your question"
   },
   "update": {
     "title": "Check for updates",

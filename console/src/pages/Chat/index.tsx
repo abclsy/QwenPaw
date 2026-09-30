@@ -8,7 +8,11 @@ import {
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Button, Modal, Result, Tooltip } from "antd";
 import { useAppMessage } from "../../hooks/useAppMessage";
-import { ExclamationCircleOutlined, SettingOutlined } from "@ant-design/icons";
+import {
+  ExclamationCircleOutlined,
+  MessageOutlined,
+  SettingOutlined,
+} from "@ant-design/icons";
 import { SparkCopyLine, SparkAttachmentLine } from "@agentscope-ai/icons";
 import { usePlugins } from "../../plugins/PluginContext";
 import { useTranslation } from "react-i18next";
@@ -31,6 +35,7 @@ import ChatHeaderTitle from "./components/ChatHeaderTitle";
 import ChatSessionInitializer from "./components/ChatSessionInitializer";
 import WorkModeSwitcher from "./components/WorkModeSwitcher";
 import InputRightToolbar from "./components/InputRightToolbar";
+import { writeInputValue } from "./components/PromptSparkleButton";
 import PlanProgressCard from "./components/PlanProgressCard";
 import { useWorkModeStore } from "../../stores/workModeStore";
 import { ApprovalCard } from "../../components/ApprovalCard/ApprovalCard";
@@ -1175,6 +1180,27 @@ export default function ChatPage() {
             ),
             onClick: ({ data }: { data: CopyableResponse }) => {
               void copyResponse(data);
+            },
+          },
+          {
+            // 消息引用：把该条消息文本以引用格式填入输入框，供追问
+            icon: (
+              <span title={t("common.quote", "引用")}>
+                <MessageOutlined />
+              </span>
+            ),
+            onClick: ({ data }: { data: CopyableResponse }) => {
+              const text = extractCopyableText(data).trim();
+              if (!text) return;
+              const quoted = text.split("\n").map((l) => `> ${l}`).join("\n");
+              const existing = document.querySelector<HTMLTextAreaElement>(
+                ".qwenpaw-sender textarea, textarea",
+              )?.value ?? "";
+              const merged = existing
+                ? `${existing}\n\n${quoted}\n\n`
+                : `${quoted}\n\n`;
+              writeInputValue(merged);
+              message.info(t("common.quoted", "已引用该消息，请继续输入问题"));
             },
           },
         ],
