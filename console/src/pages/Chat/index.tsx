@@ -35,7 +35,10 @@ import ChatHeaderTitle from "./components/ChatHeaderTitle";
 import ChatSessionInitializer from "./components/ChatSessionInitializer";
 import WorkModeSwitcher from "./components/WorkModeSwitcher";
 import InputRightToolbar from "./components/InputRightToolbar";
-import { writeInputValue } from "./components/PromptSparkleButton";
+import QuotePreviewBar, {
+  setQuotedMessage,
+  takeQuotedMessage,
+} from "./components/QuotePreviewBar";
 import PlanProgressCard from "./components/PlanProgressCard";
 import { useWorkModeStore } from "../../stores/workModeStore";
 import { ApprovalCard } from "../../components/ApprovalCard/ApprovalCard";
@@ -882,15 +885,37 @@ export default function ChatPage() {
       const session: SessionInfo = input[input.length - 1]?.session || {};
       const lastInput = input.slice(-1);
       const lastMsg = lastInput[0];
-      const rewrittenInput =
-        lastMsg?.content && Array.isArray(lastMsg.content)
-          ? [
-              {
-                ...lastMsg,
-                content: lastMsg.content.map(normalizeContentUrls),
-              },
-            ]
-          : lastInput;
+
+      // Merge the pending quoted message (quote preview bar) into the
+      // outgoing user message as a markdown blockquote prefix.
+      const quoted = takeQuotedMessage();
+      let rewrittenInput = lastMsg?.content && Array.isArray(lastMsg.content)
+        ? [
+            {
+              ...lastMsg,
+              content: lastMsg.content.map(normalizeContentUrls),
+            },
+          ]
+        : lastInput;
+
+      if (quoted && rewrittenInput.length > 0) {
+        const quotedBlock = quoted.text
+          .split("\n")
+          .map((l) => `> ${l}`)
+          .join("\n");
+        const prefix = `${quotedBlock}\n\n`;
+        rewrittenInput = rewrittenInput.map((m: any) => {
+          if (m.role !== "user" || !Array.isArray(m.content)) return m;
+          return {
+            ...m,
+            content: m.content.map((c: any) =>
+              c?.type === "text" && typeof c.text === "string"
+                ? { ...c, text: `${prefix}${c.text}` }
+                : c,
+            ),
+          };
+        });
+      }
 
       const currentSessionId =
         window.currentSessionId || session?.session_id || "";
@@ -1076,6 +1101,7 @@ export default function ChatPage() {
             <ModelSelector compact />
           </>
         ),
+        header: <QuotePreviewBar />,
         allowSpeech: false, // broken in WebView (SpeechRecognition unsupported); replaced by VoiceInputButton in InputRightToolbar
         afterUI: <InputRightToolbar />,
         attachments: {
@@ -1183,7 +1209,7 @@ export default function ChatPage() {
             },
           },
           {
-            // 消息引用：把该条消息文本以引用格式填入输入框，供追问
+            // 消息引用：置入引用预览条（输入框上方），提交时随问题一起发出
             icon: (
               <span title={t("common.quote", "引用")}>
                 <MessageOutlined />
@@ -1192,14 +1218,16 @@ export default function ChatPage() {
             onClick: ({ data }: { data: CopyableResponse }) => {
               const text = extractCopyableText(data).trim();
               if (!text) return;
-              const quoted = text.split("\n").map((l) => `> ${l}`).join("\n");
-              const existing = document.querySelector<HTMLTextAreaElement>(
-                ".qwenpaw-sender textarea, textarea",
-              )?.value ?? "";
-              const merged = existing
-                ? `${existing}\n\n${quoted}\n\n`
-                : `${quoted}\n\n`;
-              writeInputValue(merged);
+              const chunks = data.output || [];
+              const role =
+                chunks.length > 0 && chunks[0].role === "user"
+                  ? ("user" as const)
+                  : ("assistant" as const);
+              setQuotedMessage({
+                id: String((data as any).id ?? Date.now()),
+                role,
+                text,
+              });
               message.info(t("common.quoted", "已引用该消息，请继续输入问题"));
             },
           },

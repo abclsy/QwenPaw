@@ -1971,5 +1971,10 @@
     "done": "Done",
     "skipped": "Skipped",
     "pending": "Pending"
+  },
+  "quote": {
+    "you": "You",
+    "assistant": "小铁智友",
+    "remove": "Remove quote"
   }
 }

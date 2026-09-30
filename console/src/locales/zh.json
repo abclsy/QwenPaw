@@ -1985,5 +1985,10 @@
     "done": "已完成",
     "skipped": "已跳过",
     "pending": "待执行"
+  },
+  "quote": {
+    "you": "我",
+    "assistant": "小铁智友",
+    "remove": "取消引用"
   }
 }
