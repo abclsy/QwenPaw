@@ -57,18 +57,23 @@ def isolated_secret_dir(monkeypatch, tmp_path):
 def test_siliconflow_registered_in_provider_manager(
     isolated_secret_dir,
 ) -> None:
-    """Siliconflow providers should be registered as built-in providers."""
+    """Siliconflow 定义存在但定制版不默认注册为 builtin。"""
     manager = ProviderManager()
 
-    provider_cn = manager.get_provider("siliconflow-cn")
-    assert provider_cn is not None
-    assert isinstance(provider_cn, OpenAIProvider)
-    assert provider_cn.base_url == "https://api.siliconflow.cn/v1"
+    # 定义保留在模块层，可按需启用
+    assert provider_manager_module.PROVIDER_SILICONFLOW_CN.id == "siliconflow-cn"
+    assert (
+        provider_manager_module.PROVIDER_SILICONFLOW_CN.base_url
+        == "https://api.siliconflow.cn/v1"
+    )
+    assert (
+        provider_manager_module.PROVIDER_SILICONFLOW_INTL.base_url
+        == "https://api.siliconflow.com/v1"
+    )
 
-    provider_intl = manager.get_provider("siliconflow-intl")
-    assert provider_intl is not None
-    assert isinstance(provider_intl, OpenAIProvider)
-    assert provider_intl.base_url == "https://api.siliconflow.com/v1"
+    # 定制版不默认注册公共 provider
+    assert manager.get_provider("siliconflow-cn") is None
+    assert manager.get_provider("siliconflow-intl") is None
 
 
 @pytest.mark.asyncio

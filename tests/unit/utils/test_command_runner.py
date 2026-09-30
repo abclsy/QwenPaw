@@ -240,10 +240,13 @@ async def test_start_command_async_falls_back_to_threaded_popen_on_windows(
     assert result.pid == 1234
     assert result.creation_mode == "threaded"
     assert await result.wait() == 0
+    # _start_threaded_process passes creationflags=_WIN_NO_WINDOW
+    # (0 on non-Windows) to keep the child console window hidden.
     assert popen_calls == [
         (
             (["demo", "--serve"],),
             {
+                "creationflags": command_runner._WIN_NO_WINDOW,
                 "stdout": subprocess.PIPE,
                 "stderr": subprocess.STDOUT,
             },

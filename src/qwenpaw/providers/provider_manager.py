@@ -745,11 +745,16 @@ class ProviderManager:  # pylint: disable=too-many-public-methods
         except Exception as e:
             logger.warning("Failed to migrate legacy providers: %s", e)
         self._init_from_storage()
-        self.active_model = ModelSlotConfig(
-            provider_id="kimi-crec",
-            model="kimi",
-        )
-        self.save_active_model(self.active_model)
+        # Default active model: only install (and persist) the CREC
+        # default when no previously activated model exists on disk —
+        # otherwise every ProviderManager() instantiation would reset
+        # the user's active model back to the default.
+        if self.active_model is None:
+            self.active_model = ModelSlotConfig(
+                provider_id="kimi-crec",
+                model="kimi",
+            )
+            self.save_active_model(self.active_model)
         self._apply_default_annotations()
 
     def _prepare_disk_storage(self):

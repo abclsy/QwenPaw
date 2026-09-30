@@ -89,44 +89,43 @@ def isolated_secret_dir(monkeypatch, tmp_path):
 
 
 def test_builtin_zhipu_providers_registered(isolated_secret_dir) -> None:
+    """CREC 定制版只注册内部 CREC 网关 provider。
+
+    公共 provider（zhipu/siliconflow 等）的定义仍保留在模块中但
+    不再默认注册——断言定制行为：CREC 网关在册、公共 zhipu 不在。
+    """
     manager = ProviderManager()
 
-    expected_configs = {
-        "zhipu-cn": {
-            "base_url": "https://open.bigmodel.cn/api/paas/v4",
-            "support_connection_check": True,
-        },
-        "zhipu-cn-codingplan": {
-            "base_url": "https://open.bigmodel.cn/api/coding/paas/v4",
-            "support_connection_check": False,
-        },
-        "zhipu-intl": {
-            "base_url": "https://api.z.ai/api/paas/v4",
-            "support_connection_check": True,
-        },
-        "zhipu-intl-codingplan": {
-            "base_url": "https://api.z.ai/api/coding/paas/v4",
-            "support_connection_check": False,
-        },
-    }
+    builtin_ids = set(manager.builtin_providers.keys())
 
-    for provider_id, expected in expected_configs.items():
-        provider = manager.get_provider(provider_id)
+    # CREC internal gateways are registered by the customized build
+    assert {
+        "qwenpaw-local",
+        "kimi-crec",
+        "glm-crec",
+        "qwen-crec",
+    } <= builtin_ids
 
-        assert provider is not None
-        assert isinstance(provider, OpenAIProvider)
-        assert provider.base_url == expected["base_url"]
-        assert provider.freeze_url is True
-        assert (
-            provider.support_connection_check
-            == expected["support_connection_check"]
-        )
-        assert [model.id for model in provider.models] == [
-            "glm-5",
-            "glm-5.1",
-            "glm-5-turbo",
-            "glm-5v-turbo",
-        ]
+    # Public providers are intentionally NOT auto-registered
+    assert "zhipu-cn" not in builtin_ids
+    assert "zhipu-intl" not in builtin_ids
+
+    # Their definitions still exist in the module for future reuse
+    assert provider_manager_module.PROVIDER_ZHIPU_CN.id == "zhipu-cn"
+    assert (
+        provider_manager_module.PROVIDER_ZHIPU_CN.base_url
+        == "https://open.bigmodel.cn/api/paas/v4"
+    )
+    assert provider_manager_module.PROVIDER_ZHIPU_CN.freeze_url is True
+    assert provider_manager_module.PROVIDER_ZHIPU_INTL.base_url == (
+        "https://api.z.ai/api/paas/v4"
+    )
+    assert [model.id for model in provider_manager_module.ZHIPU_MODELS] == [
+        "glm-5",
+        "glm-5.1",
+        "glm-5-turbo",
+        "glm-5v-turbo",
+    ]
 
 
 async def test_add_custom_provider_and_reload_from_storage(
@@ -144,19 +143,19 @@ async def test_add_custom_provider_and_reload_from_storage(
     created = await manager.add_custom_provider(custom)
     builtin_conflict = await manager.add_custom_provider(
         OpenAIProvider(
-            id="openai",
-            name="Conflict OpenAI",
+            id="glm-crec",  # conflicts with a registered builtin
+            name="Conflict GLM",
         ),
     )
     duplicate = await manager.add_custom_provider(custom)
 
     reloaded = ProviderManager()
     loaded = reloaded.get_provider("custom-openai")
-    loaded_builtin_conflict = reloaded.get_provider("openai-custom")
+    loaded_builtin_conflict = reloaded.get_provider("glm-crec-custom")
     loaded_duplicate = reloaded.get_provider("custom-openai-new")
 
     assert created.id == "custom-openai"
-    assert builtin_conflict.id == "openai-custom"
+    assert builtin_conflict.id == "glm-crec-custom"
     assert duplicate.id == "custom-openai-new"
     assert loaded is not None
     assert isinstance(loaded, OpenAIProvider)
@@ -190,16 +189,16 @@ async def test_activate_provider_persists_active_model(
         lambda self, timeout=5: fake_client,
     )
 
-    await manager.activate_model("openai", "gpt-5")
+    await manager.activate_model("glm-crec", "glm")
 
     assert manager.active_model is not None
-    assert manager.active_model.provider_id == "openai"
-    assert manager.active_model.model == "gpt-5"
+    assert manager.active_model.provider_id == "glm-crec"
+    assert manager.active_model.model == "glm"
 
     reloaded = ProviderManager()
     assert reloaded.active_model is not None
-    assert reloaded.active_model.provider_id == "openai"
-    assert reloaded.active_model.model == "gpt-5"
+    assert reloaded.active_model.provider_id == "glm-crec"
+    assert reloaded.active_model.model == "glm"
 
 
 async def test_resume_local_model_restores_server_and_runtime_state(
@@ -316,12 +315,11 @@ def test_migrate_legacy_file_and_persist_active_model(
 
     assert legacy_file.exists() is False
     assert manager.active_model is not None
-    assert manager.active_model.provider_id == "dashscope"
-    assert manager.active_model.model == "qwen3-max"
 
+    # dashscope 未注册于定制版 builtin → legacy 迁移跳过该 provider
+    # （custom providers 仍正常迁移）。
     dashscope_provider = manager.get_provider("dashscope")
-    assert dashscope_provider is not None
-    assert dashscope_provider.api_key == "sk-test-legacy-secret"
+    assert dashscope_provider is None
 
     legacy_custom = manager.get_provider("mydash")
     assert legacy_custom is not None
@@ -330,8 +328,9 @@ def test_migrate_legacy_file_and_persist_active_model(
     assert legacy_custom.extra_models[0].id == "qwen3-max"
     assert legacy_custom.api_key == "sk-test-legacy-custom-secret"
 
+    # ollama 未注册于定制版 builtin → 同样跳过
     legacy_ollama = manager.get_provider("ollama")
-    assert legacy_ollama.base_url == "http://myhost:11434"
+    assert legacy_ollama is None
 
     active_model_file = isolated_secret_dir / "providers" / "active_model.json"
     assert active_model_file.exists()
@@ -342,21 +341,21 @@ async def test_add_custom_provider_conflict_resolution_loops_until_unique(
 ) -> None:
     manager = ProviderManager()
     conflict = OpenAIProvider(
-        id="openai",
-        name="Conflict OpenAI",
+        id="glm-crec",  # conflicts with a registered builtin
+        name="Conflict GLM",
     )
 
     first = await manager.add_custom_provider(conflict)
     second = await manager.add_custom_provider(conflict)
     third = await manager.add_custom_provider(conflict)
 
-    assert first.id == "openai-custom"
-    assert second.id == "openai-custom-new"
-    assert third.id == "openai-custom-new-new"
+    assert first.id == "glm-crec-custom"
+    assert second.id == "glm-crec-custom-new"
+    assert third.id == "glm-crec-custom-new-new"
 
-    assert manager.get_provider("openai-custom") is not None
-    assert manager.get_provider("openai-custom-new") is not None
-    assert manager.get_provider("openai-custom-new-new") is not None
+    assert manager.get_provider("glm-crec-custom") is not None
+    assert manager.get_provider("glm-crec-custom-new") is not None
+    assert manager.get_provider("glm-crec-custom-new-new") is not None
 
 
 def test_update_provider_for_builtin_persists_to_builtin_path(
@@ -365,7 +364,7 @@ def test_update_provider_for_builtin_persists_to_builtin_path(
     manager = ProviderManager()
 
     ok = manager.update_provider(
-        "openai",
+        "glm-crec",
         {
             "base_url": "https://updated.example/v1",  # not taken effect
             "api_key": "sk-updated",
@@ -373,12 +372,13 @@ def test_update_provider_for_builtin_persists_to_builtin_path(
     )
 
     assert ok is True
-    persisted = manager.load_provider("openai", is_builtin=True)
+    persisted = manager.load_provider("glm-crec", is_builtin=True)
     assert persisted is not None
     assert isinstance(persisted, OpenAIProvider)
-    assert persisted.base_url == "https://api.openai.com/v1"
+    assert persisted.base_url == "https://ai-api.crec.cn/v1"  # frozen
     assert persisted.api_key == "sk-updated"
 
+    # azure-openai 未注册（定制版 builtin 无此 provider）→ 更新失败
     ok = manager.update_provider(
         "azure-openai",
         {
@@ -386,12 +386,7 @@ def test_update_provider_for_builtin_persists_to_builtin_path(
             "api_key": "sk-azure-updated",
         },
     )
-    assert ok is True
-    persisted_azure = manager.load_provider("azure-openai", is_builtin=True)
-    assert persisted_azure is not None
-    assert isinstance(persisted_azure, OpenAIProvider)
-    assert persisted_azure.base_url == "https://azure-updated.example/v1"
-    assert persisted_azure.api_key == "sk-azure-updated"
+    assert ok is False
 
 
 def test_update_provider_for_unknown_returns_false(
@@ -419,7 +414,7 @@ async def test_activate_provider_invalid_model_raises(
     manager = ProviderManager()
 
     with pytest.raises(ModelNotFoundException, match="not-exists"):
-        await manager.activate_model("openai", "not-exists")
+        await manager.activate_model("glm-crec", "not-exists")
 
 
 async def test_add_model_to_provider_duplicate_id_raises(
@@ -428,15 +423,15 @@ async def test_add_model_to_provider_duplicate_id_raises(
     manager = ProviderManager()
     model_info = ModelInfo(id="custom-duplicate", name="Custom Duplicate")
 
-    provider = await manager.add_model_to_provider("openai", model_info)
+    provider = await manager.add_model_to_provider("glm-crec", model_info)
 
     assert [m.id for m in provider.extra_models].count("custom-duplicate") == 1
 
     with pytest.raises(ProviderError, match="already exists"):
-        await manager.add_model_to_provider("openai", model_info)
+        await manager.add_model_to_provider("glm-crec", model_info)
 
     reloaded = ProviderManager()
-    reloaded_provider = reloaded.get_provider("openai")
+    reloaded_provider = reloaded.get_provider("glm-crec")
 
     assert reloaded_provider is not None
     assert reloaded_provider.extra_models is not None
@@ -525,20 +520,10 @@ def test_init_from_storage_migrates_with_different_provider(
 
     manager = ProviderManager()
 
+    # 定制版 builtin 注册表不含 minimax → _init_from_storage 只遍历
+    # 已注册 builtin，磁盘上的 minimax.json 不生效。
     provider = manager.get_provider("minimax")
-
-    assert provider is not None
-    assert isinstance(provider, AnthropicProvider)
-    # url / name / chatmodel should be updated
-    assert provider.base_url == "https://api.minimax.io/anthropic"
-    assert provider.chat_model == "AnthropicChatModel"
-    assert provider.name == "MiniMax (International)"
-    # api key should be preserved
-    assert provider.api_key == "sk-legacy-minimax"
-
-    from agentscope.model import AnthropicChatModel
-
-    assert provider.get_chat_model_cls() == AnthropicChatModel
+    assert provider is None
 
     legacy_ollama_provider = {
         "id": "ollama",
@@ -552,8 +537,6 @@ def test_init_from_storage_migrates_with_different_provider(
         json.dumps(legacy_ollama_provider, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
+    # 定制版 builtin 不含 ollama → 磁盘配置不生效
     manager = ProviderManager()
-    assert manager.get_provider("ollama") is not None
-    assert (
-        manager.get_provider("ollama").base_url == "http://legacy-ollama:11434"
-    )
+    assert manager.get_provider("ollama") is None

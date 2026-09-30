@@ -846,13 +846,19 @@ class TestTelegramSendMedia:
         telegram_channel._application = MagicMock()
         telegram_channel._application.bot = mock_telegram_bot
 
-        part = AudioContent(type=ContentType.AUDIO, data=b"audio_data")
+        # NOTE: the pydantic AudioContent model coerces bytes to a str,
+        # so a raw-bytes payload would be decoded to "audio_data" and
+        # (correctly) treated as a nonexistent local file path. Real
+        # payloads carry an http(s) URL — use that shape here.
+        part = AudioContent(
+            type=ContentType.AUDIO,
+            data="https://example.com/audio.mp3",
+        )
         await telegram_channel.send_media("12345", part, {})
 
         mock_telegram_bot.send_audio.assert_called_once()
         call_kwargs = mock_telegram_bot.send_audio.call_args.kwargs
-        # Audio data may be bytes or string depending on implementation
-        assert call_kwargs["audio"] in [b"audio_data", "audio_data"]
+        assert call_kwargs["audio"] == "https://example.com/audio.mp3"
 
     async def test_send_media_file(self, telegram_channel, mock_telegram_bot):
         """send_media should send file via send_document."""
