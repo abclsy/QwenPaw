@@ -1,20 +1,32 @@
-// Right-side toolbar inside the input action column.
+// Right-side toolbar portaled into .qwenpaw-sender-actions.
+// order:-1 places it before (left of) the send button; the actions
+// column is a flex row aligned with the input bottom bar.
 //
-// The chat library's Sender renders a fixed structure:
-//   .qwenpaw-sender-content-bottom
-//     ├── .qwenpaw-sender-prefix        (left: mode chip etc.)
-//     └── .qwenpaw-sender-actions       (right: char count + send)
-// There is no slot to inject custom buttons into the actions column,
-// so this toolbar is absolutely positioned to sit just left of the
-// actions column, vertically aligned with it.
+// NOTE: a global override forces buttons inside .qwenpaw-sender-actions
+// to white; our icons re-assert the app accent with !important.
 
 .rightToolbar {
-  position: absolute;
-  right: 56px; // clear the send/stop button column
-  bottom: 9px; // align with the action row
   display: flex;
   align-items: center;
   gap: 2px;
-  z-index: 5;
-  pointer-events: auto;
+  order: -1; // left of the send/stop button
+  margin-right: 6px;
+
+  :global(button) {
+    color: #1961ac !important;
+  }
+
+  :global(button):hover {
+    background: rgba(25, 97, 172, 0.1) !important;
+  }
+}
+
+:global(.dark-mode) & {
+  :global(button) {
+    color: #69b1ff !important;
+  }
+
+  :global(button):hover {
+    background: rgba(64, 150, 255, 0.18) !important;
+  }
 }
