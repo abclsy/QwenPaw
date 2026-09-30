@@ -1961,5 +1961,13 @@
     "stop": "Click to stop recording and transcribe",
     "error": "Transcription failed",
     "micDenied": "Microphone access denied"
+  },
+  "planCard": {
+    "executing": "Executing plan",
+    "finished": "Plan completed",
+    "running": "Running",
+    "done": "Done",
+    "skipped": "Skipped",
+    "pending": "Pending"
   }
 }

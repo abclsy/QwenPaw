@@ -31,6 +31,7 @@ import ChatHeaderTitle from "./components/ChatHeaderTitle";
 import ChatSessionInitializer from "./components/ChatSessionInitializer";
 import WorkModeSwitcher from "./components/WorkModeSwitcher";
 import InputRightToolbar from "./components/InputRightToolbar";
+import PlanProgressCard from "./components/PlanProgressCard";
 import { useWorkModeStore } from "../../stores/workModeStore";
 import { ApprovalCard } from "../../components/ApprovalCard/ApprovalCard";
 import { commandsApi } from "../../api/modules/commands";
@@ -1276,6 +1277,7 @@ export default function ChatPage() {
       }}
     >
       <div className={styles.chatMessagesArea}>
+        <PlanProgressCard />
         <AgentScopeRuntimeWebUI
           ref={(r: IAgentScopeRuntimeWebUIRef | null) => {
             // The React ref callback is where the library hands us the

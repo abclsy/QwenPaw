@@ -1,0 +1,152 @@
+// Inline plan progress card above the message list.
+// Compact, light, non-intrusive; accent follows the app palette.
+
+.card {
+  margin: 8px 16px 4px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(25, 97, 172, 0.04);
+  border: 1px solid rgba(25, 97, 172, 0.18);
+}
+
+.cardDone {
+  background: rgba(82, 196, 26, 0.06);
+  border-color: rgba(82, 196, 26, 0.3);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1961ac;
+  white-space: nowrap;
+}
+
+.cardDone .title {
+  color: #52c41a;
+}
+
+.planName {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.count {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.45);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress {
+  margin: 2px 0 6px;
+}
+
+.taskList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.taskName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.task_todo .taskName {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.taskState {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.iconDone {
+  color: #52c41a;
+  font-size: 13px;
+}
+
+.iconRunning {
+  color: #1961ac;
+  font-size: 13px;
+}
+
+.iconTodo {
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 13px;
+}
+
+.iconAbandoned {
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 13px;
+}
+
+// ── Dark theme ────────────────────────────────────────────────────────
+:global(.dark-mode) & {
+  .card {
+    background: rgba(64, 150, 255, 0.08);
+    border-color: rgba(64, 150, 255, 0.25);
+  }
+
+  .title {
+    color: #69b1ff;
+  }
+
+  .planName {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .count,
+  .taskState {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .taskName {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .task_todo .taskName {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .iconDone {
+    color: #73d13d;
+  }
+
+  .iconRunning {
+    color: #69b1ff;
+  }
+
+  .iconTodo,
+  .iconAbandoned {
+    color: rgba(255, 255, 255, 0.3);
+  }
+}
