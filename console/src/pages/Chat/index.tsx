@@ -1101,7 +1101,7 @@ export default function ChatPage() {
             <ModelSelector compact />
           </>
         ),
-        header: <QuotePreviewBar />,
+        beforeUI: <QuotePreviewBar />,
         allowSpeech: false, // broken in WebView (SpeechRecognition unsupported); replaced by VoiceInputButton in InputRightToolbar
         afterUI: <InputRightToolbar />,
         attachments: {
@@ -1217,7 +1217,12 @@ export default function ChatPage() {
             ),
             onClick: ({ data }: { data: CopyableResponse }) => {
               const text = extractCopyableText(data).trim();
-              if (!text) return;
+              if (!text) {
+                message.warning(
+                  t("common.quoteEmpty", "该消息没有可引用的文本"),
+                );
+                return;
+              }
               const chunks = data.output || [];
               const role =
                 chunks.length > 0 && chunks[0].role === "user"

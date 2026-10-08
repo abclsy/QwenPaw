@@ -31,7 +31,8 @@
     "yes": "Yes",
     "no": "No",
     "quote": "Quote",
-    "quoted": "Message quoted — type your question"
+    "quoted": "Message quoted — type your question",
+    "quoteEmpty": "Nothing quotable in this message"
   },
   "update": {
     "title": "Check for updates",

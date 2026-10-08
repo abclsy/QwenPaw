@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 import { CloseOutlined, UserOutlined, RobotOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 
@@ -41,13 +41,20 @@ export function takeQuotedMessage(): QuotedMessage | null {
   return q;
 }
 
+function subscribeQuoted(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
 function useQuotedMessage(): QuotedMessage | null {
-  const [state, setState] = useState<QuotedMessage | null>(quotedMessage);
-  useState(() => {
-    listeners.add(setState);
-    return () => listeners.delete(setState);
-  });
-  return state;
+  // useSyncExternalStore: reliable external-state subscription (the
+  // earlier useState(() => listener) trick never ran its cleanup and
+  // could silently miss updates).
+  return useSyncExternalStore(
+    subscribeQuoted,
+    () => quotedMessage,
+    () => null,
+  );
 }
 
 const MAX_EXCERPT = 80;
