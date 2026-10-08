@@ -15,6 +15,8 @@ import styles from "./GlobalSearch.module.less";
 export interface SearchHit {
   domain: "chat" | "file";
   session_id: string | null;
+  chat_id: string | null;
+  chat_name: string | null;
   agent_name: string | null;
   role: string | null;
   timestamp: string | null;
@@ -95,8 +97,11 @@ export default function GlobalSearch({
     }
   }, [open]);
 
-  const jumpToSession = (sessionId: string) => {
-    onOpenSession?.(sessionId);
+  const jumpToChat = (h: SearchHit) => {
+    // Prefer the backend chat UUID (route /chat/:id); fall back to the
+    // session file id if the chat index has no mapping.
+    const target = h.chat_id || h.session_id;
+    if (target) onOpenSession?.(target);
     onClose();
   };
 
@@ -165,9 +170,7 @@ export default function GlobalSearch({
                     <li
                       key={`${h.session_id}-${i}`}
                       className={styles.hitItem}
-                      onClick={() =>
-                        h.session_id && jumpToSession(h.session_id)
-                      }
+                      onClick={() => jumpToChat(h)}
                     >
                       <span className={styles.hitIcon}>
                         {h.role === "user" ? (
@@ -177,6 +180,11 @@ export default function GlobalSearch({
                         )}
                       </span>
                       <div className={styles.hitMain}>
+                        {h.chat_name && (
+                          <div className={styles.hitChatName}>
+                            {h.chat_name}
+                          </div>
+                        )}
                         <div className={styles.hitSnippet}>{h.snippet}</div>
                         <div className={styles.hitMeta}>
                           {h.role === "user"
@@ -188,11 +196,9 @@ export default function GlobalSearch({
                             : ""}
                         </div>
                       </div>
-                      {h.session_id && (
-                        <Tag className={styles.jumpTag}>
-                          {t("globalSearch.open", "打开")}
-                        </Tag>
-                      )}
+                      <Tag className={styles.jumpTag}>
+                        {t("globalSearch.open", "打开")}
+                      </Tag>
                     </li>
                   ))}
                 </ul>
@@ -211,7 +217,7 @@ export default function GlobalSearch({
                       key={`${h.path}-${i}`}
                       className={styles.hitItem}
                       onClick={() =>
-                        h.path && jumpToSession(`__file__:${h.path}`)
+                        h.path && onOpenSession?.(`__file__:${h.path}`)
                       }
                     >
                       <span className={styles.hitIcon}>

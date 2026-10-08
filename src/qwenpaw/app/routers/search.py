@@ -48,6 +48,8 @@ class SearchHit(BaseModel):
     domain: str  # "chat" | "file"
     # chat: session_id / role / timestamp; file: path
     session_id: Optional[str] = None
+    chat_id: Optional[str] = None  # backend chat UUID (for /chat/:id nav)
+    chat_name: Optional[str] = None  # title from chats.json
     agent_name: Optional[str] = None
     role: Optional[str] = None
     timestamp: Optional[str] = None
@@ -107,7 +109,43 @@ def _make_snippet(text: str, match_start: int, match_end: int) -> str:
 
 
 
-def _search_chat_files(sessions_dir: Path, pattern: re.Pattern) -> list[SearchHit]:
+def _load_chat_index(workspace_dir: Path) -> dict[str, dict]:
+    """Map session file stem → {chat_id, chat_name} from chats.json.
+
+    Session files are named ``{user_id}_{session_id}.json``; chats.json
+    entries carry user_id + session_id + the backend chat UUID + title.
+    """
+    index: dict[str, dict] = {}
+    chats_path = workspace_dir / "chats.json"
+    if not chats_path.is_file():
+        return index
+    try:
+        data = json.loads(chats_path.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return index
+    entries = data.get("chats") if isinstance(data, dict) else None
+    if not isinstance(entries, list):
+        return index
+    for chat in entries:
+        if not isinstance(chat, dict):
+            continue
+        user_id = chat.get("user_id") or ""
+        session_id = chat.get("session_id") or ""
+        if not session_id:
+            continue
+        stem = f"{user_id}_{session_id}" if user_id else session_id
+        index[stem] = {
+            "chat_id": chat.get("id"),
+            "chat_name": chat.get("name"),
+        }
+    return index
+
+
+def _search_chat_files(
+    sessions_dir: Path,
+    pattern: re.Pattern,
+    chat_index: dict[str, dict] | None = None,
+) -> list[SearchHit]:
     hits: list[SearchHit] = []
     if not sessions_dir.is_dir():
         return hits
@@ -150,9 +188,12 @@ def _search_chat_files(sessions_dir: Path, pattern: re.Pattern) -> list[SearchHi
                 continue
             session_hits += 1
             if best is None or role == "user":
+                meta = (chat_index or {}).get(session_id, {})
                 best = SearchHit(
                     domain="chat",
                     session_id=session_id,
+                    chat_id=meta.get("chat_id"),
+                    chat_name=meta.get("chat_name"),
                     agent_name=agent_name,
                     role=role,
                     timestamp=msg.get("timestamp"),
@@ -222,10 +263,11 @@ async def global_search(
 
     workspace_dir = Path(workspace.workspace_dir)
     sessions_dir = workspace_dir / "sessions"
+    chat_index = _load_chat_index(workspace_dir)
 
     # keep the event loop responsive: run scans in a worker thread
     chats, files = await asyncio.to_thread(
-        _scan_all, sessions_dir, workspace_dir, pattern,
+        _scan_all, sessions_dir, workspace_dir, pattern, chat_index,
     )
     return SearchResponse(query=query, chats=chats, files=files)
 
@@ -234,9 +276,10 @@ def _scan_all(
     sessions_dir: Path,
     workspace_dir: Path,
     pattern: re.Pattern,
+    chat_index: dict[str, dict] | None = None,
 ) -> tuple[list[SearchHit], list[SearchHit]]:
     try:
-        chats = _search_chat_files(sessions_dir, pattern)
+        chats = _search_chat_files(sessions_dir, pattern, chat_index)
     except Exception as e:  # noqa: BLE001
         logger.warning("search: chat scan failed: %s", e)
         chats = []

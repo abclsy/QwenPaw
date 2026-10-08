@@ -646,7 +646,10 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
             const filePath = sessionId.slice("__file:".length);
             navigate(`/workspace?file=${encodeURIComponent(filePath)}`);
           } else {
-            navigate(`/chat?session=${encodeURIComponent(sessionId)}`);
+            // Chat route is /chat/:id (path param) — the page derives
+            // chatId from location.pathname and the library picks it up
+            // via sessionApi.preferredChatId.
+            navigate(`/chat/${encodeURIComponent(sessionId)}`);
           }
         }}
       />
