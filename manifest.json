@@ -1,21 +1,21 @@
 {
-  "version": "1.1.8",
-  "date": "2026-09-28T09:29:09Z",
+  "version": "1.1.9",
+  "date": "2026-10-08T08:14:12Z",
   "releaseNotes": {
-    "zh": "1. 修复长任务被调用上限截断的问题：上限提升至500步，达到上限后保留进度，输入「继续」即可接着执行\n2. 修复页面偶发卡死：新增卡顿自动恢复提示，可一键复制诊断信息\n3. 修复检查更新功能，升级后可通过「设置-检查更新」自动升级",
-    "en": "1. 修复长任务被调用上限截断的问题：上限提升至500步，达到上限后保留进度，输入「继续」即可接着执行\n2. 修复页面偶发卡死：新增卡顿自动恢复提示，可一键复制诊断信息\n3. 修复检查更新功能，升级后可通过「设置-检查更新」自动升级"
+    "zh": "1. 新增三种工作模式：问一问（快速问答）、想一想（计划确认后执行，带实时进度卡片）、做一做（完整工具链）\n2. 新增全局搜索（⌘K / Ctrl+K）：聊天记录与工作区文件一键检索，命中直达会话\n3. 新增定时任务运行历史：时间线展示历次执行，失败原因一键展开定位\n4. 新增消息引用：输入框上方预览条，追问紧扣原文\n5. 12 位中铁专家全面深化：变更索赔四要素、危大工程清单、FIDIC 速查、验工计价口径等硬知识库\n6. 新增输入框星光润色与语音输入\n7. 修复 Windows 任务栏图标显示为 Python 的问题\n8. 修复切换模型后被静默重置回默认模型的问题\n9. 性能优化：长会话渲染虚拟化；安装包稳定性与启动体验改进",
+    "en": "1. Three work modes: Ask (fast Q&A), Plan (confirm-then-execute with live progress card), Craft (full toolchain)\n2. Global search (Cmd/Ctrl+K) across chat history and workspace files, jump straight to the session\n3. Cron job run history: timeline of executions with expandable failure reasons\n4. Message quote: preview bar above the input for contextual follow-ups\n5. All 12 domain experts deepened with hard knowledge bases\n6. Input sparkle polish and voice input\n7. Fixed Windows taskbar showing the Python icon\n8. Fixed active model silently resetting to default\n9. Performance: long-session render virtualization and startup improvements"
   },
   "minAppVersion": "1.0.0",
   "platforms": {
     "darwin": {
-      "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=CrecPaw-1.1.8-mac.zip",
-      "sha256": "82824e3040977dbaa9981c4a5f99da733e3e4a4a26861c3df09d101ef274ac54",
-      "size": 194194361
+      "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=CrecPaw-1.1.9-mac.zip",
+      "sha256": "15a26575ec82b2a3f8fa466deb2a206633c9e7c77f3ef0b265567a7eba4d683c",
+      "size": 194271784
     },
     "win32": {
-      "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=crecpaw_windows.zip",
-      "sha256": "987303d0117f2b14f86a222cc052097c5773dea1ec32be23f820602623741037",
-      "size": 568224080
+      "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=CrecPaw-Setup-1.1.9.exe",
+      "sha256": null,
+      "size": 578633245
     }
   }
 }
