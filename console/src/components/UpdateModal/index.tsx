@@ -65,8 +65,20 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ open, onClose }) => {
   const handleApply = async () => {
     setLoading(true);
     try {
-      await updateApi.apply();
-      // App will restart — no need to handle response
+      const result = await updateApi.apply();
+      // Business failure (e.g. "Update package not downloaded") returns
+      // HTTP 200 with success:false — surface it instead of spinning
+      // forever while the app keeps running.
+      if (result && result.success === false) {
+        console.error("Apply rejected:", result.error);
+        setState((prev) =>
+          prev
+            ? { ...prev, status: "error", error: result.error || "" }
+            : prev,
+        );
+        setLoading(false);
+      }
+      // success → app restarts shortly; keep the spinner until exit
     } catch (e) {
       console.error("Apply failed:", e);
       setLoading(false);

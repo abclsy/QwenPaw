@@ -1034,6 +1034,49 @@ def desktop_cmd(
             )
             ready_thread.start()
 
+            # ── Update-restart support (Windows dual-process) ──────────────
+            # The backend child exits with code 0 when applying an update
+            # (restart_app → os._exit(0)). webview.start() only returns when
+            # the USER closes the window — it never notices the backend
+            # dying, so the app would hang with a spinning UI. This watcher
+            # follows a clean backend exit by destroying all windows, which
+            # unblocks webview.start() and lets the finally-block clean up,
+            # freeing file locks for the NSIS update script.
+            if is_windows and proc is not None:
+                exit_flag = {"manual": False}
+
+                def _watch_backend_exit(p, flag):
+                    try:
+                        rc = p.wait()
+                    except Exception:
+                        return
+                    if rc == 0 and not flag["manual"]:
+                        logger.info(
+                            "Backend exited cleanly (code 0) — closing "
+                            "windows for update restart.",
+                        )
+                        try:
+                            for w in list(webview.windows):
+                                try:
+                                    w.destroy()
+                                except Exception:
+                                    pass
+                        except Exception:
+                            pass
+
+                watcher_thread = threading.Thread(
+                    target=_watch_backend_exit,
+                    args=(proc, exit_flag),
+                    name="backend-exit-watcher",
+                    daemon=True,
+                )
+                watcher_thread.start()
+                # Share the flag with the finally-block so an intentional
+                # terminate() does not trigger a window-close race.
+                backend_exit_flag = exit_flag
+            else:
+                backend_exit_flag = None
+
             logger.info("Calling webview.start() with splash (blocks until closed)...")
 
             # ── WebView2 (Windows): 允许 iframe 跨站携带统一认证 SSO cookie ──
@@ -1080,6 +1123,10 @@ def desktop_cmd(
             # - Process may exit between poll() and terminate()
             # - terminate()/kill() may raise ProcessLookupError/OSError
             # - We must not let cleanup exceptions mask the original error
+            if backend_exit_flag is not None:
+                # Tell the exit-watcher (if any) this is an intentional
+                # termination, not an update-restart exit.
+                backend_exit_flag["manual"] = True
             if proc and proc.poll() is None:  # process still running
                 logger.info("Terminating backend server...")
                 manually_terminated = (

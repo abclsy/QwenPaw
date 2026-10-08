@@ -147,9 +147,24 @@ def _apply_windows(zip_path: Path, target_dir: Path) -> bool:
     """
     target_parent = target_dir.parent
 
+    # PIDs to wait for before touching install files: the backend exits
+    # via restart_app() right after this script launches, but the webview
+    # parent process needs a moment to follow (backend-exit-watcher in
+    # desktop_cmd closes its windows). NSIS will fail on locked files if
+    # we start too early.
+    backend_pid = os.getpid()
+    parent_pid = os.getppid()
+
     # PowerShell script for Windows
     script = f"""# Auto-update script for 小铁智友
-Start-Sleep -Seconds 2
+# Wait (up to 60s) for the old app processes to exit so file locks are
+# released before the installer runs.
+$deadline = (Get-Date).AddSeconds(60)
+while ((Get-Date) -lt $deadline) {{
+    $alive = Get-Process -Id {backend_pid}, {parent_pid} -ErrorAction SilentlyContinue
+    if (-not $alive) {{ break }}
+    Start-Sleep -Milliseconds 500
+}}
 
 # Extract the installer from the update zip
 $ErrorActionPreference = "Stop"
@@ -180,7 +195,9 @@ Remove-Item -Path $MyInvocation.MyCommand.Path -Force -ErrorAction SilentlyConti
 """
 
     script_path = _UPDATE_DIR / "apply_update.ps1"
-    script_path.write_text(script, encoding="utf-8")
+    # utf-8-sig (BOM): Windows PowerShell 5.1 misreads BOM-less UTF-8 as
+    # ANSI and garbles the CJK install paths inside this script.
+    script_path.write_text(script, encoding="utf-8-sig")
 
     logger.info("Launching Windows update script: %s", script_path)
     try:
