@@ -8,14 +8,14 @@
   "minAppVersion": "1.0.0",
   "platforms": {
     "darwin": {
-      "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=CrecPaw-1.1.9-mac.zip",
+      "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=CrecPaw.zip",
       "sha256": "15a26575ec82b2a3f8fa466deb2a206633c9e7c77f3ef0b265567a7eba4d683c",
       "size": 194271784
     },
     "win32": {
-      "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=CrecPaw-Setup-1.1.9.exe",
-      "sha256": "1b79d851b4ff8e9b77140f7417575c4c5ac8f7e0a090b7e81e11bfcbd763df5c",
-      "size": 578633245
+      "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=crecpaw_windows.zip",
+      "sha256": "1e38fa31916f6f3e226febc4b278e4caae582e21e6ee28239f93c928d8f0156c",
+      "size": 574820132
     }
   }
 }
