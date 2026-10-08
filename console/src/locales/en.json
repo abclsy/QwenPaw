@@ -91,7 +91,8 @@
     "operations": "Operations",
     "systemSettings": "Settings",
     "more": "More",
-    "history": "Chat History"
+    "history": "Chat History",
+    "search": "Global Search"
   },
   "debug": {
     "title": "Debug",
@@ -1989,5 +1990,17 @@
     "cancelled": "Cancelled",
     "manual": "Manual",
     "scheduled": "Scheduled"
+  },
+  "globalSearch": {
+    "placeholder": "Search chats and workspace files…",
+    "hint": "Type keywords to search messages and workspace text files",
+    "shortcut": "Shortcut",
+    "noResults": "No results found",
+    "chats": "Chats",
+    "files": "Workspace Files",
+    "me": "Me",
+    "assistant": "Assistant",
+    "hits": "hits",
+    "open": "Open"
   }
 }

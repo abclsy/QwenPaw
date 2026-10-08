@@ -1011,3 +1011,20 @@
     color: rgba(255, 255, 255, 0.3);
   }
 }
+
+// ── Global search nav entry ────────────────────────────────────────────
+
+.searchKbd {
+  margin-left: auto;
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  padding: 0 5px;
+  line-height: 16px;
+}
+
+:global(.dark-mode) .searchKbd {
+  color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.15);
+}

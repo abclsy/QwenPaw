@@ -91,7 +91,8 @@
     "operations": "运营管理",
     "systemSettings": "系统设置",
     "more": "更多",
-    "history": "对话历史"
+    "history": "对话历史",
+    "search": "全局搜索"
   },
   "debug": {
     "title": "调试",
@@ -2003,5 +2004,17 @@
     "cancelled": "已取消",
     "manual": "手动",
     "scheduled": "定时"
+  },
+  "globalSearch": {
+    "placeholder": "搜索聊天记录和工作区文件…",
+    "hint": "输入关键词，同时搜索会话消息与工作区文本文件",
+    "shortcut": "快捷键",
+    "noResults": "没有找到相关内容",
+    "chats": "聊天记录",
+    "files": "工作区文件",
+    "me": "我",
+    "assistant": "助手",
+    "hits": "处命中",
+    "open": "打开"
   }
 }

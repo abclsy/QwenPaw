@@ -33,6 +33,8 @@ import { usePlugins } from "../plugins/PluginContext";
 import styles from "./index.module.less";
 import { useTheme } from "../contexts/ThemeContext";
 import { UpdateModal } from "../components/UpdateModal";
+import GlobalSearch from "../components/GlobalSearch";
+import { SearchOutlined } from "@ant-design/icons";
 import { updateApi, type UpdateState } from "../api/modules/update";
 import {
   LogoutOutlined,
@@ -87,11 +89,24 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
   const [hasUpdate, setHasUpdate] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [username, setUsername] = useState(
     getAuthUsername() || t("nav.guest", "用户"),
   );
 
   // ── Effects ──────────────────────────────────────────────────────────────
+
+  // Global search: Cmd/Ctrl+K shortcut
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   useEffect(() => {
     authApi
@@ -393,6 +408,18 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
 
             {/* Flat main navigation + 更多 flyout */}
             <nav className={styles.navList}>
+              <button
+                className={styles.navItem}
+                onClick={() => setSearchOpen(true)}
+              >
+                <span className={styles.navItemIcon}>
+                  <SearchOutlined style={{ fontSize: 16 }} />
+                </span>
+                <span className={styles.navItemLabel}>
+                  {t("nav.search", "全局搜索")}
+                </span>
+                <span className={styles.searchKbd}>⌘K</span>
+              </button>
               {mainItems.map(renderNavItem)}
               <Popover
                 open={moreOpen}
@@ -611,6 +638,18 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
         </Dropdown>
       </div>
 
+      <GlobalSearch
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        onOpenSession={(sessionId) => {
+          if (sessionId.startsWith("__file__:")) {
+            const filePath = sessionId.slice("__file:".length);
+            navigate(`/workspace?file=${encodeURIComponent(filePath)}`);
+          } else {
+            navigate(`/chat?session=${encodeURIComponent(sessionId)}`);
+          }
+        }}
+      />
       <UpdateModal open={updateModalOpen} onClose={() => setUpdateModalOpen(false)} />
 
       {/* Settings modal — backend admin entries (WorkBuddy style) */}
