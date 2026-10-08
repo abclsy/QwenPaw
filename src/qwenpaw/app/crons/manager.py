@@ -5,6 +5,7 @@ import asyncio
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -24,6 +25,7 @@ from .heartbeat import (
 )
 from .models import CronJobSpec, CronJobState
 from .repo.base import BaseJobRepository
+from .run_history import JsonRunHistoryStore, RunRecord
 
 HEARTBEAT_JOB_ID = "_heartbeat"
 DREAM_JOB_ID = "_dream"
@@ -45,11 +47,15 @@ class CronManager:
         channel_manager: Any,
         timezone: str = "UTC",  # pylint: disable=redefined-outer-name
         agent_id: Optional[str] = None,
+        run_history: Optional[JsonRunHistoryStore] = None,
     ):
         self._repo = repo
         self._runner = runner
         self._channel_manager = channel_manager
         self._agent_id = agent_id
+        self._run_history = run_history or JsonRunHistoryStore(
+            Path("cron_runs.json"),
+        )
         self._scheduler = AsyncIOScheduler(timezone=timezone)
         self._executor = CronExecutor(
             runner=runner,
@@ -166,7 +172,12 @@ class CronManager:
                 self._scheduler.remove_job(job_id)
             self._states.pop(job_id, None)
             self._rt.pop(job_id, None)
+            self._run_history.delete_runs(job_id)
             return await self._repo.delete_job(job_id)
+
+    def get_runs(self, job_id: str, limit: int = 50) -> list[RunRecord]:
+        """Newest-first run history for a job (run timeline view)."""
+        return self._run_history.get_runs(job_id, limit=limit)
 
     async def pause_job(self, job_id: str) -> None:
         async with self._lock:
@@ -458,11 +469,16 @@ class CronManager:
             st = self._states.get(job.id, CronJobState())
             st.last_status = "running"
             self._states[job.id] = st
+            run_rec = self._run_history.start_run(
+                job.id,
+                run_id=f"{job.id}:{datetime.now(timezone.utc).isoformat()}",
+            )
 
             try:
                 await self._executor.execute(job)
                 st.last_status = "success"
                 st.last_error = None
+                self._run_history.finish_run(run_rec, "success")
                 logger.info(
                     "cron _execute_once: job_id=%s status=success",
                     job.id,
@@ -470,6 +486,11 @@ class CronManager:
             except asyncio.CancelledError:
                 st.last_status = "cancelled"
                 st.last_error = "Job was cancelled"
+                self._run_history.finish_run(
+                    run_rec,
+                    "cancelled",
+                    error="Job was cancelled",
+                )
                 logger.info(
                     "cron _execute_once: job_id=%s status=cancelled",
                     job.id,
@@ -478,6 +499,11 @@ class CronManager:
             except Exception as e:  # pylint: disable=broad-except
                 st.last_status = "error"
                 st.last_error = repr(e)
+                self._run_history.finish_run(
+                    run_rec,
+                    "error",
+                    error=repr(e)[:500],
+                )
                 logger.warning(
                     "cron _execute_once: job_id=%s status=error error=%s",
                     job.id,

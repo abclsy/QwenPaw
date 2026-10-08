@@ -30,6 +30,7 @@ from ..runner.task_tracker import TaskTracker
 from ..mcp import MCPClientManager
 from ..crons.manager import CronManager
 from ..crons.repo.json_repo import JsonJobRepository
+from ..crons.run_history import JsonRunHistoryStore
 from ...config.config import load_agent_config
 
 logger = logging.getLogger(__name__)
@@ -281,6 +282,9 @@ class Workspace:
                     )
                     or "UTC",
                     "agent_id": ws.agent_id,
+                    "run_history": JsonRunHistoryStore(
+                        str(ws.workspace_dir / "cron_runs.json"),
+                    ),
                 },
                 start_method="start",
                 stop_method="stop",

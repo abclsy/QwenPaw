@@ -757,7 +757,8 @@
     "misfireGraceSecondsTooltip": "Grace period for missed executions. If a job misses its scheduled time by more than this, it won't run.",
     "executeNowTitle": "Execute Task Now",
     "executeNowContent": "Are you sure you want to execute \"{{name}}\" now?",
-    "executeNowConfirm": "Execute Now"
+    "executeNowConfirm": "Execute Now",
+    "runHistory": "History"
   },
   "channels": {
     "title": "Channels",
@@ -1977,5 +1978,16 @@
     "you": "You",
     "assistant": "小铁智友",
     "remove": "Remove quote"
+  },
+  "runHistory": {
+    "title": "Run History",
+    "empty": "No runs yet",
+    "refresh": "Refresh",
+    "success": "Success",
+    "error": "Failed",
+    "running": "Running",
+    "cancelled": "Cancelled",
+    "manual": "Manual",
+    "scheduled": "Scheduled"
   }
 }

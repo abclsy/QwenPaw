@@ -7,6 +7,7 @@ import api from "../../../api";
 import {
   createColumns,
   JobDrawer,
+  RunHistoryDrawer,
   useCronJobs,
   DEFAULT_FORM_VALUES,
 } from "./components";
@@ -29,6 +30,8 @@ function CronJobsPage() {
   } = useCronJobs();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<CronJob | null>(null);
+  const [runsJob, setRunsJob] = useState<CronJob | null>(null);
+  const [runsOpen, setRunsOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm<CronJob>();
   const userTimezoneRef = useRef("UTC");
@@ -199,9 +202,15 @@ function CronJobsPage() {
     }
   };
 
+  const handleViewRuns = (job: CronJob) => {
+    setRunsJob(job);
+    setRunsOpen(true);
+  };
+
   const columns = createColumns({
     onToggleEnabled: handleToggleEnabled,
     onExecuteNow: handleExecuteNow,
+    onViewRuns: handleViewRuns,
     onEdit: handleEdit,
     onDelete: handleDelete,
     t,
@@ -239,6 +248,12 @@ function CronJobsPage() {
         saving={saving}
         onClose={handleDrawerClose}
         onSubmit={handleSubmit}
+      />
+
+      <RunHistoryDrawer
+        open={runsOpen}
+        job={runsJob ? { id: runsJob.id, name: runsJob.name } : null}
+        onClose={() => setRunsOpen(false)}
       />
     </div>
   );

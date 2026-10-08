@@ -611,7 +611,8 @@
     "misfireGraceSecondsTooltip": "错过执行的宽限期。如果任务错过计划时间超过此时长，将不会执行。",
     "executeNowTitle": "立即执行任务",
     "executeNowContent": "确定要立即执行任务 \"{{name}}\" 吗？",
-    "executeNowConfirm": "立即执行"
+    "executeNowConfirm": "立即执行",
+    "runHistory": "历史"
   },
   "channels": {
     "title": "频道",
@@ -1991,5 +1992,16 @@
     "you": "我",
     "assistant": "小铁智友",
     "remove": "取消引用"
+  },
+  "runHistory": {
+    "title": "运行历史",
+    "empty": "暂无运行记录",
+    "refresh": "刷新",
+    "success": "成功",
+    "error": "失败",
+    "running": "运行中",
+    "cancelled": "已取消",
+    "manual": "手动",
+    "scheduled": "定时"
   }
 }

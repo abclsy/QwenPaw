@@ -198,3 +198,167 @@
     color: #69b1ff !important;
   }
 }
+
+// ── Run history timeline drawer ───────────────────────────────────────
+
+.drawerTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.drawerJobName {
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.45);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emptyWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+  color: rgba(0, 0, 0, 0.35);
+  font-size: 13px;
+}
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 14px;
+  border-left: 2px solid rgba(0, 0, 0, 0.08);
+}
+
+.timelineItem {
+  position: relative;
+  padding: 8px 4px 8px 12px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.03);
+  }
+}
+
+.timelineItemError {
+  cursor: pointer;
+}
+
+.timelineItem::before {
+  content: "";
+  position: absolute;
+  left: -21px;
+  top: 16px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+}
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.itemTime {
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.75);
+  font-variant-numeric: tabular-nums;
+}
+
+.itemDuration {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  font-variant-numeric: tabular-nums;
+}
+
+.itemTrigger {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+.iconSuccess {
+  color: #52c41a;
+  font-size: 14px;
+}
+
+.iconError {
+  color: #ff4d4f;
+  font-size: 14px;
+}
+
+.iconRunning {
+  color: #1961ac;
+  font-size: 14px;
+}
+
+.iconOther {
+  color: rgba(0, 0, 0, 0.3);
+  font-size: 14px;
+}
+
+.errorDetail {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  background: rgba(255, 77, 79, 0.06);
+  border: 1px solid rgba(255, 77, 79, 0.25);
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: rgba(0, 0, 0, 0.7);
+  max-height: 200px;
+  overflow: auto;
+}
+
+// dark mode
+:global(.dark-mode) & {
+  .drawerJobName,
+  .emptyWrap {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .timeline {
+    border-left-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .timelineItem:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .timelineItem::before {
+    background: #1f1f1f;
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .itemTime {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .itemDuration {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .itemTrigger {
+    color: rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .errorDetail {
+    background: rgba(255, 77, 79, 0.1);
+    border-color: rgba(255, 77, 79, 0.3);
+    color: rgba(255, 255, 255, 0.75);
+  }
+}

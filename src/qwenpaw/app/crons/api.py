@@ -116,3 +116,20 @@ async def get_job_state(
     if not job:
         raise HTTPException(status_code=404, detail="job not found")
     return mgr.get_state(job_id).model_dump(mode="json")
+
+
+@router.get("/jobs/{job_id}/runs")
+async def get_job_runs(
+    job_id: str,
+    limit: int = 50,
+    mgr: CronManager = Depends(get_cron_manager),
+):
+    """Run history for a job, newest first (run timeline view).
+
+    Returns records even if the job spec was replaced; empty list for
+    unknown jobs is acceptable (no 404 — the UI may poll after delete).
+    """
+    from .run_history import RunRecord  # pylint: disable=import-outside-toplevel
+
+    runs = mgr.get_runs(job_id, limit=min(max(limit, 1), 200))
+    return [r.model_dump(mode="json") for r in runs]

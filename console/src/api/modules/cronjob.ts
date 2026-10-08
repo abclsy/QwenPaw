@@ -50,4 +50,21 @@ export const cronJobApi = {
 
   getCronJobState: (jobId: string) =>
     request<unknown>(`/cron/jobs/${encodeURIComponent(jobId)}/state`),
+
+  /** Run history for a job, newest first (run timeline view). */
+  getCronJobRuns: (jobId: string, limit = 50) =>
+    request<CronRunRecord[]>(
+      `/cron/jobs/${encodeURIComponent(jobId)}/runs?limit=${limit}`,
+    ),
 };
+
+export interface CronRunRecord {
+  run_id: string;
+  job_id: string;
+  status: "success" | "error" | "running" | "cancelled";
+  started_at: string;
+  finished_at: string | null;
+  duration_ms: number | null;
+  error: string | null;
+  trigger: "scheduled" | "manual" | string;
+}
