@@ -14,7 +14,7 @@
     },
     "win32": {
       "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=CrecPaw-Setup-1.1.9.exe",
-      "sha256": null,
+      "sha256": "1b79d851b4ff8e9b77140f7417575c4c5ac8f7e0a090b7e81e11bfcbd763df5c",
       "size": 578633245
     }
   }
