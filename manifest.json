@@ -1,21 +1,21 @@
 {
-  "version": "1.1.10",
-  "date": "2026-10-08T09:25:54Z",
+  "version": "1.1.11",
+  "date": "2026-10-09T07:34:42Z",
   "releaseNotes": {
-    "zh": "1. 修复 Windows 自动更新：重启更新按钮一直转圈的问题（双进程架构下主窗口未跟随退出）\n2. 修复更新失败时无提示的问题，现在会显示失败原因\n3. 更新脚本改为等待旧程序完全退出后再安装，避免文件占用导致安装失败",
-    "en": "1. Fixed Windows auto-update: the restart-to-update button spun forever (the webview host did not follow the backend exit in the dual-process architecture)\n2. Update failures now show the reason instead of a stuck spinner\n3. The update script waits for the old app to fully exit before installing, avoiding file-lock failures"
+    "zh": "1. 自动更新链路验证版本：升级后将可完整体验 下载→重启→自动安装 的一键升级流程\n2. 发布脚本改用固定包文件名，与更新服务器约定对齐",
+    "en": "1. Auto-update chain verification release: after upgrading, the download → restart → silent-install flow works end to end\n2. Release script now uses the fixed package filenames per the update-server convention"
   },
   "minAppVersion": "1.0.0",
   "platforms": {
     "darwin": {
       "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=CrecPaw.zip",
-      "sha256": "6b71be82ce4c7e4d663503e52d0b70d85bc60075eab423c4267b03b536b235ca",
-      "size": 194274094
+      "sha256": "8a4320c274c1e5338b165b6347c3260d805ff0518f03ad85705a1c5e45d7d1a8",
+      "size": 194274098
     },
     "win32": {
       "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=crecpaw_windows.zip",
-      "sha256": "1f7511b3d012e21374a1c9d2df78ae90dbbab68f13dd83a295d82315bd2097bc",
-      "size": 574793989
+      "sha256": "edd99a1671e7ce39d0c05b2c71dcbe2e732c86e27cb7750a723f6997f39fef9f",
+      "size": 574523531
     }
   }
 }
