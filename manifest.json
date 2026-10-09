@@ -1,21 +1,21 @@
 {
-  "version": "1.1.9",
-  "date": "2026-10-08T08:14:12Z",
+  "version": "1.1.10",
+  "date": "2026-10-08T09:25:54Z",
   "releaseNotes": {
-    "zh": "1. 新增三种工作模式：问一问（快速问答）、想一想（计划确认后执行，带实时进度卡片）、做一做（完整工具链）\n2. 新增全局搜索（⌘K / Ctrl+K）：聊天记录与工作区文件一键检索，命中直达会话\n3. 新增定时任务运行历史：时间线展示历次执行，失败原因一键展开定位\n4. 新增消息引用：输入框上方预览条，追问紧扣原文\n5. 12 位中铁专家全面深化：变更索赔四要素、危大工程清单、FIDIC 速查、验工计价口径等硬知识库\n6. 新增输入框星光润色与语音输入\n7. 修复 Windows 任务栏图标显示为 Python 的问题\n8. 修复切换模型后被静默重置回默认模型的问题\n9. 性能优化：长会话渲染虚拟化；安装包稳定性与启动体验改进",
-    "en": "1. Three work modes: Ask (fast Q&A), Plan (confirm-then-execute with live progress card), Craft (full toolchain)\n2. Global search (Cmd/Ctrl+K) across chat history and workspace files, jump straight to the session\n3. Cron job run history: timeline of executions with expandable failure reasons\n4. Message quote: preview bar above the input for contextual follow-ups\n5. All 12 domain experts deepened with hard knowledge bases\n6. Input sparkle polish and voice input\n7. Fixed Windows taskbar showing the Python icon\n8. Fixed active model silently resetting to default\n9. Performance: long-session render virtualization and startup improvements"
+    "zh": "1. 修复 Windows 自动更新：重启更新按钮一直转圈的问题（双进程架构下主窗口未跟随退出）\n2. 修复更新失败时无提示的问题，现在会显示失败原因\n3. 更新脚本改为等待旧程序完全退出后再安装，避免文件占用导致安装失败",
+    "en": "1. Fixed Windows auto-update: the restart-to-update button spun forever (the webview host did not follow the backend exit in the dual-process architecture)\n2. Update failures now show the reason instead of a stuck spinner\n3. The update script waits for the old app to fully exit before installing, avoiding file-lock failures"
   },
   "minAppVersion": "1.0.0",
   "platforms": {
     "darwin": {
       "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=CrecPaw.zip",
-      "sha256": "15a26575ec82b2a3f8fa466deb2a206633c9e7c77f3ef0b265567a7eba4d683c",
-      "size": 194271784
+      "sha256": "6b71be82ce4c7e4d663503e52d0b70d85bc60075eab423c4267b03b536b235ca",
+      "size": 194274094
     },
     "win32": {
       "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=crecpaw_windows.zip",
-      "sha256": "1e38fa31916f6f3e226febc4b278e4caae582e21e6ee28239f93c928d8f0156c",
-      "size": 574820132
+      "sha256": "1f7511b3d012e21374a1c9d2df78ae90dbbab68f13dd83a295d82315bd2097bc",
+      "size": 574793989
     }
   }
 }
