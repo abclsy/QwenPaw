@@ -13,7 +13,12 @@ from pydantic import BaseModel
 
 from ..__version__ import __version__
 from .checker import check_for_update, fetch_manifest, is_newer_version
-from .downloader import download_update, get_downloaded_update, STAGING_DIR
+from .downloader import (
+    cleanup_staging,
+    download_update,
+    get_downloaded_update,
+    STAGING_DIR,
+)
 from .applier import apply_update, restart_app
 
 logger = logging.getLogger(__name__)
@@ -78,7 +83,22 @@ async def check_updates() -> dict[str, Any]:
         _set_state(status=UpdateStatus.ERROR, error="Failed to fetch update manifest")
         return _get_state().model_dump()
 
-    # Check if already downloaded
+    # Already up to date: never offer "restart to update" — even if a
+    # staged zip happens to match the CURRENT version (e.g. this client
+    # was just updated and the staging file survived). Clean the stale
+    # staging files while we're at it (they can be ~500MB).
+    if newer is False:
+        cleanup_staging()
+        _set_state(
+            status=UpdateStatus.IDLE,
+            latest_version=manifest.version,
+            has_update=False,
+            release_notes=manifest.release_notes_text,
+        )
+        return _get_state().model_dump()
+
+    # An update IS available — surface a previously downloaded package
+    # so the user can jump straight to "restart to update".
     existing = get_downloaded_update(manifest)
     if existing:
         _set_state(

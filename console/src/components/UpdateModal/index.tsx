@@ -87,7 +87,10 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ open, onClose }) => {
 
   const hasUpdate = state?.has_update === true;
   const isDownloading = state?.status === "downloading";
-  const isDownloaded = state?.status === "downloaded";
+  // "restart to update" only makes sense when an update EXISTS — a stale
+  // "downloaded" status without has_update (already latest) must not
+  // show the button.
+  const isDownloaded = state?.status === "downloaded" && hasUpdate;
   const isError = state?.status === "error";
   const isApplying = state?.status === "applying";
   const isUpToDate = state?.has_update === false;

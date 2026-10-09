@@ -9,8 +9,8 @@
   "platforms": {
     "darwin": {
       "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=CrecPaw.zip",
-      "sha256": "8a4320c274c1e5338b165b6347c3260d805ff0518f03ad85705a1c5e45d7d1a8",
-      "size": 194274098
+      "sha256": "6e64936872fe9b9398f587bca0a0c606d22836fdddebb2a424b26a3730c3be1c",
+      "size": 194274572
     },
     "win32": {
       "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=crecpaw_windows.zip",
