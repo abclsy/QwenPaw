@@ -39,12 +39,14 @@ PLATFORM=""
 ZIP_NAME=""
 if [[ "$(uname)" == "Darwin" ]]; then
     PLATFORM="darwin"
-    ZIP_NAME="CrecPaw-$VERSION-mac.zip"
+    # 桶约定：固定文件名，不带版本号（版本只由 manifest.json 表达）
+    ZIP_NAME="CrecPaw.zip"
     cd "$DIST_DIR"
     zip -r -y "$ZIP_NAME" "小铁智友.app"
 elif [[ "$(uname)" == MINGW* ]] || [[ "$(uname)" == MSYS* ]]; then
     PLATFORM="win32"
-    ZIP_NAME="CrecPaw-$VERSION-win.zip"
+    # 桶约定：固定文件名
+    ZIP_NAME="crecpaw_windows.zip"
     cd "$DIST_DIR"
     # Windows: 压缩 Xiaotiezhiyou 目录
     7z a -tzip "$ZIP_NAME" "Xiaotiezhiyou"
