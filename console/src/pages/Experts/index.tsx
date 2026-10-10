@@ -117,9 +117,7 @@ export default function ExpertsPage() {
         />
 
         {/* Hero section */}
-        <div
-          className={`${styles.hero}${isDark ? ` ${styles.heroDark}` : ""}`}
-        >
+        <div className={`${styles.hero}${isDark ? ` ${styles.heroDark}` : ""}`}>
           <div className={styles.heroIcon}>
             <Users size={22} strokeWidth={2} />
           </div>
@@ -167,7 +165,10 @@ export default function ExpertsPage() {
             allowClear
             prefix={<Search size={14} strokeWidth={2} />}
             className={styles.searchInput}
-            placeholder={t("experts.searchPlaceholder", "搜索专家 / 领域 / 能力")}
+            placeholder={t(
+              "experts.searchPlaceholder",
+              "搜索专家 / 领域 / 能力",
+            )}
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
           />
@@ -176,7 +177,9 @@ export default function ExpertsPage() {
         {/* Expert cards grid */}
         {loading ? (
           <div className={styles.loadingWrapper}>
-            <Spin indicator={<LoadingOutlined style={{ fontSize: 28 }} spin />} />
+            <Spin
+              indicator={<LoadingOutlined style={{ fontSize: 28 }} spin />}
+            />
           </div>
         ) : filteredExperts.length === 0 ? (
           <div className={styles.emptyWrapper}>
@@ -250,7 +253,9 @@ export default function ExpertsPage() {
                       {t("experts.detail", "详情")}
                     </button>
                     <button
-                      className={`${styles.chatBtn}${exists ? ` ${styles.chatBtnContinue}` : ""}`}
+                      className={`${styles.chatBtn}${
+                        exists ? ` ${styles.chatBtnContinue}` : ""
+                      }`}
                       disabled={creatingId === expert.id}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -265,8 +270,8 @@ export default function ExpertsPage() {
                       {creatingId === expert.id
                         ? t("experts.creating", "创建中…")
                         : exists
-                          ? t("experts.continueChat", "继续对话")
-                          : t("experts.startChat", "开始对话")}
+                        ? t("experts.continueChat", "继续对话")
+                        : t("experts.startChat", "开始对话")}
                     </button>
                   </div>
                 </div>

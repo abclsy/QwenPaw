@@ -34,10 +34,7 @@ function extractFilePath(url: string): string {
 const FILE_URL_RE = /\/(api\/)?files\/preview\//;
 
 function isDesktopEnv(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    !!window.pywebview?.api?.preview_file
-  );
+  return typeof window !== "undefined" && !!window.pywebview?.api?.preview_file;
 }
 
 export default function DesktopFileLinkGuard() {

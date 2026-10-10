@@ -1,8 +1,5 @@
 import { request } from "../request";
-import type {
-  ExpertAgentResponse,
-  ExpertListResponse,
-} from "../types/experts";
+import type { ExpertAgentResponse, ExpertListResponse } from "../types/experts";
 
 // Built-in expert team API (中国中铁专家团队)
 export const expertsApi = {

@@ -305,9 +305,7 @@ export function RemoteModelManageModal({
         title: "操作确认",
         content: (
           <div>
-            <p style={{ marginBottom: 8 }}>
-              请输入密码以继续操作
-            </p>
+            <p style={{ marginBottom: 8 }}>请输入密码以继续操作</p>
             <Input.Password
               placeholder="请输入密码"
               onChange={(e) => {

@@ -31,7 +31,12 @@ import { lazyImportWithRetry } from "./utils/lazyWithRetry";
 
 const LoginPage = lazyImportWithRetry("./pages/Login/index");
 import { authApi } from "./api/modules/auth";
-import { getApiUrl, getApiToken, clearAuthToken, setAuthUsername } from "./api/config";
+import {
+  getApiUrl,
+  getApiToken,
+  clearAuthToken,
+  setAuthUsername,
+} from "./api/config";
 import "./styles/layout.css";
 import "./styles/form-override.css";
 

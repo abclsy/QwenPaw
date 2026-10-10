@@ -67,7 +67,11 @@ export default function FreezeDetector() {
       `UA: ${navigator.userAgent}`,
       // performance.memory is Chromium-only (WebView2) — undefined on WKWebView
       (performance as any).memory
-        ? `内存: ${Math.round((performance as any).memory.usedJSHeapSize / 1048576)}MB / ${Math.round((performance as any).memory.jsHeapSizeLimit / 1048576)}MB`
+        ? `内存: ${Math.round(
+            (performance as any).memory.usedJSHeapSize / 1048576,
+          )}MB / ${Math.round(
+            (performance as any).memory.jsHeapSizeLimit / 1048576,
+          )}MB`
         : "",
     ]
       .filter(Boolean)

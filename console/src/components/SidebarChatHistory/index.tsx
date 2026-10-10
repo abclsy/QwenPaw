@@ -86,10 +86,7 @@ export default function SidebarChatHistory() {
             count: chats.length,
           })}
         </span>
-        <Tooltip
-          title={t("history.newChat", "新对话")}
-          mouseEnterDelay={0.3}
-        >
+        <Tooltip title={t("history.newChat", "新对话")} mouseEnterDelay={0.3}>
           <button className={styles.newBtn} onClick={handleNewChat}>
             <Plus size={13} strokeWidth={2.5} />
           </button>

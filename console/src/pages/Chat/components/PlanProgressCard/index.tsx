@@ -117,10 +117,10 @@ function TaskRow({ task }: { task: SubTaskResponse }) {
     task.state === "in_progress"
       ? t("planCard.running", "进行中")
       : task.state === "done"
-        ? t("planCard.done", "已完成")
-        : task.state === "abandoned"
-          ? t("planCard.skipped", "已跳过")
-          : t("planCard.pending", "待执行");
+      ? t("planCard.done", "已完成")
+      : task.state === "abandoned"
+      ? t("planCard.skipped", "已跳过")
+      : t("planCard.pending", "待执行");
 
   return (
     <li className={`${styles.task} ${styles["task_" + task.state] || ""}`}>

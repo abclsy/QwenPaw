@@ -73,9 +73,7 @@ export default function PromptSparkleButton() {
     if (loading) return;
     const current = readInputValue();
     if (!current.trim()) {
-      message.info(
-        t("sparkle.emptyInput", "先写下你的需求，哪怕一句话也行"),
-      );
+      message.info(t("sparkle.emptyInput", "先写下你的需求，哪怕一句话也行"));
       return;
     }
 

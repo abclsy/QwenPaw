@@ -9,7 +9,10 @@ import {
   DownOutlined,
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
-import { useWorkModeStore, type WorkMode } from "../../../../stores/workModeStore";
+import {
+  useWorkModeStore,
+  type WorkMode,
+} from "../../../../stores/workModeStore";
 import styles from "./index.module.less";
 
 /**
@@ -21,10 +24,14 @@ import styles from "./index.module.less";
  * description of what it does. After selection the chip updates to
  * reflect (and remind of) the active mode.
  */
-export default function WorkModeSwitcher({ sessionId }: { sessionId?: string }) {
+export default function WorkModeSwitcher({
+  sessionId,
+}: {
+  sessionId?: string;
+}) {
   const { t } = useTranslation();
   const mode = useWorkModeStore((s) =>
-    sessionId ? (s.sessionModes[sessionId] ?? s.mode) : s.mode,
+    sessionId ? s.sessionModes[sessionId] ?? s.mode : s.mode,
   );
   const setMode = useWorkModeStore((s) => s.setMode);
 
@@ -34,28 +41,19 @@ export default function WorkModeSwitcher({ sessionId }: { sessionId?: string }) 
         value: "ask" as WorkMode,
         icon: <MessageOutlined className={styles.menuIcon} />,
         label: t("workMode.ask", "问一问"),
-        desc: t(
-          "workMode.askDesc",
-          "只问答和分析，不修改文件，响应最快",
-        ),
+        desc: t("workMode.askDesc", "只问答和分析，不修改文件，响应最快"),
       },
       {
         value: "plan" as WorkMode,
         icon: <OrderedListOutlined className={styles.menuIcon} />,
         label: t("workMode.plan", "想一想"),
-        desc: t(
-          "workMode.planDesc",
-          "先出执行计划，你确认后再动手",
-        ),
+        desc: t("workMode.planDesc", "先出执行计划，你确认后再动手"),
       },
       {
         value: "craft" as WorkMode,
         icon: <ThunderboltOutlined className={styles.menuIcon} />,
         label: t("workMode.craft", "做一做"),
-        desc: t(
-          "workMode.craftDesc",
-          "直接执行任务，可生成或修改文件（默认）",
-        ),
+        desc: t("workMode.craftDesc", "直接执行任务，可生成或修改文件（默认）"),
       },
     ],
     [t],
@@ -72,9 +70,7 @@ export default function WorkModeSwitcher({ sessionId }: { sessionId?: string }) 
           <span className={styles.menuRowLabel}>{m.label}</span>
           <span className={styles.menuRowDesc}>{m.desc}</span>
         </span>
-        {mode === m.value && (
-          <CheckOutlined className={styles.menuRowCheck} />
-        )}
+        {mode === m.value && <CheckOutlined className={styles.menuRowCheck} />}
       </div>
     ),
   }));

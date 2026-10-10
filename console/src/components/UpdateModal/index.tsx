@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Modal, Button, Progress, Typography, Space, Tag } from "antd";
-import { CheckCircleOutlined, DownloadOutlined, ReloadOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import {
+  CheckCircleOutlined,
+  DownloadOutlined,
+  ReloadOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { updateApi, type UpdateState } from "../../api/modules/update";
 
@@ -72,9 +77,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ open, onClose }) => {
       if (result && result.success === false) {
         console.error("Apply rejected:", result.error);
         setState((prev) =>
-          prev
-            ? { ...prev, status: "error", error: result.error || "" }
-            : prev,
+          prev ? { ...prev, status: "error", error: result.error || "" } : prev,
         );
         setLoading(false);
       }
@@ -173,9 +176,12 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ open, onClose }) => {
         {hasUpdate && !isDownloading && !isDownloaded && (
           <div>
             <div style={{ marginBottom: 12 }}>
-              <ExclamationCircleOutlined style={{ color: "#faad14", marginRight: 8 }} />
+              <ExclamationCircleOutlined
+                style={{ color: "#faad14", marginRight: 8 }}
+              />
               <Text strong>
-                {t("update.updateAvailable", "发现新版本")} {state?.latest_version}
+                {t("update.updateAvailable", "发现新版本")}{" "}
+                {state?.latest_version}
               </Text>
             </div>
             {state?.release_notes && (
@@ -206,7 +212,8 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ open, onClose }) => {
               style={{ marginTop: 8 }}
             />
             <Text type="secondary" style={{ fontSize: 12 }}>
-              {_formatBytes(state?.download_downloaded || 0)} / {_formatBytes(state?.download_total || 0)}
+              {_formatBytes(state?.download_downloaded || 0)} /{" "}
+              {_formatBytes(state?.download_total || 0)}
             </Text>
           </div>
         )}
@@ -219,7 +226,10 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ open, onClose }) => {
               {t("update.downloadComplete", "下载完成")}
             </Paragraph>
             <Text type="secondary" style={{ fontSize: 13 }}>
-              {t("update.clickToRestart", "点击「重启更新」按钮，应用将自动重启并完成更新")}
+              {t(
+                "update.clickToRestart",
+                "点击「重启更新」按钮，应用将自动重启并完成更新",
+              )}
             </Text>
           </div>
         )}
@@ -237,8 +247,12 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({ open, onClose }) => {
         {/* Error */}
         {isError && (
           <div style={{ textAlign: "center", padding: "20px 0" }}>
-            <ExclamationCircleOutlined style={{ fontSize: 48, color: "#ff4d4f" }} />
-            <Paragraph style={{ marginTop: 16, marginBottom: 0, color: "#ff4d4f" }}>
+            <ExclamationCircleOutlined
+              style={{ fontSize: 48, color: "#ff4d4f" }}
+            />
+            <Paragraph
+              style={{ marginTop: 16, marginBottom: 0, color: "#ff4d4f" }}
+            >
               {state?.error || t("update.error", "更新失败")}
             </Paragraph>
           </div>

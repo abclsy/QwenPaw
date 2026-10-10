@@ -80,7 +80,13 @@ export function MarkdownCopy({
         setLocalShowMarkdown(showMarkdown);
       }
     }
-  }, [editableKey, lastEditableKey, editable, textareaProps.disabled, showMarkdown]);
+  }, [
+    editableKey,
+    lastEditableKey,
+    editable,
+    textareaProps.disabled,
+    showMarkdown,
+  ]);
 
   const copyToClipboard = async () => {
     const contentToCopy =

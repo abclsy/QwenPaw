@@ -1,7 +1,13 @@
 import { request } from "../request";
 
 export interface UpdateState {
-  status: "idle" | "checking" | "downloading" | "downloaded" | "applying" | "error";
+  status:
+    | "idle"
+    | "checking"
+    | "downloading"
+    | "downloaded"
+    | "applying"
+    | "error";
   current_version: string;
   latest_version: string | null;
   has_update: boolean | null;
@@ -15,11 +21,9 @@ export interface UpdateState {
 export const updateApi = {
   getStatus: () => request<UpdateState>("/update/status"),
 
-  check: () =>
-    request<UpdateState>("/update/check", { method: "POST" }),
+  check: () => request<UpdateState>("/update/check", { method: "POST" }),
 
-  download: () =>
-    request<UpdateState>("/update/download", { method: "POST" }),
+  download: () => request<UpdateState>("/update/download", { method: "POST" }),
 
   apply: () =>
     request<{ success: boolean; error?: string; message?: string }>(

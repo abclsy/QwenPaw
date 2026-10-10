@@ -16,7 +16,9 @@ export default function Header() {
 
   return (
     <AntHeader
-      className={`${styles.header} ${resolvedTheme === "light" ? styles.headerLight : ""}`}
+      className={`${styles.header} ${
+        resolvedTheme === "light" ? styles.headerLight : ""
+      }`}
     >
       <div className={styles.logoWrapper}>
         <img

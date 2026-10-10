@@ -58,9 +58,7 @@ export default function GlobalSearch({
     setLoading(true);
     try {
       const resp = await fetch(
-        getApiUrl(
-          `/search?q=${encodeURIComponent(trimmed)}`,
-        ),
+        getApiUrl(`/search?q=${encodeURIComponent(trimmed)}`),
         { headers: buildAuthHeaders() },
       );
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -192,7 +190,10 @@ export default function GlobalSearch({
                             : t("globalSearch.assistant", "助手")}
                           {h.timestamp ? ` · ${h.timestamp}` : ""}
                           {h.score > 1
-                            ? ` · ${h.score} ${t("globalSearch.hits", "处命中")}`
+                            ? ` · ${h.score} ${t(
+                                "globalSearch.hits",
+                                "处命中",
+                              )}`
                             : ""}
                         </div>
                       </div>

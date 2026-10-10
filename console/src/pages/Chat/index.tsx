@@ -5,7 +5,14 @@ import {
   WelcomePrompts,
   type IWelcomePromptsProps,
 } from "@agentscope-ai/chat";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Button, Modal, Result, Tooltip } from "antd";
 import { useAppMessage } from "../../hooks/useAppMessage";
 import {
@@ -889,14 +896,15 @@ export default function ChatPage() {
       // Merge the pending quoted message (quote preview bar) into the
       // outgoing user message as a markdown blockquote prefix.
       const quoted = takeQuotedMessage();
-      let rewrittenInput = lastMsg?.content && Array.isArray(lastMsg.content)
-        ? [
-            {
-              ...lastMsg,
-              content: lastMsg.content.map(normalizeContentUrls),
-            },
-          ]
-        : lastInput;
+      let rewrittenInput =
+        lastMsg?.content && Array.isArray(lastMsg.content)
+          ? [
+              {
+                ...lastMsg,
+                content: lastMsg.content.map(normalizeContentUrls),
+              },
+            ]
+          : lastInput;
 
       if (quoted && rewrittenInput.length > 0) {
         const quotedBlock = quoted.text
@@ -1260,9 +1268,12 @@ export default function ChatPage() {
     let observer: MutationObserver | null = null;
 
     const injectButtonsForNode = (root: ParentNode) => {
-      const container = (root as Element).closest?.("[class*=\"AgentScopeRuntimeWebUI\"]")
-        || (root as Element).querySelector?.("[class*=\"AgentScopeRuntimeWebUI\"]")
-        || root;
+      const container =
+        (root as Element).closest?.('[class*="AgentScopeRuntimeWebUI"]') ||
+        (root as Element).querySelector?.(
+          '[class*="AgentScopeRuntimeWebUI"]',
+        ) ||
+        root;
       // 在 root 子树中找所有含预览 URL 的元素
       const walker = document.createTreeWalker(
         container as Node,
@@ -1278,10 +1289,11 @@ export default function ChatPage() {
         if (injectedUrls.has(url)) continue;
         // 找最近的消息容器来挂载按钮
         const msgBlock = (textNode.parentElement as HTMLElement)?.closest(
-          "[class*=\"message\"], [class*=\"x-markdown\"], [class*=\"markdown\"]",
+          '[class*="message"], [class*="x-markdown"], [class*="markdown"]',
         ) as HTMLElement | null;
         const target = msgBlock || textNode.parentElement;
-        if (!target || target.querySelector("[data-preview-injected]")) continue;
+        if (!target || target.querySelector("[data-preview-injected]"))
+          continue;
         injectedUrls.add(url);
         const btn = document.createElement("a");
         btn.setAttribute("data-preview-injected", "true");
@@ -1300,7 +1312,9 @@ export default function ChatPage() {
     };
 
     const setupTimer = setInterval(() => {
-      const container = document.querySelector("[class*=\"AgentScopeRuntimeWebUI\"]");
+      const container = document.querySelector(
+        '[class*="AgentScopeRuntimeWebUI"]',
+      );
       if (!container) return;
       clearInterval(setupTimer);
 
@@ -1349,7 +1363,9 @@ export default function ChatPage() {
             if (r) {
               // Keep chatRef compatible for existing consumers via the
               // mutable object trick used elsewhere in this codebase.
-              (chatRef as { current: IAgentScopeRuntimeWebUIRef | null }).current = r;
+              (
+                chatRef as { current: IAgentScopeRuntimeWebUIRef | null }
+              ).current = r;
             }
           }}
           key={refreshKey}

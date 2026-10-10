@@ -79,7 +79,11 @@ export default function KnowledgeBasePage() {
     }
   }, []);
 
-  const src = `${KNOWLEDGE_BASE_URL}${reloadNonce > 0 ? (KNOWLEDGE_BASE_URL.includes("?") ? "&" : "?") + "_kb=" + reloadNonce : ""}`;
+  const src = `${KNOWLEDGE_BASE_URL}${
+    reloadNonce > 0
+      ? (KNOWLEDGE_BASE_URL.includes("?") ? "&" : "?") + "_kb=" + reloadNonce
+      : ""
+  }`;
 
   // ── 桌面端：独立窗口已拉起，页面显示引导说明 ──────────────────────────
   if (isDesktop) {
@@ -250,11 +254,14 @@ export default function KnowledgeBasePage() {
                     fontSize: 13,
                   }}
                 >
-                  无法连接知识库服务（{KNOWLEDGE_BASE_URL}），请确认网络已接入内网后重试
+                  无法连接知识库服务（{KNOWLEDGE_BASE_URL}
+                  ），请确认网络已接入内网后重试
                 </span>
               }
               extra={
-                <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                <div
+                  style={{ display: "flex", gap: 8, justifyContent: "center" }}
+                >
                   <Button type="primary" onClick={handleReload}>
                     重试
                   </Button>

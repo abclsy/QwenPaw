@@ -54,9 +54,7 @@ export const promptApi = {
           const frames = buffer.split("\n\n");
           buffer = frames.pop() ?? "";
           for (const frame of frames) {
-            const line = frame
-              .split("\n")
-              .find((l) => l.startsWith("data:"));
+            const line = frame.split("\n").find((l) => l.startsWith("data:"));
             if (!line) continue;
             try {
               const payload = JSON.parse(line.slice(5).trim());

@@ -66,7 +66,11 @@ export const authApi = {
     const res = await fetch(getApiUrl("/auth/oauth/login"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code, redirect_uri: redirectUri, expires_in: 120 * 3600 }),
+      body: JSON.stringify({
+        code,
+        redirect_uri: redirectUri,
+        expires_in: 120 * 3600,
+      }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));

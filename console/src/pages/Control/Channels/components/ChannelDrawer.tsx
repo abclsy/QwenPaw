@@ -34,34 +34,9 @@ const CHANNELS_WITH_ACCESS_CONTROL: ChannelKey[] = [
 
 // Doc EN URLs per channel (anchors on https://qwenpaw.agentscope.io/docs/channels)
 const CHANNEL_DOC_EN_URLS: Partial<Record<ChannelKey, string>> = {
-  dingtalk:
-    "",
-  feishu: "",
-  imessage:
-    "",
-  discord: "",
-  qq: "",
-  telegram: "",
-  mqtt: "",
-  mattermost: "",
-  matrix: "",
-  sip: "",
-  wecom:
-    "",
-  weixin:
-    "",
-  xiaoyi:
-    "",
-  onebot:
-    "",
-};
-
-// Doc ZH URLs per channel (anchors on https://qwenpaw.agentscope.io/docs/channels)
-const CHANNEL_DOC_ZH_URLS: Partial<Record<ChannelKey, string>> = {
   dingtalk: "",
   feishu: "",
-  imessage:
-    "",
+  imessage: "",
   discord: "",
   qq: "",
   telegram: "",
@@ -71,10 +46,26 @@ const CHANNEL_DOC_ZH_URLS: Partial<Record<ChannelKey, string>> = {
   sip: "",
   wecom: "",
   weixin: "",
-  xiaoyi:
-    "",
-  onebot:
-    "",
+  xiaoyi: "",
+  onebot: "",
+};
+
+// Doc ZH URLs per channel (anchors on https://qwenpaw.agentscope.io/docs/channels)
+const CHANNEL_DOC_ZH_URLS: Partial<Record<ChannelKey, string>> = {
+  dingtalk: "",
+  feishu: "",
+  imessage: "",
+  discord: "",
+  qq: "",
+  telegram: "",
+  mqtt: "",
+  mattermost: "",
+  matrix: "",
+  sip: "",
+  wecom: "",
+  weixin: "",
+  xiaoyi: "",
+  onebot: "",
 };
 
 const TWILIO_CONSOLE_URL = "https://console.twilio.com";

@@ -27,7 +27,10 @@ const ThemeContext = createContext<ThemeContextValue>({
 });
 
 function getSystemTheme(): ResolvedTheme {
-  if (typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: light)").matches) {
+  if (
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-color-scheme: light)").matches
+  ) {
     return "light";
   }
   return "dark";

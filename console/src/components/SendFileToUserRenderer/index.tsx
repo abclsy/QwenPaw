@@ -131,11 +131,7 @@ function doBrowserDownload(url: string, filename: string) {
 }
 
 // ── 单个文件卡片 ──────────────────────────────────────────────────────
-function FileCard({
-  file,
-}: {
-  file: FileBlockItem;
-}) {
+function FileCard({ file }: { file: FileBlockItem }) {
   const apiUrl = file.source?.url;
   const name = file.filename || "未知文件";
   const filePath = extractFilePath(apiUrl || "");
@@ -423,9 +419,7 @@ function FileCard({
 
         {/* 提示文字 */}
         {isHtml && !desktop && (
-          <span style={{ fontSize: 11, color: "#aaa" }}>
-            预览页带返回按钮
-          </span>
+          <span style={{ fontSize: 11, color: "#aaa" }}>预览页带返回按钮</span>
         )}
       </div>
     </div>

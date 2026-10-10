@@ -10,12 +10,11 @@ import { useTheme } from "../../contexts/ThemeContext";
 
 // ── 中铁统一认证 OAuth2 配置 ─────────────────────────────────────────
 const CREC_OAUTH_CLIENT_ID = "tyyfjsgk";
-const CREC_OAUTH_AUTHORIZE_URL =
-  "https://tyrz.crec.cn/idp/oauth2/authorize";
+const CREC_OAUTH_AUTHORIZE_URL = "https://tyrz.crec.cn/idp/oauth2/authorize";
 
 function generateOAuthState(): string {
-  const state = Math.random().toString(36).substring(2, 15) +
-    Date.now().toString(36);
+  const state =
+    Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
   sessionStorage.setItem("crec_oauth_state", state);
   return state;
 }
@@ -107,27 +106,28 @@ export default function LoginPage() {
     handleOAuthLogin(code);
   }, [searchParams]);
 
-  const handleOAuthLogin = useCallback(async (code: string) => {
-    try {
-      const redirectUri = getOAuthRedirectUri();
-      const res = await authApi.oauthLogin(code, redirectUri);
-      if (res.token) {
-        setAuthToken(res.token);
-        message.success(t("login.success"));
-        const url = new URL(window.location.href);
-        url.searchParams.delete("code");
-        url.searchParams.delete("state");
-        window.history.replaceState({}, "", url.toString());
-        navigate("/chat", { replace: true });
+  const handleOAuthLogin = useCallback(
+    async (code: string) => {
+      try {
+        const redirectUri = getOAuthRedirectUri();
+        const res = await authApi.oauthLogin(code, redirectUri);
+        if (res.token) {
+          setAuthToken(res.token);
+          message.success(t("login.success"));
+          const url = new URL(window.location.href);
+          url.searchParams.delete("code");
+          url.searchParams.delete("state");
+          window.history.replaceState({}, "", url.toString());
+          navigate("/chat", { replace: true });
+        }
+      } catch (err) {
+        message.error(err instanceof Error ? err.message : t("login.failed"));
+      } finally {
+        setOauthLoading(false);
       }
-    } catch (err) {
-      message.error(
-        err instanceof Error ? err.message : t("login.failed"),
-      );
-    } finally {
-      setOauthLoading(false);
-    }
-  }, [message, navigate, t]);
+    },
+    [message, navigate, t],
+  );
 
   const onFinish = async (values: { username: string; password: string }) => {
     setLoading(true);

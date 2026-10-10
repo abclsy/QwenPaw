@@ -61,9 +61,31 @@ function getFileExt(filename: string): string {
 function isPreviewable(filename: string): boolean {
   const ext = getFileExt(filename);
   return [
-    "html", "htm", "pdf", "txt", "md", "json", "js", "ts",
-    "jsx", "tsx", "css", "xml", "svg", "csv", "py", "java",
-    "c", "cpp", "go", "rs", "rb", "sh", "yaml", "yml", "sql",
+    "html",
+    "htm",
+    "pdf",
+    "txt",
+    "md",
+    "json",
+    "js",
+    "ts",
+    "jsx",
+    "tsx",
+    "css",
+    "xml",
+    "svg",
+    "csv",
+    "py",
+    "java",
+    "c",
+    "cpp",
+    "go",
+    "rs",
+    "rb",
+    "sh",
+    "yaml",
+    "yml",
+    "sql",
   ].includes(ext);
 }
 
@@ -164,7 +186,14 @@ function FilePreviewModal({
       title={
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <FileTextOutlined style={{ color: "#1961AC" }} />
-          <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <span
+            style={{
+              flex: 1,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
             {file.filename}
           </span>
         </div>
@@ -339,18 +368,21 @@ function WorkspaceFilesDrawer({
           ? urlWithParams
           : `${window.location.origin}${urlWithParams}`;
 
-        pywebview.api.save_file(absoluteUrl, file.filename).then((result: any) => {
-          if (result === true || result === "true") {
-            message.success("文件已保存");
-          } else {
-            // result === false: user cancelled or error occurred
+        pywebview.api
+          .save_file(absoluteUrl, file.filename)
+          .then((result: any) => {
+            if (result === true || result === "true") {
+              message.success("文件已保存");
+            } else {
+              // result === false: user cancelled or error occurred
+              // Fallback to browser download
+              doBrowserDownload(rawUrl, file.filename, headers);
+            }
+          })
+          .catch(() => {
             // Fallback to browser download
             doBrowserDownload(rawUrl, file.filename, headers);
-          }
-        }).catch(() => {
-          // Fallback to browser download
-          doBrowserDownload(rawUrl, file.filename, headers);
-        });
+          });
         return;
       }
 
@@ -362,7 +394,11 @@ function WorkspaceFilesDrawer({
     }
   }, []);
 
-  const doBrowserDownload = async (url: string, filename: string, headers: Record<string, string>) => {
+  const doBrowserDownload = async (
+    url: string,
+    filename: string,
+    headers: Record<string, string>,
+  ) => {
     const response = await fetch(url, { headers });
     if (!response.ok) throw new Error(`${response.status}`);
     const blob = await response.blob();
@@ -555,7 +591,10 @@ function WorkspaceFilesDrawer({
         )}
       </Drawer>
 
-      <FilePreviewModal file={previewFile} onClose={() => setPreviewFile(null)} />
+      <FilePreviewModal
+        file={previewFile}
+        onClose={() => setPreviewFile(null)}
+      />
     </>
   );
 }

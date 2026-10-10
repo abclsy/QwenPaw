@@ -132,10 +132,7 @@ export default function MainLayout() {
                 />
                 <Route path="/debug" element={<DebugPage />} />
                 <Route path="/backups" element={<BackupsPage />} />
-                <Route
-                  path="/knowledge-base"
-                  element={<KnowledgeBasePage />}
-                />
+                <Route path="/knowledge-base" element={<KnowledgeBasePage />} />
                 <Route path="/experts" element={<ExpertsPage />} />
 
                 {/* Plugin routes — dynamically injected at runtime */}

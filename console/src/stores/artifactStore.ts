@@ -48,7 +48,10 @@ const sessionStorageAdapter: PersistStorage<ArtifactStore> = {
       return null;
     }
   },
-  setItem: (_name: string, value: { state: ArtifactStore; version?: number }) => {
+  setItem: (
+    _name: string,
+    value: { state: ArtifactStore; version?: number },
+  ) => {
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(value));
     } catch {
@@ -134,9 +137,10 @@ export const useArtifactStore = create<ArtifactStore>()(
       name: STORAGE_KEY,
       storage: sessionStorageAdapter,
       // 只持久化最近 50 条，避免撑爆 storage
-      partialize: (state) => ({
-        artifacts: state.artifacts.slice(0, 50),
-      }) as unknown as ArtifactStore,
+      partialize: (state) =>
+        ({
+          artifacts: state.artifacts.slice(0, 50),
+        }) as unknown as ArtifactStore,
     },
   ),
 );

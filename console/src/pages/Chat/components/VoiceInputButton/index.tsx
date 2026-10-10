@@ -42,7 +42,10 @@ export default function VoiceInputButton() {
       const mime = MediaRecorder.isTypeSupported("audio/webm")
         ? "audio/webm"
         : "";
-      const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+      const recorder = new MediaRecorder(
+        stream,
+        mime ? { mimeType: mime } : undefined,
+      );
       chunksRef.current = [];
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
@@ -61,14 +64,11 @@ export default function VoiceInputButton() {
             "audio",
             new File([blob], "record.webm", { type: blob.type }),
           );
-          const resp = await fetch(
-            getApiUrl("/console/voice/transcribe"),
-            {
-              method: "POST",
-              headers: { ...buildAuthHeaders() },
-              body: form,
-            },
-          );
+          const resp = await fetch(getApiUrl("/console/voice/transcribe"), {
+            method: "POST",
+            headers: { ...buildAuthHeaders() },
+            body: form,
+          });
           const payload = await resp.json();
           if (!resp.ok) {
             message.error(
@@ -113,11 +113,7 @@ export default function VoiceInputButton() {
         disabled={transcribing}
         aria-label="voice input"
       >
-        {transcribing ? (
-          <LoadingOutlined spin />
-        ) : (
-          <AudioOutlined />
-        )}
+        {transcribing ? <LoadingOutlined spin /> : <AudioOutlined />}
       </button>
     </Tooltip>
   );

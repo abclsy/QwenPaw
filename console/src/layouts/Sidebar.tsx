@@ -1,4 +1,11 @@
-import { Layout, Tooltip, Dropdown, Popover, Modal, type MenuProps } from "antd";
+import {
+  Layout,
+  Tooltip,
+  Dropdown,
+  Popover,
+  Modal,
+  type MenuProps,
+} from "antd";
 import { useState, useEffect, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -352,31 +359,31 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
       <div className={styles.siderScrollContent}>
         {collapsed ? (
           <nav className={styles.collapsedNav}>
-          {collapsedNavItems.map((item) => {
-            const isActive = selectedKey === item.key;
-            return (
-              <Tooltip
-                key={item.key}
-                title={item.label}
-                placement="right"
-                overlayInnerStyle={{
-                  background: "rgba(0,0,0,0.75)",
-                  color: "#fff",
-                }}
-              >
-                <button
-                  className={`${styles.collapsedNavItem} ${
-                    isActive ? styles.collapsedNavItemActive : ""
-                  }`}
-                  onClick={() => navigate(item.path)}
+            {collapsedNavItems.map((item) => {
+              const isActive = selectedKey === item.key;
+              return (
+                <Tooltip
+                  key={item.key}
+                  title={item.label}
+                  placement="right"
+                  overlayInnerStyle={{
+                    background: "rgba(0,0,0,0.75)",
+                    color: "#fff",
+                  }}
                 >
-                  {item.icon}
-                </button>
-              </Tooltip>
-            );
-          })}
-        </nav>
-      ) : (
+                  <button
+                    className={`${styles.collapsedNavItem} ${
+                      isActive ? styles.collapsedNavItemActive : ""
+                    }`}
+                    onClick={() => navigate(item.path)}
+                  >
+                    {item.icon}
+                  </button>
+                </Tooltip>
+              );
+            })}
+          </nav>
+        ) : (
           <>
             {/* Logo at top of sidebar */}
             <div
@@ -390,7 +397,9 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
               onClick={() => navigate("/chat")}
             >
               <img
-                src={isDark ? "/logo-header-dark.png" : "/logo-header-light.png"}
+                src={
+                  isDark ? "/logo-header-dark.png" : "/logo-header-light.png"
+                }
                 alt="小铁智友"
                 style={{
                   height: 28,
@@ -479,9 +488,17 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
                   {
                     key: "theme-dark",
                     label: (
-                      <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
                         {t("theme.dark")}
-                        {themeMode === "dark" && <CheckCircleOutlined style={{ color: "#52c41a" }} />}
+                        {themeMode === "dark" && (
+                          <CheckCircleOutlined style={{ color: "#52c41a" }} />
+                        )}
                       </span>
                     ),
                     onClick: () => setThemeMode("dark"),
@@ -489,9 +506,17 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
                   {
                     key: "theme-light",
                     label: (
-                      <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
                         {t("theme.light")}
-                        {themeMode === "light" && <CheckCircleOutlined style={{ color: "#52c41a" }} />}
+                        {themeMode === "light" && (
+                          <CheckCircleOutlined style={{ color: "#52c41a" }} />
+                        )}
                       </span>
                     ),
                     onClick: () => setThemeMode("light"),
@@ -499,9 +524,17 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
                   {
                     key: "theme-system",
                     label: (
-                      <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
                         {t("theme.system")}
-                        {themeMode === "system" && <CheckCircleOutlined style={{ color: "#52c41a" }} />}
+                        {themeMode === "system" && (
+                          <CheckCircleOutlined style={{ color: "#52c41a" }} />
+                        )}
                       </span>
                     ),
                     onClick: () => setThemeMode("system"),
@@ -511,16 +544,24 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
               {
                 key: "update",
                 label: (
-                  <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
                     {t("update.checkUpdate", "检查更新")}
                     {hasUpdate && (
-                      <span style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: "50%",
-                        background: "#ff4d4f",
-                        marginLeft: 8,
-                      }} />
+                      <span
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: "50%",
+                          background: "#ff4d4f",
+                          marginLeft: 8,
+                        }}
+                      />
                     )}
                   </span>
                 ),
@@ -532,7 +573,10 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
                 key: "docs",
                 label: "操作文档",
                 icon: <LinkOutlined />,
-                onClick: () => openExternalLink("https://ecloud.crec.cn/chatAi/crecpawWebsite/docs.html"),
+                onClick: () =>
+                  openExternalLink(
+                    "https://ecloud.crec.cn/chatAi/crecpawWebsite/docs.html",
+                  ),
               },
               {
                 key: "community",
@@ -544,52 +588,60 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
                 key: "tech-news",
                 label: "科技资讯",
                 icon: <LinkOutlined />,
-                onClick: () => openExternalLink("https://ecloud.crec.cn/chatAi/chat/techNewsletter?Aid="),
+                onClick: () =>
+                  openExternalLink(
+                    "https://ecloud.crec.cn/chatAi/chat/techNewsletter?Aid=",
+                  ),
               },
               {
                 key: "contact",
                 label: "联系我们",
                 icon: <LinkOutlined />,
-                onClick: () => openExternalLink("https://awake.crec.cn/apps/desktop/multipleTabs/sapp/app_5k2s88slih/sapp_ncc6v20nlz/form_s3837k5u9h"),
+                onClick: () =>
+                  openExternalLink(
+                    "https://awake.crec.cn/apps/desktop/multipleTabs/sapp/app_5k2s88slih/sapp_ncc6v20nlz/form_s3837k5u9h",
+                  ),
               },
-              ...(authEnabled ? [
-                { type: "divider" as const },
-                {
-                  key: "logout",
-                  label: t("login.logout"),
-                  icon: <LogoutOutlined />,
-                  onClick: async () => {
-                    // 1. 先调用后端 revoke 使 token 失效
-                    try {
-                      await authApi.revokeToken();
-                    } catch {
-                      // 忽略错误，继续清除本地数据
-                    }
-                    // 2. 清除本地认证信息
-                    localStorage.removeItem("qwenpaw_auth_token");
-                    localStorage.removeItem("qwenpaw_username");
-                    localStorage.removeItem("language");
-                    sessionStorage.clear();
-                    // 3. 设置标志，让登录页的 OAuth URL 带 prompt=login
-                    //    强制中铁统一认证服务端要求重新扫码
-                    //    必须在 sessionStorage.clear() 之后设置
-                    sessionStorage.setItem("force_reauth", "1");
-                    // 4. 清除 WKWebView 中的 SSO cookie
-                    try {
-                      if (window.pywebview && window.pywebview.api) {
-                        await window.pywebview.api.clear_sso_cookies();
-                      }
-                    } catch {
-                      // 非桌面环境忽略
-                    }
-                    // 5. 跳转到登录页
-                    //    先设置 href 跳转，然后延迟 reload 确保页面完全重新加载
-                    //    sessionStorage 在同 origin 重新加载后仍然保留
-                    window.location.href = "/login";
-                    setTimeout(() => window.location.reload(), 200);
-                  },
-                },
-              ] : []),
+              ...(authEnabled
+                ? [
+                    { type: "divider" as const },
+                    {
+                      key: "logout",
+                      label: t("login.logout"),
+                      icon: <LogoutOutlined />,
+                      onClick: async () => {
+                        // 1. 先调用后端 revoke 使 token 失效
+                        try {
+                          await authApi.revokeToken();
+                        } catch {
+                          // 忽略错误，继续清除本地数据
+                        }
+                        // 2. 清除本地认证信息
+                        localStorage.removeItem("qwenpaw_auth_token");
+                        localStorage.removeItem("qwenpaw_username");
+                        localStorage.removeItem("language");
+                        sessionStorage.clear();
+                        // 3. 设置标志，让登录页的 OAuth URL 带 prompt=login
+                        //    强制中铁统一认证服务端要求重新扫码
+                        //    必须在 sessionStorage.clear() 之后设置
+                        sessionStorage.setItem("force_reauth", "1");
+                        // 4. 清除 WKWebView 中的 SSO cookie
+                        try {
+                          if (window.pywebview && window.pywebview.api) {
+                            await window.pywebview.api.clear_sso_cookies();
+                          }
+                        } catch {
+                          // 非桌面环境忽略
+                        }
+                        // 5. 跳转到登录页
+                        //    先设置 href 跳转，然后延迟 reload 确保页面完全重新加载
+                        //    sessionStorage 在同 origin 重新加载后仍然保留
+                        window.location.href = "/login";
+                        setTimeout(() => window.location.reload(), 200);
+                      },
+                    },
+                  ]
+                : []),
             ] as MenuProps["items"],
           }}
           trigger={["click"]}
@@ -653,7 +705,10 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
           }
         }}
       />
-      <UpdateModal open={updateModalOpen} onClose={() => setUpdateModalOpen(false)} />
+      <UpdateModal
+        open={updateModalOpen}
+        onClose={() => setUpdateModalOpen(false)}
+      />
 
       {/* Settings modal — backend admin entries (WorkBuddy style) */}
       <Modal
@@ -691,7 +746,6 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
           ))}
         </div>
       </Modal>
-
     </Sider>
   );
 }

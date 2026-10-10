@@ -10,7 +10,10 @@ import {
   SyncOutlined,
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
-import { cronJobApi, type CronRunRecord } from "../../../../api/modules/cronjob";
+import {
+  cronJobApi,
+  type CronRunRecord,
+} from "../../../../api/modules/cronjob";
 import dayjs from "dayjs";
 import styles from "../index.module.less";
 
@@ -88,9 +91,7 @@ export default function RunHistoryDrawer({
       cancelled: { color: "default", key: "runHistory.cancelled" },
     };
     const cfg = map[status] ?? map.cancelled;
-    return (
-      <Tag color={cfg.color}>{t(cfg.key, status)}</Tag>
-    );
+    return <Tag color={cfg.color}>{t(cfg.key, status)}</Tag>;
   };
 
   const fmtDuration = (ms: number | null) => {
@@ -108,7 +109,9 @@ export default function RunHistoryDrawer({
       title={
         <span className={styles.drawerTitle}>
           {t("runHistory.title", "运行历史")}
-          {job.name ? <span className={styles.drawerJobName}>{job.name}</span> : null}
+          {job.name ? (
+            <span className={styles.drawerJobName}>{job.name}</span>
+          ) : null}
         </span>
       }
       extra={

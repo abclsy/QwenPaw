@@ -163,8 +163,12 @@ export default function WorkspaceSelector() {
               })}
             </span>
           ) : (
-            t("workspace.selectorTooltip", "选择工作区目录（产物将保存到此目录）")
-          )}
+            t(
+              "workspace.selectorTooltip",
+              "选择工作区目录（产物将保存到此目录）",
+            )
+          )
+        }
         mouseEnterDelay={0.4}
       >
         <div

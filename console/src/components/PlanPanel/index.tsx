@@ -227,10 +227,7 @@ const PlanPanel: React.FC<PlanPanelProps> = ({
             {awaitingConfirmation && (
               <div className={styles.confirmBar}>
                 <div className={styles.confirmHint}>
-                  {t(
-                    "plan.awaitingConfirmation",
-                    "计划已就绪，确认后开始执行",
-                  )}
+                  {t("plan.awaitingConfirmation", "计划已就绪，确认后开始执行")}
                 </div>
                 <div className={styles.confirmActions}>
                   <Button

@@ -73,7 +73,14 @@ export default function QuotePreviewBar() {
 
   return (
     <div className="quote-preview-bar" style={barStyle}>
-      <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", color: isUser ? "#1961ac" : "#52c41a" }}>
+      <span
+        style={{
+          flexShrink: 0,
+          display: "inline-flex",
+          alignItems: "center",
+          color: isUser ? "#1961ac" : "#52c41a",
+        }}
+      >
         {isUser ? <UserOutlined /> : <RobotOutlined />}
       </span>
       <span
