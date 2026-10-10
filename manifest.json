@@ -14,8 +14,8 @@
     },
     "win32": {
       "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=crecpaw_windows.zip",
-      "sha256": "edd99a1671e7ce39d0c05b2c71dcbe2e732c86e27cb7750a723f6997f39fef9f",
-      "size": 574523531
+      "sha256": "559fe73d3a6bd8dd1a8811ba8eb79ecacb98e925bc416cc927df1a23e32c4669",
+      "size": 574558081
     }
   }
 }
