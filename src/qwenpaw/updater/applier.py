@@ -155,43 +155,81 @@ def _apply_windows(zip_path: Path, target_dir: Path) -> bool:
     backend_pid = os.getpid()
     parent_pid = os.getppid()
 
-    # PowerShell script for Windows
+    # PowerShell script for Windows. Every step is transcribed to
+    # apply_update.log so failures (locked files, installer aborts) are
+    # diagnosable after the fact.
     script = f"""# Auto-update script for 小铁智友
-# Wait (up to 60s) for the old app processes to exit so file locks are
-# released before the installer runs.
-$deadline = (Get-Date).AddSeconds(60)
-while ((Get-Date) -lt $deadline) {{
-    $alive = Get-Process -Id {backend_pid}, {parent_pid} -ErrorAction SilentlyContinue
-    if (-not $alive) {{ break }}
-    Start-Sleep -Milliseconds 500
+$ErrorActionPreference = "Continue"
+$logDir = "{_UPDATE_DIR}"
+Start-Transcript -Path (Join-Path $logDir "apply_update.log") -Append | Out-Null
+
+try {{
+    Write-Output "=== update started $(Get-Date -Format s) ==="
+
+    # 1) Wait (up to 60s) for the app processes (backend + webview host)
+    #    to exit so file locks are released before the installer runs.
+    $deadline = (Get-Date).AddSeconds(60)
+    while ((Get-Date) -lt $deadline) {{
+        $alive = Get-Process -Id {backend_pid}, {parent_pid} -ErrorAction SilentlyContinue
+        if (-not $alive) {{ break }}
+        Start-Sleep -Milliseconds 500
+    }}
+    Write-Output "step1: app processes exited"
+
+    # 2) Kill ORPHANED child processes still running from the install
+    #    dir (os._exit kills only the backend itself; MCP servers and
+    #    other subprocesses survive and lock files NSIS must replace).
+    $installRoot = "{target_parent}"
+    Get-Process -ErrorAction SilentlyContinue | Where-Object {{
+        $_.Path -and $_.Path.StartsWith($installRoot, [System.StringComparison]::OrdinalIgnoreCase)
+    }} | ForEach-Object {{
+        Write-Output "step2: killing orphaned process $($_.Id) $($_.Path)"
+        try {{ Stop-Process -Id $_.Id -Force -ErrorAction Stop }} catch {{}}
+    }}
+    Start-Sleep -Seconds 2
+    Write-Output "step2: install-dir processes cleared"
+
+    # 3) Extract the installer from the update zip
+    $extractDir = Join-Path $logDir "extracted"
+    New-Item -ItemType Directory -Force -Path $extractDir | Out-Null
+    Expand-Archive -Path "{zip_path}" -DestinationPath $extractDir -Force
+    Write-Output "step3: extracted zip"
+
+    # 4) Find the NSIS installer (CrecPaw-Setup-*.exe or any setup exe)
+    $installer = Get-ChildItem -Path $extractDir -Filter "*.exe" |
+        Where-Object {{ $_.Name -match "Setup|CrecPaw" }} |
+        Select-Object -First 1
+    if (-not $installer) {{
+        Write-Output "step4: no installer found - flat update fallback"
+        Get-ChildItem -Path $installRoot -Exclude "updates" -ErrorAction SilentlyContinue |
+            Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        Expand-Archive -Path "{zip_path}" -DestinationPath $installRoot -Force
+    }} else {{
+        Write-Output "step4: running installer $($installer.FullName) /S"
+        $proc = Start-Process -FilePath $installer.FullName -ArgumentList "/S" -Wait -PassThru
+        Write-Output "step4: installer exit code = $($proc.ExitCode)"
+    }}
+
+    # 5) Clean up staging
+    Remove-Item -Path "{zip_path}" -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path $extractDir -Recurse -Force -ErrorAction SilentlyContinue
+    Write-Output "step5: staging cleaned"
+
+    # 6) Relaunch the app (NSIS /S does NOT auto-run; shortcuts point
+    #    at CrecPaw.vbs in the install root).
+    $launcher = Join-Path $installRoot "CrecPaw.vbs"
+    if (Test-Path $launcher) {{
+        Write-Output "step6: relaunching via $launcher"
+        Start-Process -FilePath "wscript.exe" -ArgumentList "`"$launcher`""
+    }} else {{
+        Write-Output "step6: launcher not found at $launcher"
+    }}
+}} catch {{
+    Write-Output "ERROR: $($_.Exception.Message)"
+}} finally {{
+    Stop-Transcript | Out-Null
+    Remove-Item -Path $MyInvocation.MyCommand.Path -Force -ErrorAction SilentlyContinue
 }}
-
-# Extract the installer from the update zip
-$ErrorActionPreference = "Stop"
-$extractDir = "{_UPDATE_DIR / 'extracted'}"
-New-Item -ItemType Directory -Force -Path $extractDir | Out-Null
-Expand-Archive -Path "{zip_path}" -DestinationPath $extractDir -Force
-
-# Find the NSIS installer (CrecPaw-Setup-*.exe or any setup exe)
-$installer = Get-ChildItem -Path $extractDir -Filter "*.exe" |
-    Where-Object {{ $_.Name -match "Setup|CrecPaw" }} |
-    Select-Object -First 1
-if (-not $installer) {{
-    # Fall back to flat update (legacy zip layout: files only)
-    Get-ChildItem -Path "{target_parent}" -Exclude "updates" -ErrorAction SilentlyContinue |
-        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
-    Expand-Archive -Path "{zip_path}" -DestinationPath "{target_parent}" -Force
-    Start-Process -FilePath "{target_dir / Path(sys.executable).name}"
-}} else {{
-    # Run installer silently; NSIS /S installs to the default dir.
-    # The installer may require the old app to be closed — we are exiting.
-    Start-Process -FilePath $installer.FullName -ArgumentList "/S" -Wait
-}}
-
-# Clean up
-Remove-Item -Path "{zip_path}" -Force -ErrorAction SilentlyContinue
-Remove-Item -Path $extractDir -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item -Path $MyInvocation.MyCommand.Path -Force -ErrorAction SilentlyContinue
 """
 
     script_path = _UPDATE_DIR / "apply_update.ps1"
