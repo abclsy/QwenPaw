@@ -1,21 +1,21 @@
 {
-  "version": "1.1.11",
-  "date": "2026-10-09T07:34:42Z",
+  "version": "1.1.12",
+  "date": "2026-10-10T07:29:11Z",
   "releaseNotes": {
-    "zh": "1. 自动更新链路验证版本：升级后将可完整体验 下载→重启→自动安装 的一键升级流程\n2. 发布脚本改用固定包文件名，与更新服务器约定对齐",
-    "en": "1. Auto-update chain verification release: after upgrading, the download → restart → silent-install flow works end to end\n2. Release script now uses the fixed package filenames per the update-server convention"
+    "zh": "1. 修复自动更新安装后未自动重启的问题\n2. 修复静默安装可能因文件被占用而失败的问题\n3. 更新过程现在写入日志（updates/apply_update.log），失败可诊断",
+    "en": "1. Fixed auto-update not relaunching the app after install\n2. Fixed silent installer failing on locked files (orphaned child processes now cleaned up)\n3. Update process now logs to updates/apply_update.log for diagnosability"
   },
   "minAppVersion": "1.0.0",
   "platforms": {
     "darwin": {
       "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=CrecPaw.zip",
-      "sha256": "6e64936872fe9b9398f587bca0a0c606d22836fdddebb2a424b26a3730c3be1c",
-      "size": 194274572
+      "sha256": "1c38552d82c5ce26a08786c0b92b579bf9d0e4326e4b0ffeb0baf9bf73f40b37",
+      "size": 194276081
     },
     "win32": {
       "url": "https://io.crec.cn:30090/api/v1/buckets/ai-client-package/objects/download?prefix=crecpaw_windows.zip",
-      "sha256": "559fe73d3a6bd8dd1a8811ba8eb79ecacb98e925bc416cc927df1a23e32c4669",
-      "size": 574558081
+      "sha256": "f3327be019ed32dabc4dc5ea08fd32367cef657c827a74f506abd7f39ecf1e65",
+      "size": 575022434
     }
   }
 }
