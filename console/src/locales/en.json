@@ -331,7 +331,15 @@
     "setSuccess": "Workspace set to: {{dir}}",
     "selectFailed": "Failed to select folder",
     "promptPath": "Enter workspace directory path:",
-    "cleared": "Workspace cleared"
+    "cleared": "Workspace cleared",
+    "find": "Find",
+    "findPrev": "Previous match",
+    "findNext": "Next match",
+    "noMatches": "No matches",
+    "toggleReplace": "Toggle replace",
+    "replace": "Replace with",
+    "replaceOne": "Replace",
+    "replaceAll": "Replace all"
   },
   "agent": {
     "parent": "Settings",

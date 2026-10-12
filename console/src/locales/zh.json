@@ -149,7 +149,15 @@
     "setSuccess": "工作空间已设置为: {{dir}}",
     "selectFailed": "选择文件夹失败",
     "promptPath": "请输入工作空间目录路径:",
-    "cleared": "已清除工作空间设置"
+    "cleared": "已清除工作空间设置",
+    "find": "查找",
+    "findPrev": "上一个",
+    "findNext": "下一个",
+    "noMatches": "无匹配",
+    "toggleReplace": "切换替换",
+    "replace": "替换为",
+    "replaceOne": "替换",
+    "replaceAll": "全部替换"
   },
   "agent": {
     "parent": "设置",

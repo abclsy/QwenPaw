@@ -1,11 +1,17 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { Button, Card, Input, Switch } from "@agentscope-ai/design";
-import { CopyOutlined, UndoOutlined, SaveOutlined } from "@ant-design/icons";
+import {
+  CopyOutlined,
+  SearchOutlined,
+  UndoOutlined,
+  SaveOutlined,
+} from "@ant-design/icons";
 import type { MarkdownFile } from "../../../../api/types";
 import { XMarkdown } from "@ant-design/x-markdown";
 import { useTranslation } from "react-i18next";
 import { useAppMessage } from "../../../../hooks/useAppMessage";
 import { stripFrontmatter } from "../../../../utils/markdown";
+import FindReplaceBar from "./FindReplaceBar";
 import styles from "../index.module.less";
 
 interface FileEditorProps {
@@ -30,8 +36,22 @@ export const FileEditor: React.FC<FileEditorProps> = ({
   const { t } = useTranslation();
   const { message } = useAppMessage();
   const [showMarkdown, setShowMarkdown] = useState(true);
+  const [showFind, setShowFind] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isMarkdownFile = selectedFile?.filename.endsWith(".md") || false;
+
+  // ⌘F / Ctrl+F toggles find & replace (source-edit mode only).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        setShowFind((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Binary file types that cannot be previewed as text
   const binaryExtensions = [
@@ -139,6 +159,14 @@ export const FileEditor: React.FC<FileEditorProps> = ({
             </div>
 
             <div className={styles.editorContent}>
+              {showFind && !showMarkdown && (
+                <FindReplaceBar
+                  value={fileContent}
+                  onChange={onContentChange}
+                  textareaRef={textareaRef}
+                  onClose={() => setShowFind(false)}
+                />
+              )}
               <div className={styles.contentLabel}>
                 <div>{t("common.content")}</div>
                 {isMarkdownFile && !isBinaryFile && (
@@ -153,6 +181,16 @@ export const FileEditor: React.FC<FileEditorProps> = ({
                         size="small"
                       />
                     </div>
+                    <Button
+                      icon={<SearchOutlined />}
+                      type="text"
+                      size="small"
+                      title={t("workspace.find", "查找")}
+                      onClick={() => {
+                        setShowMarkdown(false);
+                        setShowFind(true);
+                      }}
+                    />
                     <Button
                       icon={<CopyOutlined />}
                       type="text"
@@ -189,6 +227,7 @@ export const FileEditor: React.FC<FileEditorProps> = ({
                 />
               ) : (
                 <Input.TextArea
+                  ref={textareaRef as never}
                   value={fileContent}
                   onChange={(e) => onContentChange(e.target.value)}
                   className={styles.textarea}

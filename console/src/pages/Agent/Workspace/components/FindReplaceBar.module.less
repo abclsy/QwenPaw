@@ -1,0 +1,29 @@
+.bar {
+  padding: 6px 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.count {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  min-width: 64px;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.none {
+  color: rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+:global(.dark-mode) & {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+
+  .none {
+    color: rgba(255, 255, 255, 0.4);
+  }
+}
