@@ -19,11 +19,11 @@
   white-space: nowrap;
 }
 
-:global(.dark-mode) & {
+:global(.dark-mode) .bar {
   border-bottom-color: rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
+}
 
-  .none {
-    color: rgba(255, 255, 255, 0.4);
-  }
+:global(.dark-mode) .none {
+  color: rgba(255, 255, 255, 0.4);
 }
