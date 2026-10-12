@@ -411,6 +411,82 @@ class WebViewAPI:
             logger.exception("save_file failed")
             return False
 
+    def show_notification(self, title: str, body: str) -> bool:
+        """Show a native desktop notification (产物通知 fallback).
+
+        The Web Notifications API works in WebView2 (Windows) after the
+        user grants permission, but WKWebView (macOS) hard-denies it —
+        Notification.permission is stuck at 'denied' with no prompt
+        path. This bridge fires a NATIVE notification instead:
+
+        - macOS: osascript 'display notification' (no click callback —
+          the click-to-reveal path only exists on the Web API route)
+        - Windows: best-effort PowerShell toast-free balloon via the
+          Windows shell API; callers should prefer the Web API there.
+
+        Args:
+            title: notification title (plain text).
+            body: notification body (plain text).
+        """
+        try:
+            import platform as _platform
+
+            if _platform.system() == "Darwin":
+                # Escape for AppleScript string literal.
+                def _esc(s: str) -> str:
+                    return s.replace("\\", "\\\\").replace('"', '\\"')
+
+                script = (
+                    f'display notification "{_esc(body)}" '
+                    f'with title "{_esc(title)}" '
+                    f'sound name "default"'
+                )
+                subprocess.run(
+                    ["osascript", "-e", script],
+                    check=False,
+                    timeout=5,
+                )
+                logger.info("show_notification: native (macOS) shown")
+                return True
+
+            # Windows: try a lightweight PowerShell balloon tip.
+            if _platform.system() == "Windows":
+                ps = (
+                    "[void][System.Reflection.Assembly]::LoadWithPartial"
+                    "Name('System.Windows.Forms');"
+                    "$n = New-Object System.Windows.Forms.NotifyIcon;"
+                    "$n.Icon = [System.Drawing.SystemIcons]::Information;"
+                    "$n.Visible = $true;"
+                    "$n.ShowBalloonTip(5000,"
+                    f"'{title}',"
+                    f"'{body}',"
+                    "[System.Windows.Forms.ToolTipIcon]::Info);"
+                    "Start-Sleep -Seconds 6; $n.Dispose()"
+                )
+                subprocess.Popen(
+                    [
+                        "powershell",
+                        "-NoProfile",
+                        "-WindowStyle",
+                        "Hidden",
+                        "-Command",
+                        ps,
+                    ],
+                    creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)
+                    if hasattr(subprocess, "CREATE_NO_WINDOW")
+                    else 0,
+                )
+                logger.info("show_notification: native (Windows) shown")
+                return True
+
+            logger.warning(
+                "show_notification: unsupported platform for native notify"
+            )
+            return False
+        except Exception:
+            logger.exception("show_notification failed")
+            return False
+
 
     def reveal_file(self, file_path: str) -> bool:
         """在系统文件管理器中选中并显示指定文件（跨平台）。

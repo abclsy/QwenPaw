@@ -1846,7 +1846,8 @@
       "description": "Send a system notification when a task produces files; click it to reveal the file in its folder",
       "unsupported": "System notifications are not supported in this environment",
       "denied": "Notification permission was denied. Allow notifications for this app in system settings",
-      "grant": "Grant notification permission"
+      "grant": "Grant notification permission",
+      "nativeDescription": "Notify via the system Notification Center when tasks produce files"
     }
   },
   "login": {

@@ -27,8 +27,16 @@ export default function ArtifactNotifyTab() {
       (typeof Notification !== "undefined" && Notification.permission) || "",
   );
 
+  // macOS WKWebView hard-denies the Web Notifications API; the app
+  // falls back to a NATIVE notification bridge (no web permission
+  // needed). On that route the permission UI is meaningless.
+  const nativeRoute =
+    !!window.pywebview?.api?.show_notification &&
+    (typeof Notification === "undefined" ||
+      Notification.permission !== "granted");
+
   const handleToggle = async (next: boolean) => {
-    if (next) {
+    if (next && !nativeRoute) {
       const granted = await ensureArtifactNotifyPermission();
       setPermission(
         (typeof Notification !== "undefined" && Notification.permission) || "",
@@ -69,16 +77,21 @@ export default function ArtifactNotifyTab() {
               {t("security.artifactNotify.enable", "文件生成通知")}
             </Text>
             <div style={{ fontSize: 12, color: "rgba(0,0,0,0.45)" }}>
-              {t(
-                "security.artifactNotify.description",
-                "任务产出文件时发送系统通知，点击通知可直接在文件夹中定位文件",
-              )}
+              {nativeRoute
+                ? t(
+                    "security.artifactNotify.nativeDescription",
+                    "任务产出文件时通过系统通知中心提醒",
+                  )
+                : t(
+                    "security.artifactNotify.description",
+                    "任务产出文件时发送系统通知，点击通知可直接在文件夹中定位文件",
+                  )}
             </div>
           </div>
           <Switch checked={enabled} onChange={handleToggle} />
         </div>
 
-        {permission === "denied" && (
+        {!nativeRoute && permission === "denied" && (
           <Text type="danger" style={{ fontSize: 12 }}>
             {t(
               "security.artifactNotify.denied",
@@ -87,7 +100,7 @@ export default function ArtifactNotifyTab() {
           </Text>
         )}
 
-        {enabled && permission === "default" && (
+        {!nativeRoute && enabled && permission === "default" && (
           <Button size="small" onClick={() => void handleToggle(true)}>
             {t("security.artifactNotify.grant", "授权系统通知")}
           </Button>

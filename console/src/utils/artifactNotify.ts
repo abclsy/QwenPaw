@@ -54,29 +54,49 @@ export function notifyArtifactProduced(
   filePath: string,
 ): void {
   if (!isArtifactNotifyEnabled()) return;
-  if (Notification.permission !== "granted") return;
   // Dedup per session (a re-render must not spam).
   if (notifiedThisSession.has(filePath)) return;
   notifiedThisSession.add(filePath);
 
-  try {
-    const notification = new Notification("小铁智友 · 文件已生成", {
-      body: `${filename}\n点击在文件夹中查看`,
-      tag: `qwenpaw-artifact:${filePath}`,
-    });
+  // Route 1 — Web Notifications API (WebView2 on Windows supports it
+  // after user grant; clicking reveals the file). WKWebView on macOS
+  // hard-denies permission, so fall through to the native bridge.
+  if (
+    typeof Notification !== "undefined" &&
+    Notification.permission === "granted"
+  ) {
+    try {
+      const notification = new Notification("小铁智友 · 文件已生成", {
+        body: `${filename}\n点击在文件夹中查看`,
+        tag: `qwenpaw-artifact:${filePath}`,
+      });
 
-    notification.onclick = () => {
-      // Focus the app window and reveal the file.
-      window.focus();
-      const reveal = window.pywebview?.api?.reveal_file;
-      if (reveal) {
-        void reveal(filePath).catch((err) =>
-          console.error("reveal_file failed:", err),
-        );
-      }
-      notification.close();
-    };
-  } catch (err) {
-    console.warn("artifact notification failed:", err);
+      notification.onclick = () => {
+        // Focus the app window and reveal the file.
+        window.focus();
+        const reveal = window.pywebview?.api?.reveal_file;
+        if (reveal) {
+          void reveal(filePath).catch((err) =>
+            console.error("reveal_file failed:", err),
+          );
+        }
+        notification.close();
+      };
+      return;
+    } catch (err) {
+      console.warn("artifact web notification failed:", err);
+    }
+  }
+
+  // Route 2 — native bridge (macOS WKWebView denies the Web API, so we
+  // go through pywebview → osascript; no click callback there, the
+  // notification itself is informational).
+  const native = window.pywebview?.api?.show_notification;
+  if (native) {
+    void native("小铁智友 · 文件已生成", `${filename}（已在输出文件夹中）`)
+      .then((ok) => {
+        if (!ok) console.warn("native notification returned false");
+      })
+      .catch((err) => console.error("native notification failed:", err));
   }
 }

@@ -22,6 +22,8 @@ interface PyWebViewAPI {
   clear_sso_cookies: () => Promise<boolean>;
   /** Open a local file with the OS default application (e.g. PDF in Preview) */
   preview_file: (file_path: string) => Promise<boolean>;
+  /** Native desktop notification (macOS WKWebView denies the Web API) */
+  show_notification: (title: string, body: string) => Promise<boolean>;
 }
 
 declare global {
