@@ -118,10 +118,11 @@ const PlanPanel: React.FC<PlanPanelProps> = ({
     return () => clearInterval(interval);
   }, [open, fetchPlan]);
 
+  const planSubtasks = plan?.subtasks ?? [];
   const doneCount =
-    plan?.subtasks.filter((s) => s.state === "done" || s.state === "abandoned")
+    planSubtasks.filter((s) => s.state === "done" || s.state === "abandoned")
       .length ?? 0;
-  const totalCount = plan?.subtasks.length ?? 0;
+  const totalCount = planSubtasks.length;
   const percent =
     totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
 
@@ -204,7 +205,7 @@ const PlanPanel: React.FC<PlanPanelProps> = ({
             </div>
 
             <ul className={styles.subtaskList}>
-              {plan.subtasks.map((subtask, idx) => (
+              {planSubtasks.map((subtask, idx) => (
                 <li key={idx} className={styles.subtaskItem}>
                   <span className={styles.subtaskIcon}>
                     {STATE_ICONS[subtask.state] || "⬜"}

@@ -78,8 +78,13 @@ export default function PlanProgressCard({ chatId }: { chatId?: string }) {
 
   if (!plan || plan.state === "abandoned") return null;
 
-  const total = plan.subtasks.length;
-  const done = plan.subtasks.filter(
+  // Defensive: subtasks must never be assumed — a plan payload missing
+  // the field (any producer path) crashed the whole chat page with
+  // 'Cannot read properties of undefined (reading length)' and left
+  // hover-blue rendering artifacts. Fallback to an empty list instead.
+  const subtasks = plan.subtasks ?? [];
+  const total = subtasks.length;
+  const done = subtasks.filter(
     (s) => s.state === "done" || s.state === "abandoned",
   ).length;
   const percent = total > 0 ? Math.round((done / total) * 100) : 0;
@@ -117,7 +122,7 @@ export default function PlanProgressCard({ chatId }: { chatId?: string }) {
       />
 
       <ul className={styles.taskList}>
-        {plan.subtasks.map((task, idx) => (
+        {subtasks.map((task, idx) => (
           <TaskRow key={idx} task={task} />
         ))}
       </ul>
