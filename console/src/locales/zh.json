@@ -1694,6 +1694,15 @@
         "goToWhitelist": "前往白名单",
         "moreFindings": "另有 {{count}} 条未列出（完整列表见 设置 → 安全 → 技能扫描）。"
       }
+    },
+    "artifactNotify": {
+      "title": "产物通知",
+      "tabDescription": "任务产出文件时的系统通知设置",
+      "enable": "文件生成通知",
+      "description": "任务产出文件时发送系统通知，点击通知可直接在文件夹中定位文件",
+      "unsupported": "当前环境不支持系统通知",
+      "denied": "系统通知权限已被拒绝，请在系统设置中允许本应用发送通知",
+      "grant": "授权系统通知"
     }
   },
   "login": {

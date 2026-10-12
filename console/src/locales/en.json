@@ -1830,6 +1830,15 @@
         "goToWhitelist": "Go to Whitelist",
         "moreFindings": "{{count}} more issues not shown (see Security → Skill Scanner for the full list)."
       }
+    },
+    "artifactNotify": {
+      "title": "Artifact Notify",
+      "tabDescription": "System notifications for task-produced files",
+      "enable": "File-produced notifications",
+      "description": "Send a system notification when a task produces files; click it to reveal the file in its folder",
+      "unsupported": "System notifications are not supported in this environment",
+      "denied": "Notification permission was denied. Allow notifications for this app in system settings",
+      "grant": "Grant notification permission"
     }
   },
   "login": {

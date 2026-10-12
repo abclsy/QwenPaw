@@ -1,6 +1,7 @@
 import { Button, Tabs } from "@agentscope-ai/design";
 import { useTranslation } from "react-i18next";
 import { useSecurityPage } from "./useSecurityPage";
+import ArtifactNotifyTab from "./components/ArtifactNotifyTab";
 import {
   ToolGuardTab,
   RuleModal,
@@ -159,6 +160,25 @@ function SecurityPage() {
               ),
               children: (
                 <AllowNoAuthHostsTab onSave={onAllowNoAuthHostsHandlersReady} />
+              ),
+            },
+            {
+              key: "artifactNotify",
+              label: (
+                <span className={styles.tabLabel}>
+                  {t("security.artifactNotify.title", "产物通知")}
+                </span>
+              ),
+              children: (
+                <div className={styles.tabContent}>
+                  <p className={styles.tabDescription}>
+                    {t(
+                      "security.artifactNotify.tabDescription",
+                      "任务产出文件时的系统通知设置",
+                    )}
+                  </p>
+                  <ArtifactNotifyTab />
+                </div>
               ),
             },
           ]}

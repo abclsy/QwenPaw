@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   FileTextOutlined,
   FolderOpenOutlined,
@@ -14,6 +14,7 @@ import {
   FileZipOutlined,
 } from "@ant-design/icons";
 import { message } from "antd";
+import { notifyArtifactProduced } from "../../utils/artifactNotify";
 
 // ── Types ──────────────────────────────────────────────────────────────
 interface FileBlockItem {
@@ -138,6 +139,15 @@ function FileCard({ file }: { file: FileBlockItem }) {
   const meta = getFileMeta(name);
   const [copied, setCopied] = useState(false);
   const desktop = isDesktopEnv();
+
+  // Artifact system notification (产物系统通知): fire once when the
+  // file card appears — the file has just been produced by the task.
+  // Clicking the notification reveals the file in the OS file manager.
+  useEffect(() => {
+    if (filePath && name) {
+      notifyArtifactProduced(name, filePath);
+    }
+  }, [filePath, name]);
 
   // 复制路径到剪贴板
   const handleCopyPath = useCallback(
