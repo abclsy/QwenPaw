@@ -46,6 +46,9 @@ export const FileEditor: React.FC<FileEditorProps> = ({
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "f") {
         e.preventDefault();
+        // The find bar only renders in source mode — leave markdown
+        // preview when opening it (the toolbar button does the same).
+        setShowMarkdown(false);
         setShowFind((v) => !v);
       }
     };
