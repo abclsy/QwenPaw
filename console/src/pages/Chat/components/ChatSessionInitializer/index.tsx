@@ -24,7 +24,17 @@ const ChatSessionInitializer: React.FC = () => {
 
   useEffect(() => {
     if (!chatId || !sessions.length) return;
-    const matching = sessions.find((s) => s.id === chatId);
+    // Match by id OR the extended fields: sessions that went through
+    // realId resolution get their id swapped to the library timestamp
+    // while the URL/sidebar keep the backend chat UUID (in realId), so
+    // an id-only lookup misses them — clicking such a conversation in
+    // the sidebar did NOTHING. sessionId covers the channel id form.
+    const matching = sessions.find(
+      (s) =>
+        s.id === chatId ||
+        (s as { realId?: string }).realId === chatId ||
+        (s as { sessionId?: string }).sessionId === chatId,
+    );
     if (matching && currentSessionIdRef.current !== matching.id) {
       setCurrentSessionId(matching.id);
     }
