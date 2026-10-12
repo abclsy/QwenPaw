@@ -28,14 +28,22 @@ import styles from "./index.module.less";
  * The card auto-hides when there is no active plan, when the plan is
  * finished (done state) for a few seconds, or in ask mode.
  */
-export default function PlanProgressCard() {
+export default function PlanProgressCard({ chatId }: { chatId?: string }) {
   const { t } = useTranslation();
   const [plan, setPlan] = useState<PlanStateResponse | null>(null);
 
   useEffect(() => {
-    // Initial fetch + SSE subscription
+    // Initial fetch + SSE subscription. Re-runs on every chat switch:
+    // immediately drop the stale plan (it belonged to the previous
+    // session) so the card never lingers on an unrelated conversation,
+    // then load this session's plan state.
     let mounted = true;
+    setPlan(null);
 
+    // NOTE: the plan is keyed by the LIBRARY session id (timestamp),
+    // not the URL chatId (backend chat UUID) — query with
+    // window.currentSessionId; chatId here only re-triggers the effect
+    // on conversation switches.
     const load = async () => {
       try {
         const data = await planApi.getCurrentPlan(
@@ -47,6 +55,9 @@ export default function PlanProgressCard() {
       }
     };
     load();
+    // window.currentSessionId lags the URL switch briefly — reload
+    // once more after it settles.
+    const timer = setTimeout(() => void load(), 800);
 
     const unsub = subscribePlanUpdates((updated, eventSessionId) => {
       const mySid = (window as any).currentSessionId || "";
@@ -56,9 +67,10 @@ export default function PlanProgressCard() {
 
     return () => {
       mounted = false;
+      clearTimeout(timer);
       unsub();
     };
-  }, []);
+  }, [chatId]);
 
   if (!plan || plan.state === "abandoned") return null;
 

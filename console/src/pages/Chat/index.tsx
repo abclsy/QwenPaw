@@ -1350,7 +1350,7 @@ export default function ChatPage() {
       }}
     >
       <div className={styles.chatMessagesArea}>
-        <PlanProgressCard />
+        <PlanProgressCard chatId={chatId} />
         <AgentScopeRuntimeWebUI
           ref={(r: IAgentScopeRuntimeWebUIRef | null) => {
             // The React ref callback is where the library hands us the
