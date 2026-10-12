@@ -31,6 +31,10 @@ import styles from "./index.module.less";
 export default function PlanProgressCard({ chatId }: { chatId?: string }) {
   const { t } = useTranslation();
   const [plan, setPlan] = useState<PlanStateResponse | null>(null);
+  // ⚠️ ALL hooks must run before the early-return below — this
+  // useState used to live after it, causing React #310 (more hooks
+  // than previous render) whenever a plan arrived via SSE.
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     // Initial fetch + SSE subscription. Re-runs on every chat switch:
@@ -80,7 +84,6 @@ export default function PlanProgressCard({ chatId }: { chatId?: string }) {
   ).length;
   const percent = total > 0 ? Math.round((done / total) * 100) : 0;
   const finished = plan.state === "done";
-  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div
