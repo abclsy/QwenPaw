@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Progress, Tooltip } from "antd";
+import { DownOutlined, UpOutlined } from "@ant-design/icons";
 import {
   CheckCircleFilled,
   ClockCircleOutlined,
@@ -67,10 +68,19 @@ export default function PlanProgressCard() {
   ).length;
   const percent = total > 0 ? Math.round((done / total) * 100) : 0;
   const finished = plan.state === "done";
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className={`${styles.card} ${finished ? styles.cardDone : ""}`}>
-      <div className={styles.header}>
+    <div
+      className={`${styles.card} ${finished ? styles.cardDone : ""} ${
+        collapsed ? styles.collapsed : ""
+      }`}
+    >
+      <div
+        className={styles.header}
+        onClick={() => setCollapsed((v) => !v)}
+        style={{ cursor: "pointer" }}
+      >
         <span className={styles.title}>
           {finished
             ? t("planCard.finished", "计划已完成")
@@ -80,6 +90,7 @@ export default function PlanProgressCard() {
         <span className={styles.count}>
           {done}/{total}
         </span>
+        {collapsed ? <UpOutlined /> : <DownOutlined />}
       </div>
 
       <Progress
