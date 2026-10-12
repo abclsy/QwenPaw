@@ -1156,7 +1156,8 @@ def desktop_cmd(
             logger.info("Calling webview.start() with splash (blocks until closed)...")
 
             # ── WebView2 (Windows): 允许 iframe 跨站携带统一认证 SSO cookie ──
-            # 知识库系统（http://10.2.38.143:5173）以 iframe 嵌入且为 http 内网站点，
+            # 旧知识库（http://10.2.38.143:5173）曾以 iframe 嵌入且为 http 内网站点；
+            # 新地址为 https://cloudnet.crec.cn 正式域名，
             # Chromium 默认 SameSite=Lax-by-default 会拦截其 OAuth 回跳 cookie，
             # 导致 iframe 内统一认证登录失败。通过 WebView2 官方环境变量
             # WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS 注入关闭相关特性的参数。

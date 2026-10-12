@@ -8,7 +8,8 @@ import {
 import { useTheme } from "../../contexts/ThemeContext";
 
 // ── 知识库系统地址（与桌面端统一身份对接，独立窗口 + SSO） ──────────────
-export const KNOWLEDGE_BASE_URL = "http://10.2.38.143:5173/dashboard";
+export const KNOWLEDGE_BASE_URL =
+  "https://cloudnet.crec.cn/aikw/platform/knowledge-bases?embed=1";
 
 const LOAD_TIMEOUT_MS = 15000;
 
