@@ -12,6 +12,8 @@ interface Props {
 interface State {
   hasError: boolean;
   isChunkError: boolean;
+  /** Error detail shown to the user for fast diagnosis (render bugs). */
+  detail?: string;
 }
 
 /** Heuristic: does this look like a failed dynamic import? */
@@ -42,7 +44,18 @@ export class ChunkErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, isChunkError: false };
 
   static getDerivedStateFromError(error: unknown): State {
-    return { hasError: true, isChunkError: isChunkLoadError(error) };
+    const detail =
+      error instanceof Error
+        ? `${error.name}: ${error.message}\n\n${(error.stack || "")
+            .split("\n")
+            .slice(0, 6)
+            .join("\n")}`
+        : String(error);
+    return {
+      hasError: true,
+      isChunkError: isChunkLoadError(error),
+      detail,
+    };
   }
 
   componentDidUpdate(prevProps: Readonly<Props>) {
@@ -69,7 +82,29 @@ export class ChunkErrorBoundary extends Component<Props, State> {
         <Result
           status="error"
           title={i18n.t(titleKey)}
-          subTitle={i18n.t(subTitleKey)}
+          subTitle={
+            <>
+              <div>{i18n.t(subTitleKey)}</div>
+              {this.state.detail && !this.state.isChunkError && (
+                <pre
+                  style={{
+                    marginTop: 12,
+                    padding: 12,
+                    textAlign: "left",
+                    maxWidth: 640,
+                    maxHeight: 200,
+                    overflow: "auto",
+                    fontSize: 12,
+                    background: "rgba(0,0,0,0.04)",
+                    borderRadius: 8,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {this.state.detail}
+                </pre>
+              )}
+            </>
+          }
           extra={
             <Button type="primary" onClick={() => window.location.reload()}>
               {i18n.t("chunkError.reload")}
