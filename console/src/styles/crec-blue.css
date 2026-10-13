@@ -76,14 +76,22 @@ html.blue-mode [class*="sider__"] [class*="navItemActive__"] span {
   color: #ffffff !important;
 }
 
-/* 新会话按钮：白底蓝字（醒目 CTA） */
-html.blue-mode [class*="newBtn__"] {
-  background: #ffffff !important;
-  color: #1961ac !important;
+/* 新会话/加号按钮：半透明白块 + 白图标（白底方案被更高优先级的
+   白 svg 规则打穿成白底白图标，干脆统一为蓝底上的白色系按钮） */
+html.blue-mode [class*="sider__"] [class*="newBtn__"],
+html.blue-mode [class*="siderScrollContent__"] [class*="newBtn__"] {
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: #ffffff !important;
 }
 
-html.blue-mode [class*="newBtn__"]:hover {
-  background: rgba(255, 255, 255, 0.88) !important;
+html.blue-mode [class*="sider__"] [class*="newBtn__"] svg,
+html.blue-mode [class*="siderScrollContent__"] [class*="newBtn__"] svg {
+  color: #ffffff !important;
+}
+
+html.blue-mode [class*="sider__"] [class*="newBtn__"]:hover,
+html.blue-mode [class*="siderScrollContent__"] [class*="newBtn__"]:hover {
+  background: rgba(255, 255, 255, 0.24) !important;
 }
 
 /* 侧栏分隔线 */
@@ -204,4 +212,54 @@ html.blue-mode [class*="searchKbd__"] {
 /* 导航徽标红点保持红色（别被白字规则误伤） */
 html.blue-mode [class*="navItemNewDot__"] {
   background: #ff4d4f !important;
+}
+
+
+/* ── 侧栏底部用户区（siderFooter）：它是米白底（VS Code 风格），
+   不是蓝底 —— 前面的宽泛白字规则把用户名染成白底白字全隐形。
+   这里用更高优先级（双类限定）恢复深色文字。 ────────────────── */
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] {
+  background: #f9f8f4 !important;
+  border-top-color: #f0f0f0 !important;
+}
+
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] span,
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] div,
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] button,
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] a {
+  color: rgba(0, 0, 0, 0.78) !important;
+}
+
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] svg {
+  color: rgba(0, 0, 0, 0.55) !important;
+}
+
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] [class*="hover"]:hover,
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] button:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+
+/* ── 侧栏底部用户区（siderFooter）：它是米白底（VS Code 风格），
+   不是蓝底 —— 前面的宽泛白字规则把用户名染成白底白字全隐形。
+   这里用更高优先级（双类限定）恢复深色文字。 ────────────────── */
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] {
+  background: #f9f8f4 !important;
+  border-top-color: #f0f0f0 !important;
+}
+
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] span,
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] div,
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] button,
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] a {
+  color: rgba(0, 0, 0, 0.78) !important;
+}
+
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] svg {
+  color: rgba(0, 0, 0, 0.55) !important;
+}
+
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] [class*="hover"]:hover,
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] button:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
 }

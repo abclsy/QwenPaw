@@ -88,7 +88,7 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { message: _msg } = useAppMessage();
-  const { isDark, themeMode, setThemeMode } = useTheme();
+  const { isDark, resolvedTheme, themeMode, setThemeMode } = useTheme();
   const { pluginRoutes } = usePlugins();
   const collapsed = false;
   const [authEnabled, setAuthEnabled] = useState(false);
@@ -398,7 +398,10 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
             >
               <img
                 src={
-                  isDark ? "/logo-header-dark.png" : "/logo-header-light.png"
+                  // 中铁蓝侧栏 = 白 logo（dark 资产）；仅浅色主题用深色字 logo
+                  resolvedTheme === "blue"
+                    ? "/logo-header-dark.png"
+                    : "/logo-header-light.png"
                 }
                 alt="小铁智友"
                 style={{
