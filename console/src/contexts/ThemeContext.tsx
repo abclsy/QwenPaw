@@ -60,14 +60,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setResolvedTheme(resolveTheme(themeMode));
   }, [themeMode]);
 
-  // Apply classes based on resolved theme. The blue theme keeps
-  // dark-mode (hundreds of dark CSS rules: white text, dark surfaces)
-  // and adds blue-mode (brand-blue tint layer on top).
+  // Apply classes based on resolved theme. 中铁蓝 is a LIGHT-based
+  // theme (brand-blue navigation + light content) — it does NOT use
+  // the dark-mode rules; only blue-mode drives the blue sidebar layer.
   useEffect(() => {
-    document.documentElement.classList.toggle(
-      "dark-mode",
-      resolvedTheme === "blue",
-    );
     document.documentElement.classList.toggle(
       "blue-mode",
       resolvedTheme === "blue",
@@ -84,7 +80,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       value={{
         themeMode,
         resolvedTheme,
-        isDark: resolvedTheme === "blue",
+        isDark: false,
         setThemeMode,
       }}
     >

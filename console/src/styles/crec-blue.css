@@ -1,52 +1,93 @@
 /* ─────────────────────────────────────────────────────────────────
-   中铁蓝主题基调层（html.blue-mode）
-   品牌色 #1961AC 基底的深蓝调主题。挂在 dark-mode 之上：
-   dark-mode 提供白字/暗底/暗色组件等全部深色规则，本层只把
-   中性黑灰底色覆盖为品牌深蓝系，并调侧栏与顶栏。
-   2026-10-13 主题定稿：浅色 + 中铁蓝二选一（深色已退役）。
+   中铁蓝主题（html.blue-mode）
+   品牌蓝 #1961AC 导航 + 浅色内容区——亮色系品牌主题（非深色）。
+   内容区走浅色分支（ThemeContext isDark=false），本层只负责把
+   侧边导航染成品牌蓝实色 + 白字。css-module 类名带 hash，用
+   [class*=...] 属性选择器选中。
+   2026-10-13 主题定稿：浅色 + 中铁蓝二选一。
    ───────────────────────────────────────────────────────────────── */
 
-html.blue-mode body {
-  background: #0d1b2e !important;
+/* 侧栏整体：品牌蓝实色 */
+html.blue-mode [class*="sider__"],
+html.blue-mode [class*="siderScrollContent__"] {
+  background: #1961ac !important;
 }
 
-html.blue-mode .qwenpaw-layout,
-html.blue-mode .ant-layout {
-  background: #0d1b2e !important;
+/* 侧栏内所有文字/图标：白 */
+html.blue-mode [class*="sider__"] button,
+html.blue-mode [class*="sider__"] a,
+html.blue-mode [class*="sider__"] span,
+html.blue-mode [class*="sider__"] div,
+html.blue-mode [class*="siderScrollContent__"] button,
+html.blue-mode [class*="siderScrollContent__"] span,
+html.blue-mode [class*="siderScrollContent__"] div {
+  color: rgba(255, 255, 255, 0.82) !important;
 }
 
-html.blue-mode .qwenpaw-layout-content,
-html.blue-mode .ant-layout-content {
-  background: #0d1b2e !important;
+html.blue-mode [class*="sider__"] svg,
+html.blue-mode [class*="siderScrollContent__"] svg {
+  color: rgba(255, 255, 255, 0.82) !important;
 }
 
-/* 页面内容卡片 */
-html.blue-mode .qwenpaw-card,
-html.blue-mode .ant-card {
-  background: #13263f !important;
-  border-color: rgba(120, 170, 230, 0.14) !important;
+/* 历史会话条目：白字 + 半透明白 hover/active */
+html.blue-mode [class*="siderScrollContent__"] [class*="item__"] {
+  color: rgba(255, 255, 255, 0.82) !important;
+  background: transparent !important;
 }
 
-html.blue-mode .qwenpaw-card-head,
-html.blue-mode .ant-card-head {
-  background: #13263f !important;
-  border-bottom-color: rgba(120, 170, 230, 0.12) !important;
+html.blue-mode [class*="siderScrollContent__"] [class*="item__"]:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: #ffffff !important;
 }
 
-/* 侧栏：更深的品牌蓝 */
-html.blue-mode .qwenpaw-layout-sider,
-html.blue-mode .index-module__sider__s7 {
-  background: #0a1626 !important;
+html.blue-mode [class*="siderScrollContent__"] [class*="itemActive__"] {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  font-weight: 500;
 }
 
-/* 分隔线与浅色面板基调 */
-html.blue-mode .page-content {
-  background: #13263f;
-  border-color: rgba(120, 170, 230, 0.14);
+html.blue-mode [class*="siderScrollContent__"] [class*="itemActive__"] svg,
+html.blue-mode [class*="siderScrollContent__"] [class*="itemActive__"] span {
+  color: #ffffff !important;
 }
 
-/* 输入/表格容器沿用深色规则，但容器底染蓝 */
-html.blue-mode .qwenpaw-table-tbody > tr > td,
-html.blue-mode .ant-table-tbody > tr > td {
-  background: #13263f !important;
+/* 导航项（主菜单按钮）：hover/active 白色半透明 */
+html.blue-mode [class*="sider__"] [class*="navItem__"] {
+  color: rgba(255, 255, 255, 0.82) !important;
+}
+
+html.blue-mode [class*="sider__"] [class*="navItem__"]:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: #ffffff !important;
+}
+
+html.blue-mode [class*="sider__"] [class*="navItem__"]:hover svg {
+  color: #ffffff !important;
+}
+
+html.blue-mode [class*="sider__"] [class*="navItemActive__"] {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  font-weight: 500;
+}
+
+html.blue-mode [class*="sider__"] [class*="navItemActive__"] svg,
+html.blue-mode [class*="sider__"] [class*="navItemActive__"] span {
+  color: #ffffff !important;
+}
+
+/* 新会话按钮：白底蓝字（醒目 CTA） */
+html.blue-mode [class*="newBtn__"] {
+  background: #ffffff !important;
+  color: #1961ac !important;
+}
+
+html.blue-mode [class*="newBtn__"]:hover {
+  background: rgba(255, 255, 255, 0.88) !important;
+}
+
+/* 侧栏分隔线 */
+html.blue-mode [class*="sider__"] [class*="divider__"],
+html.blue-mode [class*="siderScrollContent__"] [class*="divider__"] {
+  border-color: rgba(255, 255, 255, 0.18) !important;
 }
