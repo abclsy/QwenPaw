@@ -215,51 +215,51 @@ html.blue-mode [class*="navItemNewDot__"] {
 }
 
 
-/* ── 侧栏底部用户区（siderFooter）：它是米白底（VS Code 风格），
-   不是蓝底 —— 前面的宽泛白字规则把用户名染成白底白字全隐形。
-   这里用更高优先级（双类限定）恢复深色文字。 ────────────────── */
+/* ── 侧栏底部用户区（siderFooter）：整块翻成深一档的品牌蓝，
+   与上方导航连成一体（用户反馈：米白 footer 在蓝侧栏里突兀）。
+   白字白图标，分隔线用白色半透明。 ───────────────────────── */
 html.blue-mode [class*="sider__"] [class*="siderFooter__"] {
-  background: #f9f8f4 !important;
-  border-top-color: #f0f0f0 !important;
+  background: #15507e !important; /* 深一档品牌蓝，与主体 #1961ac 区分层次 */
+  border-top-color: rgba(255, 255, 255, 0.14) !important;
 }
 
 html.blue-mode [class*="sider__"] [class*="siderFooter__"] span,
 html.blue-mode [class*="sider__"] [class*="siderFooter__"] div,
 html.blue-mode [class*="sider__"] [class*="siderFooter__"] button,
 html.blue-mode [class*="sider__"] [class*="siderFooter__"] a {
-  color: rgba(0, 0, 0, 0.78) !important;
+  color: rgba(255, 255, 255, 0.88) !important;
 }
 
 html.blue-mode [class*="sider__"] [class*="siderFooter__"] svg {
-  color: rgba(0, 0, 0, 0.55) !important;
+  color: rgba(255, 255, 255, 0.75) !important;
 }
 
-html.blue-mode [class*="sider__"] [class*="siderFooter__"] [class*="hover"]:hover,
-html.blue-mode [class*="sider__"] [class*="siderFooter__"] button:hover {
-  background: rgba(0, 0, 0, 0.05) !important;
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] button:hover,
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] [class*="hover"]:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
 }
 
 
-/* ── 侧栏底部用户区（siderFooter）：它是米白底（VS Code 风格），
-   不是蓝底 —— 前面的宽泛白字规则把用户名染成白底白字全隐形。
-   这里用更高优先级（双类限定）恢复深色文字。 ────────────────── */
+/* ── 侧栏底部用户区（siderFooter）：整块翻成深一档的品牌蓝，
+   与上方导航连成一体（用户反馈：米白 footer 在蓝侧栏里突兀）。
+   白字白图标，分隔线用白色半透明。 ───────────────────────── */
 html.blue-mode [class*="sider__"] [class*="siderFooter__"] {
-  background: #f9f8f4 !important;
-  border-top-color: #f0f0f0 !important;
+  background: #15507e !important; /* 深一档品牌蓝，与主体 #1961ac 区分层次 */
+  border-top-color: rgba(255, 255, 255, 0.14) !important;
 }
 
 html.blue-mode [class*="sider__"] [class*="siderFooter__"] span,
 html.blue-mode [class*="sider__"] [class*="siderFooter__"] div,
 html.blue-mode [class*="sider__"] [class*="siderFooter__"] button,
 html.blue-mode [class*="sider__"] [class*="siderFooter__"] a {
-  color: rgba(0, 0, 0, 0.78) !important;
+  color: rgba(255, 255, 255, 0.88) !important;
 }
 
 html.blue-mode [class*="sider__"] [class*="siderFooter__"] svg {
-  color: rgba(0, 0, 0, 0.55) !important;
+  color: rgba(255, 255, 255, 0.75) !important;
 }
 
-html.blue-mode [class*="sider__"] [class*="siderFooter__"] [class*="hover"]:hover,
-html.blue-mode [class*="sider__"] [class*="siderFooter__"] button:hover {
-  background: rgba(0, 0, 0, 0.05) !important;
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] button:hover,
+html.blue-mode [class*="sider__"] [class*="siderFooter__"] [class*="hover"]:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
 }
