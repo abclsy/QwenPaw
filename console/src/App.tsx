@@ -178,10 +178,27 @@ function AppInner() {
           algorithm: isDark
             ? antdTheme.darkAlgorithm
             : antdTheme.defaultAlgorithm,
-          token: {
-            colorPrimary: "#1961AC",
-            colorInfo: "#1961AC",
-          },
+          token: isDark
+            ? {
+                colorPrimary: "#1961AC",
+                colorInfo: "#1961AC",
+                // 深色高亮家族必须钉死：dark 算法把品牌蓝 #1961AC
+                // 提亮成 #4096ff 再加 0.18 alpha 作为 colorPrimaryBg/
+                // colorInfoBg，被 Menu/selected/hover 大面积使用——
+                // 这就是深色"蓝块"的来源（bailian 主题曾用 #202041
+                // 钉住它，重做时被移除后算法派生现身）。钉成 antd
+                // 官方深色对标准蓝的派生值（暗蓝黑，观感沉稳）。
+                colorPrimaryBg: "#111a2c",
+                colorPrimaryBgHover: "#112545",
+                colorPrimaryActive: "#15325b",
+                colorInfoBg: "#111a2c",
+                colorInfoBgHover: "#112545",
+                colorInfoActive: "#15325b",
+              }
+            : {
+                colorPrimary: "#1961AC",
+                colorInfo: "#1961AC",
+              },
         }}
       >
         <AntdApp>
