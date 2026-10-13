@@ -1155,3 +1155,15 @@ html.dark-mode .qwenpaw-welcome-prompts img[alt="小铁智友"] {
   content-visibility: auto;
   contain-intrinsic-size: auto 200px;
 }
+
+/* ─── 2026-10-13 深色"蓝块"兜底：任何残留的蓝色高亮（#4096ff 系
+   alpha 层，来自 antd dark 算法对 #1961AC 的提亮派生）在深色下
+   一律压成中性深灰，一票否决，不受派生链影响。 ─────────────── */
+html.dark-mode .qwenpaw-menu-item:hover,
+html.dark-mode .qwenpaw-menu-item-selected,
+html.dark-mode .qwenpaw-list-item:hover,
+html.dark-mode [class*="menu-item"]:hover,
+html.dark-mode [class*="list-item"]:hover,
+html.dark-mode [class*="item-hover"]:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}

@@ -1053,6 +1053,18 @@ export default function ChatPage() {
       theme: {
         ...defaultConfig.theme,
         darkMode: isDark,
+        // 深色下钉死高亮族：库内部用 antd 同款算法从 colorPrimary
+        // (#1961AC) 派生 hover/selected 背景 → 提亮成 #4096ff@0.18 的
+        // 蓝并大面积使用（深色"蓝块"的库侧来源，与 App.tsx 的
+        // ConfigProvider 是两条独立派生链）。与 App 层保持同值。
+        ...(isDark && {
+          colorPrimaryBg: "#111a2c",
+          colorPrimaryBgHover: "#112545",
+          colorPrimaryActive: "#15325b",
+          colorInfoBg: "#111a2c",
+          colorInfoBgHover: "#112545",
+          colorInfoActive: "#15325b",
+        }),
         leftHeader: {
           ...defaultConfig.theme.leftHeader,
         },
