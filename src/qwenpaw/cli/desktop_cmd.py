@@ -211,14 +211,24 @@ class WebViewAPI:
             # manual-login page. If the KB backend 404s this path or
             # the IdP session is absent, the user lands on a login
             # page and can authenticate manually — same as before.
-            sso_entry = (
-                f"{origin}/api/v1/auth/sso/authorize?"
-                + urlencode(
-                    {
-                        "redirect_uri": f"{origin}/api/v1/auth/sso/callback",
-                    }
+            # 2026-10-13: the OLD KB (10.2.38.143) needed our SSO
+            # authorize-chain entry. The NEW system (cloudnet.crec.cn,
+            # 信小知) has no such endpoint — the chain 404s. It runs
+            # its own unified-auth redirect when loaded directly, so
+            # open the URL as-is for non-legacy hosts.
+            legacy_kb_hosts = ("10.2.38.143",)
+            host = urlparse(url).hostname or ""
+            if host in legacy_kb_hosts:
+                sso_entry = (
+                    f"{origin}/api/v1/auth/sso/authorize?"
+                    + urlencode(
+                        {
+                            "redirect_uri": f"{origin}/api/v1/auth/sso/callback",
+                        }
+                    )
                 )
-            )
+            else:
+                sso_entry = url
 
             # Re-inject the persisted IdP session cookie (harvested by
             # the poller / KB-window close handler) BEFORE the window
