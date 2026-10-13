@@ -1,9 +1,5 @@
 import { createGlobalStyle } from "antd-style";
-import {
-  ConfigProvider,
-  bailianDarkTheme,
-  bailianTheme,
-} from "@agentscope-ai/design";
+import { ConfigProvider } from "@agentscope-ai/design";
 import { App as AntdApp } from "antd";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -131,7 +127,6 @@ function AppInner() {
   const { i18n } = useTranslation();
   const { isDark } = useTheme();
   const { loading: pluginsLoading } = usePlugins();
-  const selectedTheme = isDark ? bailianDarkTheme : bailianTheme;
   const lang = i18n.resolvedLanguage || i18n.language || "en";
   const [antdLocale, setAntdLocale] = useState<Locale>(
     antdLocaleMap[lang] ?? enUS,
@@ -170,17 +165,20 @@ function AppInner() {
     <BrowserRouter basename={basename}>
       <GlobalStyle />
       <ConfigProvider
-        {...selectedTheme}
         prefix="qwenpaw"
         prefixCls="qwenpaw"
         locale={antdLocale}
         theme={{
-          ...(selectedTheme as any)?.theme,
+          // 2026-10-13 主题系统重做：移除 bailian 主题叠加（紫系 token +
+          // cssVar 动态注入 + darkAlgorithm 派生互相打架，深色下派生出
+          // rgba(64,150,255,.18) 的蓝色高亮层，用户界面大面积"蓝块"）。
+          // 现在是单一可控源：标准 antd 算法 + 品牌色。
           algorithm: isDark
             ? antdTheme.darkAlgorithm
             : antdTheme.defaultAlgorithm,
           token: {
             colorPrimary: "#1961AC",
+            colorInfo: "#1961AC",
           },
         }}
       >
