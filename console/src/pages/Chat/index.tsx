@@ -1343,14 +1343,18 @@ export default function ChatPage() {
   return (
     <div
       style={{
+        position: "relative" /* anchors the floating plan card; the card
+            must NOT live inside the scrolling chatMessagesArea — an
+            absolute child there scrolls with the content and drifts
+            off-screen (user screenshot) */,
         height: "100%",
         width: "100%",
         display: "flex",
         flexDirection: "column",
       }}
     >
+      <PlanProgressCard chatId={chatId} />
       <div className={styles.chatMessagesArea}>
-        <PlanProgressCard chatId={chatId} />
         <AgentScopeRuntimeWebUI
           ref={(r: IAgentScopeRuntimeWebUIRef | null) => {
             // The React ref callback is where the library hands us the
