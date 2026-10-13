@@ -219,7 +219,7 @@ html.blue-mode [class*="navItemNewDot__"] {
    与上方导航连成一体（用户反馈：米白 footer 在蓝侧栏里突兀）。
    白字白图标，分隔线用白色半透明。 ───────────────────────── */
 html.blue-mode [class*="sider__"] [class*="siderFooter__"] {
-  background: #15507e !important; /* 深一档品牌蓝，与主体 #1961ac 区分层次 */
+  background: #1961ac !important; /* 与侧栏主体完全同色，一整块蓝 */
   border-top-color: rgba(255, 255, 255, 0.14) !important;
 }
 
@@ -244,7 +244,7 @@ html.blue-mode [class*="sider__"] [class*="siderFooter__"] [class*="hover"]:hove
    与上方导航连成一体（用户反馈：米白 footer 在蓝侧栏里突兀）。
    白字白图标，分隔线用白色半透明。 ───────────────────────── */
 html.blue-mode [class*="sider__"] [class*="siderFooter__"] {
-  background: #15507e !important; /* 深一档品牌蓝，与主体 #1961ac 区分层次 */
+  background: #1961ac !important; /* 与侧栏主体完全同色，一整块蓝 */
   border-top-color: rgba(255, 255, 255, 0.14) !important;
 }
 
