@@ -1418,7 +1418,8 @@
   "theme": {
     "dark": "深色",
     "light": "浅色",
-    "system": "跟随系统"
+    "system": "跟随系统",
+    "blue": "中铁蓝"
   },
   "sidebar": {
     "newVersion": "发现新版本 v{{version}}，点击前往升级",

@@ -1,0 +1,52 @@
+/* ─────────────────────────────────────────────────────────────────
+   中铁蓝主题基调层（html.blue-mode）
+   品牌色 #1961AC 基底的深蓝调主题。挂在 dark-mode 之上：
+   dark-mode 提供白字/暗底/暗色组件等全部深色规则，本层只把
+   中性黑灰底色覆盖为品牌深蓝系，并调侧栏与顶栏。
+   2026-10-13 主题定稿：浅色 + 中铁蓝二选一（深色已退役）。
+   ───────────────────────────────────────────────────────────────── */
+
+html.blue-mode body {
+  background: #0d1b2e !important;
+}
+
+html.blue-mode .qwenpaw-layout,
+html.blue-mode .ant-layout {
+  background: #0d1b2e !important;
+}
+
+html.blue-mode .qwenpaw-layout-content,
+html.blue-mode .ant-layout-content {
+  background: #0d1b2e !important;
+}
+
+/* 页面内容卡片 */
+html.blue-mode .qwenpaw-card,
+html.blue-mode .ant-card {
+  background: #13263f !important;
+  border-color: rgba(120, 170, 230, 0.14) !important;
+}
+
+html.blue-mode .qwenpaw-card-head,
+html.blue-mode .ant-card-head {
+  background: #13263f !important;
+  border-bottom-color: rgba(120, 170, 230, 0.12) !important;
+}
+
+/* 侧栏：更深的品牌蓝 */
+html.blue-mode .qwenpaw-layout-sider,
+html.blue-mode .index-module__sider__s7 {
+  background: #0a1626 !important;
+}
+
+/* 分隔线与浅色面板基调 */
+html.blue-mode .page-content {
+  background: #13263f;
+  border-color: rgba(120, 170, 230, 0.14);
+}
+
+/* 输入/表格容器沿用深色规则，但容器底染蓝 */
+html.blue-mode .qwenpaw-table-tbody > tr > td,
+html.blue-mode .ant-table-tbody > tr > td {
+  background: #13263f !important;
+}

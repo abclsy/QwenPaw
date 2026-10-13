@@ -34,6 +34,7 @@ import {
   setAuthUsername,
 } from "./api/config";
 import "./styles/layout.css";
+import "./styles/crec-blue.css";
 import "./styles/form-override.css";
 
 const antdLocaleMap: Record<string, Locale> = {

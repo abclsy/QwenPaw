@@ -7,8 +7,13 @@ import {
   type ReactNode,
 } from "react";
 
-export type ThemeMode = "dark" | "light" | "system";
-export type ResolvedTheme = "dark" | "light";
+/**
+ * 2026-10-13 主题定稿：浅色 + 中铁蓝两个主题（用户拍板）。
+ * "blue" = 中铁蓝主题（品牌色 #1961AC 基底的深蓝调）。
+ * 历史值 "dark" 自动迁移为 "blue"；"system" 映射为浅色。
+ */
+export type ThemeMode = "blue" | "light" | "system";
+export type ResolvedTheme = "blue" | "light";
 
 const THEME_STORAGE_KEY = "crecpaw-theme-mode";
 
@@ -26,29 +31,21 @@ const ThemeContext = createContext<ThemeContextValue>({
   setThemeMode: () => {},
 });
 
-function getSystemTheme(): ResolvedTheme {
-  if (
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-color-scheme: light)").matches
-  ) {
-    return "light";
-  }
-  return "dark";
-}
-
 function resolveTheme(mode: ThemeMode): ResolvedTheme {
-  if (mode === "system") {
-    return getSystemTheme();
-  }
-  return mode as ResolvedTheme;
+  if (mode === "blue") return "blue";
+  // system follows light (dark was retired; blue is an explicit choice)
+  return "light";
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem(THEME_STORAGE_KEY);
-      if (stored === "light" || stored === "dark" || stored === "system") {
+      if (stored === "blue" || stored === "light" || stored === "system") {
         return stored;
+      }
+      if (stored === "dark") {
+        return "blue"; // migration: dark theme retired, maps to blue
       }
     }
     return "light";
@@ -58,31 +55,23 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     resolveTheme(themeMode),
   );
 
-  // Listen for system theme changes when in "system" mode
-  useEffect(() => {
-    if (themeMode !== "system") return;
-
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = () => {
-      setResolvedTheme(getSystemTheme());
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [themeMode]);
-
   // Update resolved theme when mode changes
   useEffect(() => {
     setResolvedTheme(resolveTheme(themeMode));
   }, [themeMode]);
 
-  // Apply/remove dark-mode class based on resolved theme
+  // Apply classes based on resolved theme. The blue theme keeps
+  // dark-mode (hundreds of dark CSS rules: white text, dark surfaces)
+  // and adds blue-mode (brand-blue tint layer on top).
   useEffect(() => {
-    if (resolvedTheme === "dark") {
-      document.documentElement.classList.add("dark-mode");
-    } else {
-      document.documentElement.classList.remove("dark-mode");
-    }
+    document.documentElement.classList.toggle(
+      "dark-mode",
+      resolvedTheme === "blue",
+    );
+    document.documentElement.classList.toggle(
+      "blue-mode",
+      resolvedTheme === "blue",
+    );
   }, [resolvedTheme]);
 
   const setThemeMode = useCallback((mode: ThemeMode) => {
@@ -95,7 +84,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       value={{
         themeMode,
         resolvedTheme,
-        isDark: resolvedTheme === "dark",
+        isDark: resolvedTheme === "blue",
         setThemeMode,
       }}
     >

@@ -495,13 +495,13 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
                           justifyContent: "space-between",
                         }}
                       >
-                        {t("theme.dark")}
-                        {themeMode === "dark" && (
+                        {t("theme.blue", "中铁蓝")}
+                        {themeMode === "blue" && (
                           <CheckCircleOutlined style={{ color: "#52c41a" }} />
                         )}
                       </span>
                     ),
-                    onClick: () => setThemeMode("dark"),
+                    onClick: () => setThemeMode("blue"),
                   },
                   {
                     key: "theme-light",
@@ -520,24 +520,6 @@ export default function Sidebar({ selectedKey }: SidebarProps) {
                       </span>
                     ),
                     onClick: () => setThemeMode("light"),
-                  },
-                  {
-                    key: "theme-system",
-                    label: (
-                      <span
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        {t("theme.system")}
-                        {themeMode === "system" && (
-                          <CheckCircleOutlined style={{ color: "#52c41a" }} />
-                        )}
-                      </span>
-                    ),
-                    onClick: () => setThemeMode("system"),
                   },
                 ],
               },

@@ -1555,7 +1555,8 @@
   "theme": {
     "dark": "Dark",
     "light": "Light",
-    "system": "System"
+    "system": "System",
+    "blue": "CREC Blue"
   },
   "sidebar": {
     "newVersion": "New version available: v{{version}}, click to upgrade",
