@@ -138,6 +138,13 @@ class WebViewAPI:
     # Registrable domains whose cookies keep the SSO session alive.
     SSO_COOKIE_DOMAINS = ["tyrz.crec.cn"]
 
+    # Dead embedded-system hosts whose cookies must NOT survive an
+    # address change: the new system shares this cookie store and a
+    # stale old-host session makes it answer 404 (2026-10 知识库
+    # migrated from 10.2.38.143 to cloudnet.crec.cn — user hit exactly
+    # this). Purged before every KB window open.
+    STALE_KB_COOKIE_DOMAINS = ["10.2.38.143"]
+
     def __init__(self):
         self._kb_windows: list[Any] = []
 
@@ -225,6 +232,16 @@ class WebViewAPI:
             try:
                 from . import idp_cookies
 
+                # Drop dead-host cookies first (old KB deployment):
+                # a stale 10.2.38.143 session in the shared store makes
+                # the NEW system 404 instead of running its SSO flow.
+                purged = idp_cookies.purge_domains(
+                    self.STALE_KB_COOKIE_DOMAINS
+                )
+                if purged:
+                    logger.info(
+                        "purged %d stale KB cookies", purged
+                    )
                 idp_cookies.harvest()
                 idp_cookies.restore(domains=self.SSO_COOKIE_DOMAINS)
             except Exception:

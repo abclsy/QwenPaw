@@ -38,6 +38,7 @@ Implementation notes (macOS / cocoa backend, pywebview 6.x)
 from __future__ import annotations
 
 import json
+import webview
 import logging
 import os
 import tempfile
@@ -167,6 +168,45 @@ def harvest() -> int:
 
     logger.info("idp_cookies: harvested %d cookies -> %s", len(cookies), COOKIE_FILE)
     return len(cookies)
+
+
+def purge_domains(domains: list[str]) -> int:
+    """Drop persisted cookies for *domains* (old deployments moved on).
+
+    Used when an embedded system changes address: stale cookies from
+    the OLD host linger in the store and the NEW system (sharing the
+    same cookie store) may answer 404 for the stale session instead
+    of redirecting to login. Removing them lets the fresh SSO flow
+    take over. Returns the number of removed entries.
+    """
+    count = 0
+    try:
+        if COOKIE_FILE.is_file():
+            with open(COOKIE_FILE, encoding="utf-8") as f:
+                cookies = json.load(f)
+            kept = []
+            for c in cookies:
+                dom = str(c.get("domain", ""))
+                if any(d in dom for d in domains):
+                    count += 1
+                    continue
+                kept.append(c)
+            if count:
+                with open(COOKIE_FILE, "w", encoding="utf-8") as f:
+                    json.dump(kept, f, ensure_ascii=False)
+        # Best effort: purge from the live webview cookie store too.
+        for w in webview.windows:
+            try:
+                for c in w.get_cookies():
+                    dom = str(getattr(c, "domain", ""))
+                    if any(d in dom for d in domains):
+                        w.evaluate_js("document.cookie = %s" % json.dumps(
+                            f"{c.name}=; Max-Age=0; path=/; domain={dom}"))
+            except Exception:
+                pass
+    except Exception:
+        logger.warning("purge_domains failed", exc_info=True)
+    return count
 
 
 def restore(domains: list[str] | None = None) -> int:
