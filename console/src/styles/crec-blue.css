@@ -91,3 +91,117 @@ html.blue-mode [class*="sider__"] [class*="divider__"],
 html.blue-mode [class*="siderScrollContent__"] [class*="divider__"] {
   border-color: rgba(255, 255, 255, 0.18) !important;
 }
+
+/* ── 数字员工选择器（AgentSelector）：白底 → 蓝底适配 ──────────────
+   它自带 background:#fff，在品牌蓝侧栏上是刺眼的白块，且内部文字
+   被白字规则染成白底白字（完全隐形）。整组翻成蓝底白字。 */
+html.blue-mode [class*="agentSelectorWrapper__"],
+html.blue-mode [class*="agentSelectorCollapsed__"],
+html.blue-mode [class*="agentSelector__"] {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+}
+
+html.blue-mode [class*="agentSelectorWrapper__"] [class*="agentSelectorLabel__"],
+html.blue-mode [class*="agentSelectorWrapper__"] [class*="selectedAgentLabel__"],
+html.blue-mode [class*="agentSelectorWrapper__"] [class*="agentCountBadge__"],
+html.blue-mode [class*="agentSelectorCollapsed__"] * {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* 下拉弹层保持浅色（弹层浮在内容区上空，浅色可读性最好），
+   但其内部不受白字规则影响 —— 弹层不在 .sider__ 内，天然安全。 */
+
+/* ── 历史会话条目：蓝底上提亮、勾选框描边可见 ─────────────────── */
+html.blue-mode [class*="siderScrollContent__"] [class*="itemName__"] {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+html.blue-mode [class*="siderScrollContent__"] [class*="itemPath__"],
+html.blue-mode [class*="siderScrollContent__"] [class*="itemTime__"],
+html.blue-mode [class*="siderScrollContent__"] [class*="time__"],
+html.blue-mode [class*="siderScrollContent__"] [class*="sectionLabel__"],
+html.blue-mode [class*="siderScrollContent__"] [class*="sectionTitle__"] {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+html.blue-mode [class*="siderScrollContent__"] input[type="checkbox"],
+html.blue-mode [class*="siderScrollContent__"] [class*="checkbox__"] {
+  border-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+html.blue-mode [class*="siderScrollContent__"] [class*="checkbox__"][class*="checked__"],
+html.blue-mode [class*="siderScrollContent__"] [class*="checkboxChecked__"] {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+/* 全局搜索行右侧 ⌘K 快捷键标签 */
+html.blue-mode [class*="searchKbd__"] {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* 导航徽标红点保持红色（别被白字规则误伤） */
+html.blue-mode [class*="navItemNewDot__"] {
+  background: #ff4d4f !important;
+}
+
+/* ── 数字员工选择器（AgentSelector）：白底 → 蓝底适配 ──────────────
+   它自带 background:#fff，在品牌蓝侧栏上是刺眼的白块，且内部文字
+   被白字规则染成白底白字（完全隐形）。整组翻成蓝底白字。 */
+html.blue-mode [class*="agentSelectorWrapper__"],
+html.blue-mode [class*="agentSelectorCollapsed__"],
+html.blue-mode [class*="agentSelector__"] {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+}
+
+html.blue-mode [class*="agentSelectorWrapper__"] [class*="agentSelectorLabel__"],
+html.blue-mode [class*="agentSelectorWrapper__"] [class*="selectedAgentLabel__"],
+html.blue-mode [class*="agentSelectorWrapper__"] [class*="agentCountBadge__"],
+html.blue-mode [class*="agentSelectorCollapsed__"] * {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* 下拉弹层保持浅色（弹层浮在内容区上空，浅色可读性最好），
+   但其内部不受白字规则影响 —— 弹层不在 .sider__ 内，天然安全。 */
+
+/* ── 历史会话条目：蓝底上提亮、勾选框描边可见 ─────────────────── */
+html.blue-mode [class*="siderScrollContent__"] [class*="itemName__"] {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+html.blue-mode [class*="siderScrollContent__"] [class*="itemPath__"],
+html.blue-mode [class*="siderScrollContent__"] [class*="itemTime__"],
+html.blue-mode [class*="siderScrollContent__"] [class*="time__"],
+html.blue-mode [class*="siderScrollContent__"] [class*="sectionLabel__"],
+html.blue-mode [class*="siderScrollContent__"] [class*="sectionTitle__"] {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+html.blue-mode [class*="siderScrollContent__"] input[type="checkbox"],
+html.blue-mode [class*="siderScrollContent__"] [class*="checkbox__"] {
+  border-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+html.blue-mode [class*="siderScrollContent__"] [class*="checkbox__"][class*="checked__"],
+html.blue-mode [class*="siderScrollContent__"] [class*="checkboxChecked__"] {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+/* 全局搜索行右侧 ⌘K 快捷键标签 */
+html.blue-mode [class*="searchKbd__"] {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* 导航徽标红点保持红色（别被白字规则误伤） */
+html.blue-mode [class*="navItemNewDot__"] {
+  background: #ff4d4f !important;
+}
