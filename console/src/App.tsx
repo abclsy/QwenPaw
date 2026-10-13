@@ -169,10 +169,12 @@ function AppInner() {
         prefixCls="qwenpaw"
         locale={antdLocale}
         theme={{
-          // 2026-10-13 主题系统重做：移除 bailian 主题叠加（紫系 token +
-          // cssVar 动态注入 + darkAlgorithm 派生互相打架，深色下派生出
-          // rgba(64,150,255,.18) 的蓝色高亮层，用户界面大面积"蓝块"）。
-          // 现在是单一可控源：标准 antd 算法 + 品牌色。
+          // 2026-10-13 主题重做修正：cssVar+hashed 是 Spark Design 组件的
+          // 运行契约（它们依赖注入的 --qwenpaw-* 变量渲染），必须保留；
+          // 移除的只是 bailian 紫系 token（蓝块的源头）。变量现在全部由
+          // 标准 antd 算法 + 品牌色生成。
+          cssVar: true,
+          hashed: false,
           algorithm: isDark
             ? antdTheme.darkAlgorithm
             : antdTheme.defaultAlgorithm,
